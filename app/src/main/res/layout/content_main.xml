@@ -1,0 +1,260 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    app:layout_behavior="@string/appbar_scrolling_view_behavior"
+    tools:showIn="@layout/activity_main"
+    tools:context="net.anders.autounlock.MainActivity">
+
+    <RelativeLayout
+        android:id="@+id/infoContainer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="10dp">
+
+        <LinearLayout
+            android:id="@+id/col1"
+            android:orientation="horizontal"
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content">
+            <LinearLayout
+                android:layout_height="wrap_content"
+                android:layout_width="wrap_content">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Geofence status:"/>
+            </LinearLayout>
+            <LinearLayout
+                android:paddingLeft="20dp"
+                android:layout_height="wrap_content"
+                android:layout_width="wrap_content">
+                <TextView
+                    android:id="@+id/geofenceStatus"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="no data"/>
+            </LinearLayout>
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/col2"
+            android:layout_below="@+id/col1"
+            android:orientation="horizontal"
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content">
+            <LinearLayout
+                android:layout_height="wrap_content"
+                android:layout_width="wrap_content">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Score:"/>
+            </LinearLayout>
+            <LinearLayout
+                android:paddingLeft="20dp"
+                android:layout_height="wrap_content"
+                android:layout_width="wrap_content">
+                <TextView
+                    android:id="@+id/tvInfo2"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
+            </LinearLayout>
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/col3"
+            android:layout_below="@+id/col2"
+            android:orientation="horizontal"
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content">
+            <LinearLayout
+                android:layout_height="wrap_content"
+                android:layout_width="wrap_content">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Distance fra og til lås:"/>
+            </LinearLayout>
+            <LinearLayout
+                android:paddingLeft="20dp"
+                android:layout_height="wrap_content"
+                android:layout_width="wrap_content">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/tvInfo3"/>
+            </LinearLayout>
+        </LinearLayout>
+    </RelativeLayout>
+
+    <ScrollView
+        android:id="@+id/controlsContainerScroll"
+        android:layout_below="@+id/infoContainer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingLeft="@dimen/activity_horizontal_margin"
+        android:paddingRight="@dimen/activity_horizontal_margin"
+        android:paddingTop="@dimen/activity_vertical_margin"
+        android:paddingBottom="@dimen/activity_vertical_margin">
+
+        <RelativeLayout
+            android:id="@+id/controlsContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="2dp">
+
+            <Button
+                android:id="@+id/accstart"
+                android:layout_height="wrap_content"
+                android:layout_width="wrap_content"
+                android:text="Start Acceleration Service"
+                android:onClick="onButtonClickAccel"/>
+
+            <Button
+                android:id="@+id/accstop"
+                android:layout_height="wrap_content"
+                android:layout_width="wrap_content"
+                android:text="Stop"
+                android:onClick="onButtonClickAccelStop"
+                android:layout_above="@+id/locationstart"
+                android:layout_alignParentEnd="true"/>
+
+            <Button
+                android:id="@+id/locationstart"
+                android:layout_height="wrap_content"
+                android:layout_width="wrap_content"
+                android:layout_below="@id/accstart"
+                android:text="Start Location Service"
+                android:onClick="onButtonClickLocation" />
+
+            <Button
+                android:id="@+id/locationstop"
+                android:layout_height="wrap_content"
+                android:layout_width="wrap_content"
+                android:text="Stop"
+                android:onClick="onButtonClickLocationStop"
+                android:layout_alignTop="@+id/locationstart"
+                android:layout_alignStart="@+id/accstop"/>
+
+            <Button
+                android:id="@+id/wifistart"
+                android:layout_height="wrap_content"
+                android:layout_width="wrap_content"
+                android:text="Start Wifi Service"
+                android:onClick="onButtonClickWifi"
+                android:layout_below="@+id/locationstart"
+                android:layout_alignParentStart="true"/>
+
+            <Button
+                android:id="@+id/wifistop"
+                android:layout_height="wrap_content"
+                android:layout_width="wrap_content"
+                android:text="Stop"
+                android:onClick="onButtonClickWifiStop"
+                android:layout_below="@+id/locationstop"
+                android:layout_alignParentEnd="true"/>
+
+            <Button
+                android:id="@+id/bluetoothstart"
+                android:layout_height="wrap_content"
+                android:layout_width="wrap_content"
+                android:layout_below="@id/wifistart"
+                android:text="Start Bluetooth Service"
+                android:onClick="onButtonClickBluetooth" />
+
+            <Button
+                android:id="@+id/bluetoothstop"
+                android:layout_height="wrap_content"
+                android:layout_width="wrap_content"
+                android:text="Stop"
+                android:onClick="onButtonClickBluetoothStop"
+                android:layout_below="@+id/wifistop"
+                android:layout_alignParentEnd="true"/>
+
+            <Button
+                android:id="@+id/allstart"
+                android:layout_height="wrap_content"
+                android:layout_width="wrap_content"
+                android:layout_below="@id/bluetoothstart"
+                android:text="Start All Services"
+                android:onClick="onButtonClickAll" />
+
+            <Button
+                android:id="@+id/allstop"
+                android:layout_height="wrap_content"
+                android:layout_width="wrap_content"
+                android:text="Stop"
+                android:onClick="onButtonClickAllStop"
+                android:layout_below="@+id/bluetoothstop"
+                android:layout_alignParentEnd="true"/>
+
+            <Button
+                android:id="@+id/databufferstart"
+                android:layout_height="wrap_content"
+                android:layout_width="wrap_content"
+                android:layout_below="@id/allstart"
+                android:text="Start Data Buffer"
+                android:onClick="onButtonClickDataBuffer" />
+
+            <Button
+                android:id="@+id/databufferstop"
+                android:layout_height="wrap_content"
+                android:layout_width="wrap_content"
+                android:text="Stop"
+                android:onClick="onButtonClickDataBufferStop"
+                android:layout_below="@+id/allstop"
+                android:layout_alignParentEnd="true"/>
+
+            <Button
+                android:id="@+id/addgeofence"
+                android:layout_height="wrap_content"
+                android:layout_width="wrap_content"
+                android:layout_below="@id/databufferstart"
+                android:text="Add geofence"
+                android:onClick="onButtonClickAddGeofence" />
+
+            <Button
+                android:id="@+id/registergeofence"
+                android:layout_height="wrap_content"
+                android:layout_width="wrap_content"
+                android:text="Register Geofence"
+                android:onClick="onButtonClickRegisterGeofence"
+                android:layout_below="@+id/addgeofence"
+                android:layout_alignParentStart="true"/>
+
+            <Button
+                android:id="@+id/unregistergeofence"
+                android:layout_height="wrap_content"
+                android:layout_width="wrap_content"
+                android:text="Unregister Geofence"
+                android:onClick="onButtonClickUnregisterGeofence"
+                android:layout_below="@+id/registergeofence"
+                android:layout_alignParentStart="true"/>
+
+            <Button
+                android:id="@+id/exportdb"
+                android:layout_height="wrap_content"
+                android:layout_width="wrap_content"
+                android:text="Export"
+                android:onClick="onButtonClickExportDatastore"
+                android:layout_below="@+id/unregistergeofence"
+                android:layout_alignParentStart="true"/>
+
+            <Button
+                android:id="@+id/newdb"
+                android:layout_height="wrap_content"
+                android:layout_width="wrap_content"
+                android:text="Manual Unlock"
+                android:onClick="onButtonClickManualUnlock"
+                android:layout_below="@+id/unregistergeofence"
+                android:layout_alignEnd="@+id/databufferstop"/>
+
+
+        </RelativeLayout>
+    </ScrollView>
+</RelativeLayout>
