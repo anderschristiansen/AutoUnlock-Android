@@ -53,4 +53,12 @@ public class Logging {
             MainActivity.locationView.setText(latitude + ", " + longitude);
     }
 
+    public static void LockScanning(boolean status) {
+            if (status) {
+                MainActivity.lockScanningView.setText(Boolean.toString(status));
+            } else {
+                MainActivity.lockScanningView.setText(Boolean.toString(status));
+            }
+    }
+
 }
