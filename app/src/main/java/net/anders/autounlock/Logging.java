@@ -48,4 +48,9 @@ public class Logging {
 
     public static void LockScore() {
     }
+
+    public static void Location(double latitude, double longitude) {
+            MainActivity.locationView.setText(latitude + ", " + longitude);
+    }
+
 }

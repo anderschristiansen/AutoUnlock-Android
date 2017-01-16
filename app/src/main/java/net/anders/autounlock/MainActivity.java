@@ -35,7 +35,9 @@ public class MainActivity extends AppCompatActivity {
     private TextView trainingBtleMacValue;
     private TextView trainingBtleRssiValue;
 
+    /*TextViews for UI*/
     static TextView geofenceStatusView;
+    static TextView locationView;
 
     private static Button startAccelerometer;
     private static Button stopAccelerometer;
@@ -118,7 +120,9 @@ public class MainActivity extends AppCompatActivity {
 
         DataStore dataStore = new DataStore(this);
 
+        /* TextViews for UI */
         geofenceStatusView = (TextView) findViewById(R.id.geofenceStatus);
+        locationView = (TextView) findViewById(R.id.location);
 
 //        trainingView = findViewById(R.id.feedbackControlsContainer);
 //        trainingBtleMacValue = (TextView) findViewById(R.id.btleMacValue);

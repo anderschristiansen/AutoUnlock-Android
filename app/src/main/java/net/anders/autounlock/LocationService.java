@@ -67,6 +67,7 @@ public class LocationService extends Service {
             CoreService.dataStore.insertLocation(location.getProvider(), location.getLatitude(), location.getLongitude(), location.getAccuracy(), date, time);
 
             Log.v("LOCATION: ", location.toString());
+            Logging.Location(location.getLatitude(), location.getLongitude());
         }
 
         public void onStatusChanged(String provider, int status, Bundle extras) {
