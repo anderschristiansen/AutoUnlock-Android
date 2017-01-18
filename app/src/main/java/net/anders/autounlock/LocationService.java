@@ -48,23 +48,15 @@ public class LocationService extends Service {
             }
         }
 
-        private String getDateTime() {
-            SimpleDateFormat dateFormat = new SimpleDateFormat(
-                    "yyyy-MM-dd HH:mm:ss", Locale.getDefault());
-            Date date = new Date();
-            return dateFormat.format(date);
-        }
-
         void insertLocationData(Location location) {
             // Called when adapter new location is found by the network location provider.
             long time = System.currentTimeMillis();
-
-            String date = getDateTime();
+            String datetime = CoreService.getDateTime();
 
             LocationData aLocation;
-            aLocation = new LocationData(location.getProvider(), location.getLatitude(), location.getLongitude(), location.getAccuracy(), date, time);
+            aLocation = new LocationData(location.getProvider(), location.getLatitude(), location.getLongitude(), location.getAccuracy(), datetime, time);
             CoreService.recordedLocation.add(aLocation);
-            CoreService.dataStore.insertLocation(location.getProvider(), location.getLatitude(), location.getLongitude(), location.getAccuracy(), date, time);
+            CoreService.dataStore.insertLocation(location.getProvider(), location.getLatitude(), location.getLongitude(), location.getAccuracy(), datetime, time);
 
             Log.v("LOCATION: ", location.toString());
             Logging.Location(location.getLatitude(), location.getLongitude());

@@ -69,8 +69,11 @@ class Heuristics {
 
             if (!recentLocationList.isEmpty()) {
                 float[] results = new float[3];
-                Location.distanceBetween(storedLockData.getLocation().getLatitude(), storedLockData.getLocation().getLongitude(),
-                        recentLocationList.get(recentLocationList.size() - 1).getLatitude(), recentLocationList.get(recentLocationList.size() - 1).getLongitude(),
+                Location.distanceBetween(
+                        storedLockData.getLocation().getLatitude(),
+                        storedLockData.getLocation().getLongitude(),
+                        recentLocationList.get(recentLocationList.size() - 1).getLatitude(),
+                        recentLocationList.get(recentLocationList.size() - 1).getLongitude(),
                         results);
                 Log.e(TAG, "makeDecision: distanceBetween " + results[0]);
                 lockScore += 100 - results[0];

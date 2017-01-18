@@ -10,4 +10,5 @@
     <color name="trainOn">#3B7A57</color>
     <color name="trainInfo">#FFBF00</color>
     <color name="trainWarning">#FF7E00</color>
+    <color name="beKeyBlue">#04A4CC</color>
 </resources>

@@ -14,8 +14,10 @@ import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.ToggleButton;
 
 import org.w3c.dom.Text;
 
@@ -39,6 +41,10 @@ public class MainActivity extends AppCompatActivity {
     static TextView geofenceStatusView;
     static TextView locationView;
     static TextView lockScanningView;
+    static RelativeLayout sensorContainer;
+
+    /*Togglebutton to show/hide sensor container*/
+    private static ToggleButton sensorToggle;
 
     private static Button startAccelerometer;
     private static Button stopAccelerometer;
@@ -83,6 +89,10 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
+        sensorToggle = (ToggleButton) findViewById(R.id.sensorToggle);
+        sensorContainer = (RelativeLayout) findViewById(R.id.sensorContainer);
+        sensorContainer.setVisibility(View.GONE);
 
         startAccelerometer = (Button) findViewById(R.id.accstart);
         stopAccelerometer = (Button) findViewById(R.id.accstop);
@@ -537,6 +547,16 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    public void onButtonClickToggleSensorContainer(View v) {
+        if (bound) {
+            if(((ToggleButton) v).isChecked()) {
+                sensorContainer.setVisibility(View.VISIBLE);
+            } else {
+                sensorContainer.setVisibility(View.GONE);
+            }
+        }
+    }
+
     public void onButtonClickExportDatastore(View v) {
 /*        String filename = String.valueOf(System.currentTimeMillis());
         String[] numbers = new String[] {"1, 2, 3"};
@@ -607,6 +627,12 @@ public class MainActivity extends AppCompatActivity {
     public void onButtonClickManualUnlock(View v) {
         if (bound) {
             coreService.manualUnlock(BluetoothService.ANDERS_BEKEY);
+        }
+    }
+
+    public void onButtonClickDeleteDatastore(View v) {
+        if (bound) {
+            coreService.deleteDatastore();
         }
     }
 

@@ -44,13 +44,14 @@ class DataStore {
     private static final String SPEED_X = "speed_x";
     private static final String SPEED_Y = "speed_y";
     private static final String SPEED_Z = "speed_z";
+    private static final String ACCELEROMETER_DATETIME = "datetime";
 
     private static final String LOCATION_TABLE = "location";
     private static final String LOCATION_PROVIDER = "provider";
     private static final String LOCATION_LATITUDE = "latitude";
     private static final String LOCATION_LONGITUDE = "longitude";
     private static final String LOCATION_ACCURACY = "accuracy";
-    private static final String LOCATION_DATE = "date";
+    private static final String LOCATION_DATETIME = "datetime";
 
     private static final String DECISION_TABLE = "decision";
     private static final String DECISION_DECISION = "decision";
@@ -67,12 +68,12 @@ class DataStore {
 
     void deleteDatastore() {
         database = databaseHelper.getWritableDatabase();
-        database.delete(BLUETOOTH_TABLE, null, null);
-        database.delete(WIFI_TABLE, null, null);
+//        database.delete(BLUETOOTH_TABLE, null, null);
+//        database.delete(WIFI_TABLE, null, null);
         database.delete(ACCELEROMETER_TABLE, null, null);
         database.delete(LOCATION_TABLE, null, null);
-        database.delete(DECISION_TABLE, null, null);
-        database.delete(BUFFER_TABLE, null, null);
+//        database.delete(DECISION_TABLE, null, null);
+//        database.delete(BUFFER_TABLE, null, null);
         database.close();
     }
 
@@ -270,7 +271,7 @@ class DataStore {
     }
 
     void insertAccelerometer(float accelerometerX, float accelerometerY, float accelerometerZ,
-                                    float speedX, float speedY, float speedZ, long timestamp) {
+                                    float speedX, float speedY, float speedZ, String datetime, long timestamp) {
         ContentValues contentValues = new ContentValues();
         contentValues.put(ACCELERATION_X, accelerometerX);
         contentValues.put(ACCELERATION_Y, accelerometerY);
@@ -278,6 +279,7 @@ class DataStore {
         contentValues.put(SPEED_X, speedX);
         contentValues.put(SPEED_Y, speedY);
         contentValues.put(SPEED_Z, speedZ);
+        contentValues.put(ACCELEROMETER_DATETIME, datetime);
         contentValues.put(TIMESTAMP, timestamp);
 
         try {
@@ -290,13 +292,13 @@ class DataStore {
         }
     }
 
-    void insertLocation(String provider, double latitude, double longitude, float accuracy, String date, long timestamp) {
+    void insertLocation(String provider, double latitude, double longitude, float accuracy, String datetime, long timestamp) {
         ContentValues contentValues = new ContentValues();
         contentValues.put(LOCATION_PROVIDER, provider);
         contentValues.put(LOCATION_LATITUDE, latitude);
         contentValues.put(LOCATION_LONGITUDE, longitude);
         contentValues.put(LOCATION_ACCURACY, accuracy);
-        contentValues.put(LOCATION_DATE, date);
+        contentValues.put(LOCATION_DATETIME, datetime);
         contentValues.put(TIMESTAMP, timestamp);
 
         try {
@@ -448,6 +450,7 @@ class DataStore {
                     + SPEED_X + " FLOAT, "
                     + SPEED_Y + " FLOAT, "
                     + SPEED_Z + " FLOAT, "
+                    + ACCELEROMETER_DATETIME + " TEXT, "
                     + TIMESTAMP + " LONG)");
 
             database.execSQL("CREATE TABLE " + LOCATION_TABLE + " ("
@@ -455,7 +458,7 @@ class DataStore {
                     + LOCATION_LATITUDE + " TEXT, "
                     + LOCATION_LONGITUDE + " TEXT, "
                     + LOCATION_ACCURACY + " TEXT, "
-                    + LOCATION_DATE + " TEXT, "
+                    + LOCATION_DATETIME + " TEXT, "
                     + TIMESTAMP + " LONG)");
         }
 

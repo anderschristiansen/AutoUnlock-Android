@@ -20,8 +20,11 @@ import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.LocationServices;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 public class CoreService extends Service implements
         GoogleApiClient.ConnectionCallbacks,
@@ -605,5 +608,19 @@ public class CoreService extends Service implements
         } else {
             Log.e(TAG, lock.toString());
         }
+    }
+
+    void deleteDatastore() {
+        //for testing
+        stopAccelerometerService();
+
+        dataStore.deleteDatastore();
+    }
+
+    static String getDateTime() {
+        SimpleDateFormat dateFormat = new SimpleDateFormat(
+                "yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+        Date date = new Date();
+        return dateFormat.format(date);
     }
 }

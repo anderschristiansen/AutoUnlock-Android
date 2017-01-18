@@ -7,16 +7,18 @@ public class AccelerometerData {
     float speedX;
     float speedY;
     float speedZ;
+    String datetime;
     long time;
 
     public AccelerometerData(float accelerationX, float accelerationY, float accelerationZ,
-                             float speedX, float speedY, float speedZ, long time) {
+                             float speedX, float speedY, float speedZ, String datetime, long time) {
         this.accelerationX = accelerationX;
         this.accelerationY = accelerationY;
         this.accelerationZ = accelerationZ;
         this.speedX = speedX;
         this.speedY = speedY;
         this.speedZ = speedZ;
+        this.datetime = datetime;
         this.time = time;
     }
 
@@ -85,6 +87,7 @@ public class AccelerometerData {
                 ", speedX=" + speedX +
                 ", speedY=" + speedY +
                 ", speedZ=" + speedZ +
+                ", datetime=" + datetime +
                 ", time=" + time +
                 '}';
     }

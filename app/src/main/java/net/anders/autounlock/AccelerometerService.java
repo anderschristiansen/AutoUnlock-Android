@@ -172,13 +172,15 @@ public class AccelerometerService extends Service implements SensorEventListener
 
     private void processSensorData (float[] linearAcceleration, float[] velocity) {
         long time = System.currentTimeMillis();
+        String datetime = CoreService.getDateTime();
+
         AccelerometerData anAccelerometerEvent = new AccelerometerData (
                 linearAcceleration[0], linearAcceleration[1], linearAcceleration[2],
-                velocity[0], velocity[1], velocity[2], time) ;
+                velocity[0], velocity[1], velocity[2], datetime, time) ;
 
         CoreService.recordedAccelerometer.add(anAccelerometerEvent);
         CoreService.dataStore.insertAccelerometer(linearAcceleration[0], linearAcceleration[1],
-                linearAcceleration[2], velocity[0], velocity[1], velocity[2], time);
+                linearAcceleration[2], velocity[0], velocity[1], velocity[2], datetime, time);
     }
 
     @Override
