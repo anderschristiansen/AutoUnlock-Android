@@ -250,7 +250,9 @@ public class CoreService extends Service implements
                             startAccelerometerService();
                             startBluetoothService();
                             startWifiService();
-                            scanForLocks();
+
+                            // For test purposes ABC
+                            //scanForLocks();
                         }
                     } else if (geofence.contains("outer")) {
                         Logging.GeofenceEntered("Outer");
@@ -445,7 +447,7 @@ public class CoreService extends Service implements
 
     void redoDataCollection(String lock) {
         dataStore.deleteLockData(lock);
-        manualUnlock(lock);
+        saveDb(lock);
     }
 
     void redoOrientation(String lock) {
@@ -508,7 +510,7 @@ public class CoreService extends Service implements
 
     void newFalsePositive() { long time = System.currentTimeMillis(); dataStore.insertDecision(0, time); }
 
-    void manualUnlock(final String lockMAC) {
+    void saveDb(final String lockMAC) {
         new Thread(new Runnable() {
             public void run() {
                 boolean success = true;
@@ -622,5 +624,19 @@ public class CoreService extends Service implements
                 "yyyy-MM-dd HH:mm:ss", Locale.getDefault());
         Date date = new Date();
         return dateFormat.format(date);
+    }
+
+    void onButtonClickManuelUnlock() {
+        stopAccelerometerService();
+        stopBluetoothService();
+        stopWifiService();
+        stopLocationService();
+
+        isScanningForLocks = false;
+        isDetailedDataCollectionStarted = false;
+        isLocationDataCollectionStarted = false;
+
+        Toast.makeText(getApplicationContext(), "BeKey unlocked", Toast.LENGTH_SHORT).show();
+        Logging.Unlock();
     }
 }

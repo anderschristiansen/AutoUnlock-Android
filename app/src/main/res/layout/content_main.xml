@@ -107,15 +107,15 @@
             android:id="@+id/controlsContainer"
             android:layout_below="@+id/infoContainer"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical">
+            android:layout_height="wrap_content">
 
             <ToggleButton
                 android:id="@+id/sensorToggle"
-                android:layout_width="wrap_content"
+                android:layout_width="200dp"
                 android:layout_height="wrap_content"
                 android:textOff="show"
                 android:textOn="hide"
+                android:layout_centerHorizontal="true"
                 android:onClick="onButtonClickToggleSensorContainer"/>
 
             <RelativeLayout
@@ -124,8 +124,18 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:background="@drawable/background_border"
-                android:padding="6dp"
+                android:padding="10dp"
                 android:layout_margin="10dp">
+
+                <Button
+                    android:id="@+id/accstart"
+                    android:layout_height="40dp"
+                    android:layout_width="200dp"
+                    android:textSize="10dp"
+                    android:text="Start Acceleration Service"
+                    android:onClick="onButtonClickAccel"
+                    android:layout_alignParentTop="true"
+                    android:layout_alignParentStart="true" />
 
                 <Button
                     android:id="@+id/accstop"
@@ -134,8 +144,17 @@
                     android:layout_width="wrap_content"
                     android:text="Stop"
                     android:onClick="onButtonClickAccelStop"
-                    android:layout_above="@+id/locationstart"
                     android:layout_alignParentEnd="true"/>
+
+                <Button
+                    android:id="@+id/locationstart"
+                    android:layout_height="40dp"
+                    android:layout_width="200dp"
+                    android:textSize="10dp"
+                    android:text="Start Location Service"
+                    android:onClick="onButtonClickLocation"
+                    android:layout_below="@+id/accstart"
+                    android:layout_alignParentStart="true" />
 
                 <Button
                     android:id="@+id/locationstop"
@@ -150,8 +169,8 @@
                 <Button
                     android:id="@+id/wifistart"
                     android:layout_height="40dp"
+                    android:layout_width="200dp"
                     android:textSize="10dp"
-                    android:layout_width="wrap_content"
                     android:text="Start Wifi Service"
                     android:onClick="onButtonClickWifi"
                     android:layout_below="@+id/locationstart"
@@ -170,8 +189,8 @@
                 <Button
                     android:id="@+id/bluetoothstart"
                     android:layout_height="40dp"
+                    android:layout_width="200dp"
                     android:textSize="10dp"
-                    android:layout_width="wrap_content"
                     android:layout_below="@id/wifistart"
                     android:text="Start Bluetooth Service"
                     android:onClick="onButtonClickBluetooth" />
@@ -189,17 +208,27 @@
                 <Button
                     android:id="@+id/allstart"
                     android:layout_height="40dp"
+                    android:layout_width="200dp"
                     android:textSize="10dp"
-                    android:layout_width="wrap_content"
                     android:layout_below="@id/bluetoothstart"
                     android:text="Start All Services"
                     android:onClick="onButtonClickAll" />
 
                 <Button
-                    android:id="@+id/databufferstart"
+                    android:id="@+id/allstop"
                     android:layout_height="40dp"
                     android:textSize="10dp"
                     android:layout_width="wrap_content"
+                    android:text="Stop"
+                    android:onClick="onButtonClickAllStop"
+                    android:layout_below="@+id/bluetoothstop"
+                    android:layout_alignParentEnd="true" />
+
+                <Button
+                    android:id="@+id/databufferstart"
+                    android:layout_height="40dp"
+                    android:layout_width="200dp"
+                    android:textSize="10dp"
                     android:layout_below="@id/allstart"
                     android:text="Start Data Buffer"
                     android:onClick="onButtonClickDataBuffer" />
@@ -213,36 +242,6 @@
                     android:onClick="onButtonClickDataBufferStop"
                     android:layout_below="@+id/allstop"
                     android:layout_alignParentEnd="true"/>
-
-                <Button
-                    android:id="@+id/locationstart"
-                    android:layout_height="40dp"
-                    android:textSize="10dp"
-                    android:layout_width="wrap_content"
-                    android:text="Start Location Service"
-                    android:onClick="onButtonClickLocation"
-                    android:layout_below="@+id/accstart"
-                    android:layout_alignParentStart="true" />
-
-                <Button
-                    android:id="@+id/accstart"
-                    android:layout_height="40dp"
-                    android:textSize="10dp"
-                    android:layout_width="wrap_content"
-                    android:text="Start Acceleration Service"
-                    android:onClick="onButtonClickAccel"
-                    android:layout_alignParentTop="true"
-                    android:layout_alignParentStart="true" />
-
-                <Button
-                    android:id="@+id/allstop"
-                    android:layout_height="40dp"
-                    android:textSize="10dp"
-                    android:layout_width="wrap_content"
-                    android:text="Stop"
-                    android:onClick="onButtonClickAllStop"
-                    android:layout_below="@+id/bluetoothstop"
-                    android:layout_alignParentEnd="true" />
 
             </RelativeLayout>
 
@@ -276,29 +275,41 @@
                 android:layout_alignParentStart="true"/>
 
             <Button
-                android:id="@+id/newdb"
+                android:id="@+id/manuelUnlock"
                 android:layout_height="wrap_content"
-                android:layout_width="wrap_content"
-                android:text="Manual Unlock"
-                android:onClick="onButtonClickManualUnlock"
-                android:layout_below="@+id/sensorContainer"/>
+                android:layout_width="200dp"
+                android:text="Unlock"
+                android:onClick="onButtonClickManuelUnlock"
+                android:layout_below="@+id/sensorContainer"
+                android:layout_centerHorizontal="true"/>
+
+            <!--Old method to manuel unlock-->
+            <Button
+                android:id="@+id/saveDb"
+                android:layout_height="wrap_content"
+                android:layout_width="200dp"
+                android:text="Save lock"
+                android:onClick="onButtonClickSaveDb"
+                android:layout_below="@+id/manuelUnlock"
+                android:layout_centerHorizontal="true"/>
 
             <Button
-                android:id="@+id/exportdb"
+                android:id="@+id/exportDb"
                 android:layout_height="wrap_content"
-                android:layout_width="wrap_content"
+                android:layout_width="200dp"
                 android:text="Export database"
                 android:onClick="onButtonClickExportDatastore"
-                android:layout_below="@+id/newdb"
-                android:layout_alignParentStart="true"/>
+                android:layout_below="@+id/saveDb"
+                android:layout_centerHorizontal="true"/>
 
             <Button
-                android:id="@+id/deletedb"
+                android:id="@+id/deleteDb"
                 android:layout_height="wrap_content"
-                android:layout_width="wrap_content"
+                android:layout_width="200dp"
                 android:text="Wipe database"
                 android:onClick="onButtonClickDeleteDatastore"
-                android:layout_below="@+id/exportdb"/>
+                android:layout_below="@+id/exportDb"
+                android:layout_centerHorizontal="true"/>
 
 
         </RelativeLayout>

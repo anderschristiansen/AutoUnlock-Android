@@ -624,11 +624,18 @@ public class MainActivity extends AppCompatActivity {
         return "AutoUnlock-" + list.length + ".db";
     }
 
-    public void onButtonClickManualUnlock(View v) {
+    public void onButtonClickSaveDb(View v) {
         if (bound) {
-            coreService.manualUnlock(BluetoothService.ANDERS_BEKEY);
+            coreService.saveDb(BluetoothService.ANDERS_BEKEY);
         }
     }
+
+    public void onButtonClickManuelUnlock(View v) {
+        if (bound) {
+            coreService.onButtonClickManuelUnlock();
+        }
+    }
+
 
     public void onButtonClickDeleteDatastore(View v) {
         if (bound) {

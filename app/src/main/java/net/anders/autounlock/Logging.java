@@ -1,12 +1,14 @@
 package net.anders.autounlock;
 
+import android.app.Activity;
 import android.util.Log;
+import android.widget.Toast;
 
 /**
  * Created by Anders on 06-01-2017.
  */
 
-public class Logging {
+public class Logging  extends Activity {
 
     private static final String TAG = "Log";
 
@@ -59,6 +61,10 @@ public class Logging {
             } else {
                 MainActivity.lockScanningView.setText(Boolean.toString(status));
             }
+    }
+
+    public static void Unlock() {
+        Log.i(TAG, "Manuel unlock +++ STOP SERVICES +++");
     }
 
 }
