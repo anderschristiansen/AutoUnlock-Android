@@ -66,12 +66,12 @@ class DataStore {
         databaseHelper = new DatabaseHelper(context);
     }
 
-    void deleteDatastore() {
+    void deleteAccelerometerData() {
         database = databaseHelper.getWritableDatabase();
 //        database.delete(BLUETOOTH_TABLE, null, null);
 //        database.delete(WIFI_TABLE, null, null);
         database.delete(ACCELEROMETER_TABLE, null, null);
-        database.delete(LOCATION_TABLE, null, null);
+//        database.delete(LOCATION_TABLE, null, null);
 //        database.delete(DECISION_TABLE, null, null);
 //        database.delete(BUFFER_TABLE, null, null);
         database.close();

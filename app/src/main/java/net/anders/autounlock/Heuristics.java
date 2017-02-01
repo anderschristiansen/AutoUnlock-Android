@@ -79,6 +79,7 @@ class Heuristics {
                 lockScore += 100 - results[0];
             }
 
+
             if (CoreService.activeInnerGeofences.contains(foundLock)
                     && CoreService.activeOuterGeofences.contains(foundLock)) {
                 lockScore += 50;
@@ -97,6 +98,7 @@ class Heuristics {
         }
 
         if (maxEntry.getValue() > 250) {
+
             NotificationUtility notification = new NotificationUtility();
             notification.displayUnlockNotification(context, maxEntry.getKey(), recentBluetoothList, recentWifiList, recentLocationList);
             return true;

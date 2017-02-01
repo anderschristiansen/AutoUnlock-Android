@@ -41,6 +41,7 @@ public class MainActivity extends AppCompatActivity {
     static TextView geofenceStatusView;
     static TextView locationView;
     static TextView lockScanningView;
+    static TextView accelerometerView;
     static RelativeLayout sensorContainer;
 
     /*Togglebutton to show/hide sensor container*/
@@ -135,6 +136,7 @@ public class MainActivity extends AppCompatActivity {
         geofenceStatusView = (TextView) findViewById(R.id.geofenceStatus);
         locationView = (TextView) findViewById(R.id.location);
         lockScanningView = (TextView) findViewById(R.id.lock);
+        accelerometerView = (TextView) findViewById(R.id.accelerometer);
 
 //        trainingView = findViewById(R.id.feedbackControlsContainer);
 //        trainingBtleMacValue = (TextView) findViewById(R.id.btleMacValue);
@@ -558,88 +560,26 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void onButtonClickExportDatastore(View v) {
-/*        String filename = String.valueOf(System.currentTimeMillis());
-        String[] numbers = new String[] {"1, 2, 3"};
-        FileOutputStream outputStream;
-
-        Log.d(TAG, "onButtonClickExportDatastore: ");
-
-        try {
-            outputStream = openFileOutput(filename, Context.MODE_APPEND);
-            for (String s : CoreService.export) {
-                outputStream.write(s.getBytes());
-                outputStream.write('\n');
-            }
-            outputStream.close();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }*/
-
-        try {
-            File data = Environment.getDataDirectory();
-
-            try {
-                String datastorePath = "//data//net.anders.autounlock//databases//datastore.db";
-                //String exportPath = String.valueOf(System.currentTimeMillis()) + ".db";
-                String exportPath = constructDbName();
-
-                File outputDirectory = new File("/sdcard/AutoUnlock/");
-                outputDirectory.mkdirs();
-
-                File datastore = new File(data, datastorePath);
-                File export = new File(outputDirectory, exportPath);
-
-                FileChannel source = new FileInputStream(datastore).getChannel();
-                FileChannel destination = new FileOutputStream(export).getChannel();
-
-                destination.transferFrom(source, 0, source.size());
-                source.close();
-                destination.close();
-
-                Log.v("Export Datastore", "Datastore exported to " + exportPath);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        } catch (Exception e) {
-            // do something
-        }
-/*        if (bound) {
-            List<String> foundLocks = new ArrayList<>();
-            foundLocks.add(BluetoothService.SIMON_BEKEY);
-            Log.d(TAG, foundLocks.toString());
-            //coreService.startHeuristicsDecision(foundLocks);
-            //coreService.notifyDecision();
-            NotificationUtility notification = new NotificationUtility();
-            notification.displayUnlockNotification(this,
-                    BluetoothService.SIMON_BEKEY,
-                    CoreService.recordedBluetooth,
-                    CoreService.recordedWifi,
-                    CoreService.recordedLocation);
-        }*/
-    }
-
-    public String constructDbName() {
-        File file=new File("/sdcard/AutoUnlock");
-        File[] list = file.listFiles();
-        return "AutoUnlock-" + list.length + ".db";
+        CoreService.ExportDb();
     }
 
     public void onButtonClickSaveDb(View v) {
         if (bound) {
             coreService.saveDb(BluetoothService.ANDERS_BEKEY);
+            //Toast.makeText(this, "Lock found and saved", Toast.LENGTH_SHORT).show();
         }
     }
 
     public void onButtonClickManuelUnlock(View v) {
         if (bound) {
-            coreService.onButtonClickManuelUnlock();
+            coreService.onButtonClickManualUnlock();
         }
     }
 
 
-    public void onButtonClickDeleteDatastore(View v) {
+    public void onButtonClickDeleteAccelerometerData(View v) {
         if (bound) {
-            coreService.deleteDatastore();
+            coreService.deleteAccelerometerData();
         }
     }
 

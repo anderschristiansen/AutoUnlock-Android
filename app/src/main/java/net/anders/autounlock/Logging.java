@@ -64,7 +64,11 @@ public class Logging  extends Activity {
     }
 
     public static void Unlock() {
-        Log.i(TAG, "Manuel unlock +++ STOP SERVICES +++");
+        Log.i(TAG, "Manuel unlock and save DB +++ STOP SERVICES +++");
+    }
+
+    public static void DisplayAccelerometer(float x, float y, float z) {
+        MainActivity.accelerometerView.setText(x + " ; " + y + " ; " + z);
     }
 
 }

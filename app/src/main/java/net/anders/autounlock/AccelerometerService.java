@@ -179,8 +179,8 @@ public class AccelerometerService extends Service implements SensorEventListener
                 velocity[0], velocity[1], velocity[2], datetime, time) ;
 
         CoreService.recordedAccelerometer.add(anAccelerometerEvent);
-        CoreService.dataStore.insertAccelerometer(linearAcceleration[0], linearAcceleration[1],
-                linearAcceleration[2], velocity[0], velocity[1], velocity[2], datetime, time);
+        CoreService.dataStore.insertAccelerometer(linearAcceleration[0], linearAcceleration[1], linearAcceleration[2], velocity[0], velocity[1], velocity[2], datetime, time);
+        //Logging.DisplayAccelerometer(linearAcceleration[0], linearAcceleration[1], linearAcceleration[2]);
     }
 
     @Override

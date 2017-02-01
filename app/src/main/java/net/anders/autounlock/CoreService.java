@@ -20,6 +20,10 @@ import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.LocationServices;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.nio.channels.FileChannel;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -65,6 +69,8 @@ public class CoreService extends Service implements
 
     static DataBuffer<List> dataBuffer;
     static DataStore dataStore;
+
+    static boolean isLockSaved = false;
 
     // Binder given to clients
     private final IBinder localBinder = new LocalBinder();
@@ -252,7 +258,7 @@ public class CoreService extends Service implements
                             startWifiService();
 
                             // For test purposes ABC
-                            //scanForLocks();
+                            scanForLocks();
                         }
                     } else if (geofence.contains("outer")) {
                         Logging.GeofenceEntered("Outer");
@@ -502,9 +508,9 @@ public class CoreService extends Service implements
         geofence.unregisterGeofences(this, mGoogleApiClient);
     }
 
-    void newDatastore() {
-        dataStore.deleteDatastore();
-    }
+//    void newDatastore() {
+//        dataStore.deleteDatastore();
+//    }
 
     void newTruePositive() { long time = System.currentTimeMillis(); dataStore.insertDecision(1, time); }
 
@@ -612,11 +618,14 @@ public class CoreService extends Service implements
         }
     }
 
-    void deleteDatastore() {
+    void deleteAccelerometerData() {
         //for testing
         stopAccelerometerService();
+//        stopBluetoothService();
+//        stopWifiService();
+//        stopLocationService();
 
-        dataStore.deleteDatastore();
+        dataStore.deleteAccelerometerData();
     }
 
     static String getDateTime() {
@@ -626,17 +635,55 @@ public class CoreService extends Service implements
         return dateFormat.format(date);
     }
 
-    void onButtonClickManuelUnlock() {
+    void onButtonClickManualUnlock() {
         stopAccelerometerService();
         stopBluetoothService();
         stopWifiService();
         stopLocationService();
-
+        ExportDb();
         isScanningForLocks = false;
         isDetailedDataCollectionStarted = false;
         isLocationDataCollectionStarted = false;
 
         Toast.makeText(getApplicationContext(), "BeKey unlocked", Toast.LENGTH_SHORT).show();
+
         Logging.Unlock();
+    }
+
+    public static void ExportDb() {
+        try {
+            File data = Environment.getDataDirectory();
+
+            try {
+                String datastorePath = "//data//net.anders.autounlock//databases//datastore.db";
+                //String exportPath = String.valueOf(System.currentTimeMillis()) + ".db";
+                String exportPath = constructDbName();
+
+                File outputDirectory = new File("/sdcard/AutoUnlock/");
+                outputDirectory.mkdirs();
+
+                File datastore = new File(data, datastorePath);
+                File export = new File(outputDirectory, exportPath);
+
+                FileChannel source = new FileInputStream(datastore).getChannel();
+                FileChannel destination = new FileOutputStream(export).getChannel();
+
+                destination.transferFrom(source, 0, source.size());
+                source.close();
+                destination.close();
+
+                Log.v("Export Datastore", "Datastore exported to " + exportPath);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        } catch (Exception e) {
+            // do something
+        }
+    }
+
+    public static String constructDbName() {
+        File file=new File("/sdcard/AutoUnlock");
+        File[] list = file.listFiles();
+        return "AutoUnlock-" + list.length + ".db";
     }
 }
