@@ -18,4 +18,5 @@
 
     <string name="geofence_transition_notification_text">Click notification to return to app</string>
     <string name="title_activity_decision">NotificationDecisionActivity</string>
+    <string name="title_activity_calibration">CalibrationActivity</string>
 </resources>

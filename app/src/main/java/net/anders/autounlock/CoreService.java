@@ -20,10 +20,8 @@ import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.LocationServices;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.nio.channels.FileChannel;
+import net.anders.autounlock.Export.Export;
+
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -56,7 +54,7 @@ public class CoreService extends Service implements
     static List<BluetoothData> recordedBluetooth = new ArrayList<BluetoothData>();
     static List<WifiData> recordedWifi = new ArrayList<WifiData>();
     static List<LocationData> recordedLocation = new ArrayList<LocationData>();
-    static List<AccelerometerData> recordedAccelerometer = new ArrayList<AccelerometerData>();
+    public static List<AccelerometerData> recordedAccelerometer = new ArrayList<AccelerometerData>();
     static volatile ArrayList<String> activeInnerGeofences = new ArrayList<>();
     static ArrayList<String> activeOuterGeofences = new ArrayList<>();
 
@@ -640,7 +638,7 @@ public class CoreService extends Service implements
         stopBluetoothService();
         stopWifiService();
         stopLocationService();
-        ExportDb();
+        Export.Database();
         isScanningForLocks = false;
         isDetailedDataCollectionStarted = false;
         isLocationDataCollectionStarted = false;
@@ -650,40 +648,29 @@ public class CoreService extends Service implements
         Logging.Unlock();
     }
 
-    public static void ExportDb() {
-        try {
-            File data = Environment.getDataDirectory();
+    public void StopAllServices() {
+        stopAccelerometerService();
+        stopBluetoothService();
+        stopWifiService();
+        stopLocationService();
+        stopDataBuffer();
+    }
 
-            try {
-                String datastorePath = "//data//net.anders.autounlock//databases//datastore.db";
-                //String exportPath = String.valueOf(System.currentTimeMillis()) + ".db";
-                String exportPath = constructDbName();
+    public void ExportCalibration(float startTime, float endTime, String activity) {
+        stopAccelerometerService();
+        stopIt();
+        List<AccelerometerData> list = null;
 
-                File outputDirectory = new File("/sdcard/AutoUnlock/");
-                outputDirectory.mkdirs();
-
-                File datastore = new File(data, datastorePath);
-                File export = new File(outputDirectory, exportPath);
-
-                FileChannel source = new FileInputStream(datastore).getChannel();
-                FileChannel destination = new FileOutputStream(export).getChannel();
-
-                destination.transferFrom(source, 0, source.size());
-                source.close();
-                destination.close();
-
-                Log.v("Export Datastore", "Datastore exported to " + exportPath);
-            } catch (Exception e) {
-                e.printStackTrace();
+        for (AccelerometerData data:recordedAccelerometer) {
+            if (data.getTime() > startTime && data.getTime() < endTime) {
+                list.add(data);
             }
-        } catch (Exception e) {
-            // do something
         }
+
     }
 
-    public static String constructDbName() {
-        File file=new File("/sdcard/AutoUnlock");
-        File[] list = file.listFiles();
-        return "AutoUnlock-" + list.length + ".db";
+    public void stopIt(){
+        stopAccelerometerService();
     }
+
 }

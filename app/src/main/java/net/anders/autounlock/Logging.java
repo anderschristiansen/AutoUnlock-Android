@@ -71,4 +71,7 @@ public class Logging  extends Activity {
         MainActivity.accelerometerView.setText(x + " ; " + y + " ; " + z);
     }
 
+    public static void Calibrating() {
+        Log.i(TAG, "Initiate calibration");
+    }
 }

@@ -5,7 +5,6 @@ import android.app.ActivityManager;
 import android.content.*;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
-import android.os.Environment;
 import android.os.IBinder;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -19,12 +18,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
 
-import org.w3c.dom.Text;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.nio.channels.FileChannel;
+import net.anders.autounlock.Calibrator.CalibrationActivity;
+import net.anders.autounlock.Export.Export;
 
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
@@ -211,19 +206,19 @@ public class MainActivity extends AppCompatActivity {
         return false;
     }
 
-    public void onButtonClickTruePositive(View v) {
-        if (bound) {
-            coreService.newTruePositive();
-            Log.d("Manual Decision", "True Positive");
-        }
-    }
-
-    public void onButtonClickFalsePositive(View v) {
-        if (bound) {
-            coreService.newFalsePositive();
-            Log.d("Manual Decision", "False Positive");
-        }
-    }
+//    public void onButtonClickTruePositive(View v) {
+//        if (bound) {
+//            coreService.newTruePositive();
+//            Log.d("Manual Decision", "True Positive");
+//        }
+//    }
+//
+//    public void onButtonClickFalsePositive(View v) {
+//        if (bound) {
+//            coreService.newFalsePositive();
+//            Log.d("Manual Decision", "False Positive");
+//        }
+//    }
 
     void setStartAccelerometer() {
         startAccelerometerEnabled = false;
@@ -434,7 +429,7 @@ public class MainActivity extends AppCompatActivity {
         stopAll.setEnabled(stopAllEnabled);
     }
 
-    public void onButtonClickAll(View v) {
+    public void onButtonClickAllStart(View v) {
         if (bound) {
             coreService.startDataBuffer();
             coreService.startAccelerometerService();
@@ -560,7 +555,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void onButtonClickExportDatastore(View v) {
-        CoreService.ExportDb();
+        //CoreService.ExportDb();
+        Export.Database();
     }
 
     public void onButtonClickSaveDb(View v) {
@@ -587,8 +583,7 @@ public class MainActivity extends AppCompatActivity {
     private ServiceConnection serviceConnection = new ServiceConnection() {
 
         @Override
-        public void onServiceConnected(ComponentName className,
-                                       IBinder service) {
+        public void onServiceConnected(ComponentName className, IBinder service) {
             // We've bound to LocalService, cast the IBinder and get LocalService instance
             CoreService.LocalBinder binder = (CoreService.LocalBinder) service;
             coreService = binder.getService();
@@ -600,4 +595,15 @@ public class MainActivity extends AppCompatActivity {
             bound = false;
         }
     };
+
+    public void onButtonClickGoToCalibration(View v) {
+        if (bound) {
+            coreService.startAccelerometerService();
+            setStartAccelerometer();
+
+            Intent intent = new Intent(this, CalibrationActivity.class);
+            startActivity(intent);
+        }
+    }
+
 }
