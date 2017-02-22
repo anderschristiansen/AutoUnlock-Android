@@ -26,7 +26,7 @@
 
     <Button
         android:text="Start Calibration"
-        android:layout_marginTop="40dp"
+        android:layout_marginTop="10dp"
         android:layout_below="@+id/activity"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -35,14 +35,32 @@
         android:onClick="onButtonClickStartCalibration" />
 
     <TextView
+        android:layout_width="match_parent"
+        android:layout_marginTop="40dp"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/startCalibration"
+        android:id="@+id/activityPlan"
+        android:text="Walk -> Run -> Walk -> Stand -> Walk -> Sit"/>
+
+    <TextView
         android:text=""
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/startCalibration"
+        android:layout_below="@+id/startFullCalibration"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="29dp"
         android:id="@+id/cTimer"
         android:textSize="30dp"
         android:textColor="#000000"/>
+
+    <Button
+        android:text="Full Calibration"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/startFullCalibration"
+        tools:text="Start Full Calibration"
+        android:onClick="onButtonClickStartFullCalibration"
+        android:layout_below="@+id/activityPlan"
+        android:layout_alignParentStart="true" />
 
 </RelativeLayout>

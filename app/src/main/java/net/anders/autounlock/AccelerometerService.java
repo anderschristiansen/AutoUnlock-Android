@@ -11,6 +11,9 @@ import android.os.IBinder;
 import android.os.PowerManager;
 import android.util.Log;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class AccelerometerService extends Service implements SensorEventListener {
     static String TAG = "AccelerometerService";
     private static final boolean ADAPTIVE_ACCELEROMETER_FILTER = true;
@@ -176,13 +179,24 @@ public class AccelerometerService extends Service implements SensorEventListener
 
         AccelerometerData anAccelerometerEvent = new AccelerometerData (
                 linearAcceleration[0], linearAcceleration[1], linearAcceleration[2],
-                velocity[0], velocity[1], velocity[2], datetime, time) ;
+                velocity[0], velocity[1], velocity[2], datetime, time);
 
-        CoreService.recordedAccelerometer.add(anAccelerometerEvent);
+        CoreService.window.add(anAccelerometerEvent);
 
-        //Test.insertAccelerometer(linearAcceleration[0], linearAcceleration[1], linearAcceleration[2], time);
+        if (CoreService.window.size() >= 100) {
+            CoreService.windowCircleBuffer.add(CoreService.window);
+            CoreService.window.clear();
+        }
+
+        //CoreService.recordedAccelerometer.add(anAccelerometerEvent);
+        //CoreService.initiateAR(anAccelerometerEvent);
+
+//        List<AccelerometerData> list = new ArrayList<AccelerometerData>();
+//        list.add(anAccelerometerEvent);
+        //CoreService.initiateActivityRecognition(linearAcceleration[0], linearAcceleration[1], linearAcceleration[2], time);
+        //Windowing.insertAccelerometer(linearAcceleration[0], linearAcceleration[1], linearAcceleration[2], time);
         //CoreService.dataStore.insertAccelerometer(linearAcceleration[0], linearAcceleration[1], linearAcceleration[2], velocity[0], velocity[1], velocity[2], datetime, time);
-        Logging.DisplayAccelerometer(linearAcceleration[0], linearAcceleration[1], linearAcceleration[2]);
+        //Logging.DisplayAccelerometer(linearAcceleration[0], linearAcceleration[1], linearAcceleration[2]);
     }
 
     @Override

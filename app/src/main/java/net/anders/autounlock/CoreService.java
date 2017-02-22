@@ -20,6 +20,7 @@ import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.LocationServices;
 
+import net.anders.autounlock.AR.ActivityRecognitionTest;
 import net.anders.autounlock.Export.Export;
 
 import java.text.SimpleDateFormat;
@@ -45,6 +46,7 @@ public class CoreService extends Service implements
     private Intent locationIntent;
     private Intent dataProcessorIntent;
     private Intent scannerIntent;
+    private Intent activityRecognitionIntent;
 
     private GoogleApiClient mGoogleApiClient;
     private net.anders.autounlock.Geofence geofence;
@@ -67,6 +69,9 @@ public class CoreService extends Service implements
 
     static DataBuffer<List> dataBuffer;
     static DataStore dataStore;
+
+    public static DataBuffer<List> windowCircleBuffer;
+    static List<AccelerometerData> window = new ArrayList<>();
 
     static boolean isLockSaved = false;
 
@@ -144,6 +149,7 @@ public class CoreService extends Service implements
         bluetoothIntent = new Intent(this, BluetoothService.class);
         dataProcessorIntent = new Intent(this, DataProcessorService.class);
         scannerIntent = new Intent(this, ScannerService.class);
+        activityRecognitionIntent = new Intent(this, ActivityRecognitionService.class);
 
         buildGoogleApiClient();
 
@@ -357,6 +363,7 @@ public class CoreService extends Service implements
     };
 
     void startAccelerometerService() {
+        startActivityRecognitionService();
         export = new ArrayList<>();
         Log.v(TAG, "Starting AccelerometerService");
         Thread accelerometerServiceThread = new Thread() {
@@ -656,21 +663,41 @@ public class CoreService extends Service implements
         stopDataBuffer();
     }
 
-    public void ExportCalibration(float startTime, float endTime, String activity) {
-        stopAccelerometerService();
-        stopIt();
-        List<AccelerometerData> list = null;
+//    public void ExportCalibration(float startTime, float endTime, String activity) {
+//        stopAccelerometerService();
+//        stopIt();
+//        List<AccelerometerData> list = null;
+//
+//        for (AccelerometerData data:recordedAccelerometer) {
+//            if (data.getTime() > startTime && data.getTime() < endTime) {
+//                list.add(data);
+//            }
+//        }
+//
+//    }
+//
+//    public void stopIt(){
+//        stopAccelerometerService();
+//    }
 
-        for (AccelerometerData data:recordedAccelerometer) {
-            if (data.getTime() > startTime && data.getTime() < endTime) {
-                list.add(data);
-            }
-        }
-
+    public static void initiateAR(AccelerometerData accelerometerData) {
+        ActivityRecognitionTest.gatherWindows(accelerometerData);
     }
 
-    public void stopIt(){
-        stopAccelerometerService();
+
+    void startActivityRecognitionService() {
+        Log.v(TAG, "Starting ActivtiyRecognitionService");
+        windowCircleBuffer = new DataBuffer<List>(1000);
+        Thread activityRecognitionServiceThread = new Thread() {
+            public void run() {
+                startService(activityRecognitionIntent);
+            }
+        };
+        activityRecognitionServiceThread.start();
+    }
+
+    void stopActivityRecognitionService() {
+        stopService(activityRecognitionIntent);
     }
 
 }

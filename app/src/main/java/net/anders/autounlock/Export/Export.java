@@ -67,10 +67,10 @@ public class Export {
 
         try {
             writer = new FileWriter(gpxfile);
-            writeCsvHeader(activity.toString(), "x","y","z");
+            writeCsvHeader(activity.toString(), "x","y","z", "time");
 
             for (AccelerometerData acc: calibrationAccelerometer) {
-                writeCsvData(activity.toString(), acc.getAccelerationX(), acc.getAccelerationY(), acc.getAccelerationZ());
+                writeCsvData(activity.toString(), acc.getAccelerationX(), acc.getAccelerationY(), acc.getAccelerationZ(), acc.getTime());
             }
 
             writer.flush();
@@ -95,13 +95,13 @@ public class Export {
         destination.close();
     }
 
-    private static void writeCsvHeader(String h1, String h2, String h3, String h4) throws IOException {
-        String line = String.format("%s;%s;%s;%s\n", h1,h2,h3,h4);
+    private static void writeCsvHeader(String h1, String h2, String h3, String h4, String h5) throws IOException {
+        String line = String.format("%s;%s;%s;%s;%s\n", h1,h2,h3,h4,h5);
         writer.write(line);
     }
 
-    private static void writeCsvData(String d, float e, float f, float g) throws IOException {
-        String line = String.format("%s;%f;%f;%f\n", d, e, f, g);
+    private static void writeCsvData(String d, float e, float f, float g, float h) throws IOException {
+        String line = String.format("%s;%f;%f;%f;%f\n", d, e, f, g, h);
         writer.write(line);
     }
 

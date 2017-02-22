@@ -3,7 +3,7 @@ package net.anders.autounlock;
 import java.nio.BufferOverflowException;
 import java.nio.BufferUnderflowException;
 
-class DataBuffer<T> {
+public class DataBuffer<T> {
     private T[] buffer;
 
     private int tail;
@@ -36,5 +36,10 @@ class DataBuffer<T> {
             throw new BufferUnderflowException();
         }
         return t;
+    }
+
+    public T[] getAll() {
+
+        return buffer;
     }
 }
