@@ -110,4 +110,140 @@ public class Export {
         File[] list = file.listFiles();
         return "AutoUnlock-" + activity + "-" + list.length + ".csv";
     }
+
+
+
+    public static void CsvMean(List<Float> mean) throws IOException {
+
+        String activity = "mean";
+        String type = "float";
+
+        File root = Environment.getExternalStorageDirectory();
+        File gpxfile = new File(root, activity + ".csv");
+
+        try {
+            writer = new FileWriter(gpxfile);
+            writeFeatureCsvHeader("type", "avg");
+
+            for (Float f: mean) {
+                writeMeanCsvData(type.toString(), f);
+            }
+
+            writer.flush();
+            writer.close();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        String exportPath = constructCalibrationName(activity);
+
+        File outputDirectory = new File("/sdcard/AutoUnlock/");
+        outputDirectory.mkdirs();
+
+        File export = new File(outputDirectory, exportPath);
+
+        FileChannel source = new FileInputStream(gpxfile).getChannel();
+        FileChannel destination = new FileOutputStream(export).getChannel();
+
+        destination.transferFrom(source, 0, source.size());
+        source.close();
+        destination.close();
+    }
+
+    private static void writeMeanCsvData(String d, float e) throws IOException {
+        String line = String.format("%s;%f\n", d, e);
+        writer.write(line);
+    }
+
+    private static void writeFeatureCsvHeader(String h1, String h2) throws IOException {
+        String line = String.format("%s;%s\n", h1,h2);
+        writer.write(line);
+    }
+
+
+    //55555555555
+
+    public static void CsvRms(List<Double> rms) throws IOException {
+
+        String activity = "rms";
+        String type = "double";
+
+        File root = Environment.getExternalStorageDirectory();
+        File gpxfile = new File(root, activity + ".csv");
+
+        try {
+            writer = new FileWriter(gpxfile);
+            writeFeatureCsvHeader("type", "avg");
+
+            for (Double d: rms) {
+                writeDoubleCsvData(type.toString(), d);
+            }
+
+            writer.flush();
+            writer.close();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        String exportPath = constructCalibrationName(activity);
+
+        File outputDirectory = new File("/sdcard/AutoUnlock/");
+        outputDirectory.mkdirs();
+
+        File export = new File(outputDirectory, exportPath);
+
+        FileChannel source = new FileInputStream(gpxfile).getChannel();
+        FileChannel destination = new FileOutputStream(export).getChannel();
+
+        destination.transferFrom(source, 0, source.size());
+        source.close();
+        destination.close();
+    }
+
+    private static void writeDoubleCsvData(String d, double e) throws IOException {
+        String line = String.format("%s;%f\n", d, e);
+        writer.write(line);
+    }
+
+    public static void CsvStd(List<Double> std) throws IOException {
+
+        String activity = "std";
+        String type = "double";
+
+        File root = Environment.getExternalStorageDirectory();
+        File gpxfile = new File(root, activity + ".csv");
+
+        try {
+            writer = new FileWriter(gpxfile);
+            writeFeatureCsvHeader("type", "avg");
+
+            for (Double d: std) {
+                writeDoubleCsvData(type.toString(), d);
+            }
+
+            writer.flush();
+            writer.close();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        String exportPath = constructCalibrationName(activity);
+
+        File outputDirectory = new File("/sdcard/AutoUnlock/");
+        outputDirectory.mkdirs();
+
+        File export = new File(outputDirectory, exportPath);
+
+        FileChannel source = new FileInputStream(gpxfile).getChannel();
+        FileChannel destination = new FileOutputStream(export).getChannel();
+
+        destination.transferFrom(source, 0, source.size());
+        source.close();
+        destination.close();
+    }
+
+
 }

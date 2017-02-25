@@ -11,8 +11,7 @@ import android.os.IBinder;
 import android.os.PowerManager;
 import android.util.Log;
 
-import java.util.ArrayList;
-import java.util.List;
+import net.anders.autounlock.AR.ActivityRecognition;
 
 public class AccelerometerService extends Service implements SensorEventListener {
     static String TAG = "AccelerometerService";
@@ -181,20 +180,24 @@ public class AccelerometerService extends Service implements SensorEventListener
                 linearAcceleration[0], linearAcceleration[1], linearAcceleration[2],
                 velocity[0], velocity[1], velocity[2], datetime, time);
 
-        CoreService.window.add(anAccelerometerEvent);
 
-        if (CoreService.window.size() >= 100) {
-            CoreService.windowCircleBuffer.add(CoreService.window);
-            CoreService.window.clear();
-        }
+        ActivityRecognition.accelerometerEvent(anAccelerometerEvent);
+        CoreService.recordedAccelerometer.add(anAccelerometerEvent);
 
-        //CoreService.recordedAccelerometer.add(anAccelerometerEvent);
+//        CoreService.window.add(anAccelerometerEvent);
+//
+//        if (CoreService.window.size() >= 100) {
+//            CoreService.windowCircleBuffer.add(CoreService.window);
+//            CoreService.window.clear();
+//        }
+
+
         //CoreService.initiateAR(anAccelerometerEvent);
 
 //        List<AccelerometerData> list = new ArrayList<AccelerometerData>();
 //        list.add(anAccelerometerEvent);
         //CoreService.initiateActivityRecognition(linearAcceleration[0], linearAcceleration[1], linearAcceleration[2], time);
-        //Windowing.insertAccelerometer(linearAcceleration[0], linearAcceleration[1], linearAcceleration[2], time);
+        //SlidingWindow.insertAccelerometer(linearAcceleration[0], linearAcceleration[1], linearAcceleration[2], time);
         //CoreService.dataStore.insertAccelerometer(linearAcceleration[0], linearAcceleration[1], linearAcceleration[2], velocity[0], velocity[1], velocity[2], datetime, time);
         //Logging.DisplayAccelerometer(linearAcceleration[0], linearAcceleration[1], linearAcceleration[2]);
     }

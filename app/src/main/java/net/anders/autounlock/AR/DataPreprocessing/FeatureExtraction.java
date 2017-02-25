@@ -1,5 +1,10 @@
 package net.anders.autounlock.AR.DataPreprocessing;
 
+import net.anders.autounlock.AccelerometerData;
+import net.anders.autounlock.CoreService;
+
+import java.util.List;
+
 /**
  * Created by Anders on 15-02-2017.
  */
@@ -72,5 +77,55 @@ public class FeatureExtraction {
     Distribution
     */
 
+    // magnitude of the acceleration
+    // double accTot = Math.sqrt(x*x + y*y + z*z);
+
+    static float meanTot;
+    static double rmsTot;
+    static double stdTot;
+
+    public static void getFeatures(List<AccelerometerData> list) {
+
+        float meanSum = 0;
+        double rmsSum = 0;
+
+        for (AccelerometerData acc : list) {
+
+            // Mean of Accelerometer X-,Y-,Z- values
+            float mag = (acc.getAccelerationX() + acc.getAccelerationZ() + acc.getAccelerationY()) / 3;
+            meanSum += mag;
+
+            // Mean of resultant accelerometer values
+            double rms = Math.sqrt(acc.getAccelerationX()*acc.getAccelerationX() + acc.getAccelerationY()*acc.getAccelerationY() + acc.getAccelerationZ()*acc.getAccelerationZ());
+            rmsSum += rms;
+        }
+
+        meanTot = meanSum/list.size();
+        rmsTot = rmsSum/list.size();
+        stdTot = getStdDev(list);
+
+        CoreService.windowAvg.add(meanTot);
+        CoreService.windowRms.add(rmsTot);
+        CoreService.windowStd.add(stdTot);
+
+    }
+
+    static double getVariance(List<AccelerometerData> list)
+    {
+        double mean = meanTot;
+        double temp = 0;
+        float mag = 0;
+
+        for(AccelerometerData acc : list)
+            mag = (acc.getAccelerationX() + acc.getAccelerationZ() + acc.getAccelerationY()) / 3;
+
+            temp += (mag-mean)*(mag-mean);
+        return temp/list.size();
+    }
+
+    static double getStdDev(List<AccelerometerData> list)
+    {
+        return Math.sqrt(getVariance(list));
+    }
 
 }

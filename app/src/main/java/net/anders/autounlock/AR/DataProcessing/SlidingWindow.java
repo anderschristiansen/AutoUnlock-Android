@@ -1,10 +1,16 @@
 package net.anders.autounlock.AR.DataProcessing;
 
+import net.anders.autounlock.AccelerometerData;
+import net.anders.autounlock.CoreService;
+
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Created by Anders on 21-02-2017.
  */
 
-public class Windowing {
+public class SlidingWindow {
 
      /*
     Ready-to-Use Activity Recognition for Smartphones
@@ -45,11 +51,18 @@ public class Windowing {
     and is therefore ideally suited to real-time applications
     */
 
-    public static void insertAccelerometer (float x, float y, float z, long time) {
+    public static List<List> insertAccelerometerIntoWindow(AccelerometerData accelerometerData) {
 
-        // magnitude of the acceleration
-        double accTot = Math.sqrt(x*x + y*y + z*z);
+        CoreService.window.add(accelerometerData);
 
+        if (CoreService.window.size() >= 100) {
+            //CoreService.windowCircleBuffer.add(CoreService.window);
 
+            List<List> list = new ArrayList<>();
+            list.add(CoreService.window);
+            CoreService.window.clear();
+            return list;
+        }
+        return null;
     }
 }

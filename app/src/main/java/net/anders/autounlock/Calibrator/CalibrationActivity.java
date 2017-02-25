@@ -43,17 +43,6 @@ public class CalibrationActivity extends Activity{
         startFullCalibration = (Button) findViewById(R.id.startFullCalibration);
         activityText = (EditText) findViewById(R.id.activity);
         cTimerView = (TextView) findViewById(R.id.cTimer);
-
-
-//        try {
-//            SimpleExample.test();
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
-
-        //Simple.test();
-        //CoinExample.getExample();
-        //Classification.getClassifier();
     }
 
     public void onButtonClickStartCalibration(View v) {
@@ -125,13 +114,13 @@ public class CalibrationActivity extends Activity{
     // Send
     void ExtractCalibrationData(String activity) throws IOException {
 
-        for (List<AccelerometerData> e: CoreService.windowCircleBuffer.getAll()) {
-            for (AccelerometerData acc: e) {
-                if (acc.getTime() > startTime && acc.getTime() < endTime) {
-                    //calibrationAccelerometer.add(acc);
-                }
-            }
-        }
+//        for (List<AccelerometerData> e: CoreService.windowCircleBuffer.getAll()) {
+//            for (AccelerometerData acc: e) {
+//                if (acc.getTime() > startTime && acc.getTime() < endTime) {
+//                    //calibrationAccelerometer.add(acc);
+//                }
+//            }
+//        }
 
         List<AccelerometerData> calibrationAccelerometer = new ArrayList<AccelerometerData>();
         for (AccelerometerData acc:CoreService.recordedAccelerometer) {
@@ -140,5 +129,8 @@ public class CalibrationActivity extends Activity{
             }
         }
         Export.Csv(calibrationAccelerometer, activity);
+        Export.CsvMean(CoreService.windowAvg);
+        Export.CsvRms(CoreService.windowRms);
+        Export.CsvStd(CoreService.windowStd);
     }
 }

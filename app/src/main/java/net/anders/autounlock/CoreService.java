@@ -20,9 +20,10 @@ import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.LocationServices;
 
-import net.anders.autounlock.AR.ActivityRecognitionTest;
+import net.anders.autounlock.AR.ActivityRecognition;
 import net.anders.autounlock.Export.Export;
 
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -70,8 +71,13 @@ public class CoreService extends Service implements
     static DataBuffer<List> dataBuffer;
     static DataStore dataStore;
 
+    // Sliding window lists
+    public static List<AccelerometerData> window = new ArrayList<>();
     public static DataBuffer<List> windowCircleBuffer;
-    static List<AccelerometerData> window = new ArrayList<>();
+
+    public static List<Float> windowAvg = new ArrayList<>();
+    public static List<Double> windowRms = new ArrayList<>();
+    public static List<Double> windowStd = new ArrayList<>();
 
     static boolean isLockSaved = false;
 
@@ -363,7 +369,7 @@ public class CoreService extends Service implements
     };
 
     void startAccelerometerService() {
-        startActivityRecognitionService();
+        //startActivityRecognitionService();
         export = new ArrayList<>();
         Log.v(TAG, "Starting AccelerometerService");
         Thread accelerometerServiceThread = new Thread() {
@@ -680,14 +686,14 @@ public class CoreService extends Service implements
 //        stopAccelerometerService();
 //    }
 
-    public static void initiateAR(AccelerometerData accelerometerData) {
-        ActivityRecognitionTest.gatherWindows(accelerometerData);
-    }
+//    public static void initiateAR(AccelerometerData accelerometerData) {
+//        ActivityRecognition.gatherWindows(accelerometerData);
+//    }
 
 
     void startActivityRecognitionService() {
         Log.v(TAG, "Starting ActivtiyRecognitionService");
-        windowCircleBuffer = new DataBuffer<List>(1000);
+        windowCircleBuffer = new DataBuffer<List>(10000);
         Thread activityRecognitionServiceThread = new Thread() {
             public void run() {
                 startService(activityRecognitionIntent);
