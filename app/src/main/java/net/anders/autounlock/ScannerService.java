@@ -65,9 +65,11 @@ public class ScannerService extends Service {
                             running = false;
                             CoreService.isScanningForLocks = false;
                             stopSelf();
-                        } else if (Math.min(Math.abs(CoreService.currentOrientation - foundLockWithDetails.getOrientation()),
-                                Math.min(Math.abs((CoreService.currentOrientation - foundLockWithDetails.getOrientation()) + 360),
-                                        Math.abs((CoreService.currentOrientation - foundLockWithDetails.getOrientation()) - 360)))
+                        } else if (Math.min(
+                                        Math.abs(CoreService.currentOrientation - foundLockWithDetails.getOrientation()),
+                                        Math.min(
+                                                Math.abs((CoreService.currentOrientation - foundLockWithDetails.getOrientation()) + 360),
+                                                Math.abs((CoreService.currentOrientation - foundLockWithDetails.getOrientation()) - 360)))
                                 < 22.5 ) {
                             decisionLocks.add(foundLock);
                         }

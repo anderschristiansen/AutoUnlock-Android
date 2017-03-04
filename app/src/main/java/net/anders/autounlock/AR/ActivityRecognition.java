@@ -7,6 +7,7 @@ import net.anders.autounlock.AccelerometerData;
 import net.anders.autounlock.CoreService;
 import net.anders.autounlock.Export.Export;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,10 +26,11 @@ public class ActivityRecognition {
 
         CoreService.window.add(accelerometerData);
 
-        if (CoreService.window.size() >= 100) {
+        if (CoreService.window.size() >= 10) {
 
             //CoreService.windowCircleBuffer.add(CoreService.window);
 
+            // Extract features from each full window
             FeatureExtraction.getFeatures(CoreService.window);
             CoreService.window.clear();
         }
@@ -55,4 +57,17 @@ public class ActivityRecognition {
 
     }
 
+
+//    public static void oriEvent (float ori, long time) {
+//
+//        if (CoreService.window2.size() >= 100) {
+//
+//            //CoreService.windowCircleBuffer.add(CoreService.window);
+//
+//            // Extract features from each full window
+//            //FeatureExtraction.getFeatures(CoreService.window);
+//            CoreService.windowAvg.add();
+//            CoreService.window2.clear();
+//        }
+//    }
 }

@@ -13,6 +13,7 @@ import android.widget.TextView;
 
 import com.google.android.gms.common.data.DataBuffer;
 
+import net.anders.autounlock.AR.DataSegmentation.CoordinateData;
 import net.anders.autounlock.AccelerometerData;
 import net.anders.autounlock.CoreService;
 import net.anders.autounlock.Export.Export;
@@ -22,6 +23,7 @@ import java.io.IOException;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 public class CalibrationActivity extends Activity{
@@ -50,6 +52,7 @@ public class CalibrationActivity extends Activity{
         startFullCalibration.setEnabled(false);
         activityText.setEnabled(false);
 
+        CoreService.windowAcc.clear();
         startCountDownTimer(10000);
     }
 
@@ -114,23 +117,59 @@ public class CalibrationActivity extends Activity{
     // Send
     void ExtractCalibrationData(String activity) throws IOException {
 
-//        for (List<AccelerometerData> e: CoreService.windowCircleBuffer.getAll()) {
-//            for (AccelerometerData acc: e) {
-//                if (acc.getTime() > startTime && acc.getTime() < endTime) {
-//                    //calibrationAccelerometer.add(acc);
-//                }
-//            }
-//        }
-
         List<AccelerometerData> calibrationAccelerometer = new ArrayList<AccelerometerData>();
         for (AccelerometerData acc:CoreService.recordedAccelerometer) {
             if (acc.getTime() > startTime && acc.getTime() < endTime) {
                 calibrationAccelerometer.add(acc);
             }
         }
-        Export.Csv(calibrationAccelerometer, activity);
-        Export.CsvMean(CoreService.windowAvg);
-        Export.CsvRms(CoreService.windowRms);
-        Export.CsvStd(CoreService.windowStd);
+
+//        List<AccelerometerData> calibrationAccelerometer = new ArrayList<AccelerometerData>();
+//        for (AccelerometerData acc : CoreService.windowAcc) {
+//            if (acc.getTime() > startTime && acc.getTime() < endTime) {
+//                calibrationAccelerometer.add(acc);
+//            }
+//        }
+
+        //Collections.reverse(CoreService.windowAcc);
+
+        Export.CsvRawAcc(calibrationAccelerometer, activity);
+        //Export.CsvMean(CoreService.windowAvg);
+        //Export.CsvRms(CoreService.windowRms);
+        //Export.CsvStd(CoreService.windowStd);
+        Export.CsvAcc(CoreService.windowAcc);
+        Export.CsvCoord(makeCumul(CoreService.windowCoor));
+
+        CoreService.windowCoor.clear();
+        CoreService.windowAcc.clear();
+    }
+
+    public static List<CoordinateData> makeCumul(List<CoordinateData> list) {
+
+        List<CoordinateData> cumulList = new ArrayList<>();
+
+        float sum_x = 0;
+        float sum_y = 0;
+        float prevOri = 0;
+
+        for (CoordinateData coor : list) {
+            float x = coor.getX();
+            float y = coor.getY();
+            float ori = coor.getOri();
+
+            float x2 = Math.abs(x)*(float)Math.cos(ori-prevOri);
+            float y2 = Math.abs(y)*(float)Math.sin(ori-prevOri);
+
+            CoordinateData cumulData = new CoordinateData(x2 + sum_x, y2 + sum_y, ori);
+            cumulList.add(cumulData);
+
+            sum_x = sum_x + x2;
+            sum_y = sum_y + y2;
+            prevOri = ori;
+        }
+        return cumulList;
     }
 }
+
+//c_x = Math.abs(speed_x_mean)*Math.cos(ori_mean);
+//c_y = Math.abs(speed_y_mean)*Math.sin(ori_mean);

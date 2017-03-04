@@ -9,9 +9,11 @@ public class AccelerometerData {
     float speedZ;
     String datetime;
     long time;
+    float orientation;
+
 
     public AccelerometerData(float accelerationX, float accelerationY, float accelerationZ,
-                             float speedX, float speedY, float speedZ, String datetime, long time) {
+                             float speedX, float speedY, float speedZ, String datetime, long time, float orientation) {
         this.accelerationX = accelerationX;
         this.accelerationY = accelerationY;
         this.accelerationZ = accelerationZ;
@@ -20,6 +22,7 @@ public class AccelerometerData {
         this.speedZ = speedZ;
         this.datetime = datetime;
         this.time = time;
+        this.orientation = orientation;
     }
 
     public float getAccelerationX() {
@@ -78,6 +81,10 @@ public class AccelerometerData {
         this.time = time;
     }
 
+    public float getOrientation() { return orientation; }
+
+    public void setOrientation(float orientation) { this.orientation = orientation; }
+
     @Override
     public String toString() {
         return "AccelerometerData{" +
@@ -89,6 +96,7 @@ public class AccelerometerData {
                 ", speedZ=" + speedZ +
                 ", datetime=" + datetime +
                 ", time=" + time +
+                ", orientation=" + orientation +
                 '}';
     }
 }

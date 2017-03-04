@@ -12,6 +12,7 @@ import android.os.PowerManager;
 import android.util.Log;
 
 import net.anders.autounlock.AR.ActivityRecognition;
+import net.anders.autounlock.Export.Export;
 
 public class AccelerometerService extends Service implements SensorEventListener {
     static String TAG = "AccelerometerService";
@@ -27,6 +28,7 @@ public class AccelerometerService extends Service implements SensorEventListener
     private Sensor linearAccelerationSensor;
     private Sensor rotationVectorSensor;
     private Sensor gyroscopeSensor;
+    private Sensor barometerSensor;
 
     private float[] gravity = new float[3];
     private float[] magneticField = new float[3];
@@ -55,11 +57,16 @@ public class AccelerometerService extends Service implements SensorEventListener
         } else if (event.sensor == linearAccelerationSensor) {
             System.arraycopy(event.values, 0, linearAcceleration, 0, event.values.length);
             recordLastSignificantMovement(linearAcceleration);
+            // Start AR
             accelerometerFilter(linearAcceleration[0], linearAcceleration[1], linearAcceleration[2]);
         } else if (event.sensor == rotationVectorSensor && linearAcceleration != null) {
             System.arraycopy(event.values, 0, rotationVector, 0, event.values.length);
             rotateAccelerationToWorldCoordinates(linearAcceleration, rotationVector, event.timestamp);
-        } else if (event.sensor == gyroscopeSensor) {
+        }
+        /*else if (event.sensor == gyroscopeSensor) {
+        }*/
+        else if (event.sensor == barometerSensor) {
+            System.currentTimeMillis();
         }
     }
 
@@ -131,6 +138,7 @@ public class AccelerometerService extends Service implements SensorEventListener
             float azimuth = (float) Math.toDegrees(orientation[0]);
             azimuth = (azimuth + 360) % 360;
 
+            //ActivityRecognition.oriEvent(azimuth, System.currentTimeMillis());
             CoreService.currentOrientation = azimuth;
         }
     }
@@ -178,28 +186,11 @@ public class AccelerometerService extends Service implements SensorEventListener
 
         AccelerometerData anAccelerometerEvent = new AccelerometerData (
                 linearAcceleration[0], linearAcceleration[1], linearAcceleration[2],
-                velocity[0], velocity[1], velocity[2], datetime, time);
+                velocity[0], velocity[1], velocity[2], datetime, time, CoreService.currentOrientation);
 
-
+        // Initiate AR
         ActivityRecognition.accelerometerEvent(anAccelerometerEvent);
         CoreService.recordedAccelerometer.add(anAccelerometerEvent);
-
-//        CoreService.window.add(anAccelerometerEvent);
-//
-//        if (CoreService.window.size() >= 100) {
-//            CoreService.windowCircleBuffer.add(CoreService.window);
-//            CoreService.window.clear();
-//        }
-
-
-        //CoreService.initiateAR(anAccelerometerEvent);
-
-//        List<AccelerometerData> list = new ArrayList<AccelerometerData>();
-//        list.add(anAccelerometerEvent);
-        //CoreService.initiateActivityRecognition(linearAcceleration[0], linearAcceleration[1], linearAcceleration[2], time);
-        //SlidingWindow.insertAccelerometer(linearAcceleration[0], linearAcceleration[1], linearAcceleration[2], time);
-        //CoreService.dataStore.insertAccelerometer(linearAcceleration[0], linearAcceleration[1], linearAcceleration[2], velocity[0], velocity[1], velocity[2], datetime, time);
-        //Logging.DisplayAccelerometer(linearAcceleration[0], linearAcceleration[1], linearAcceleration[2]);
     }
 
     @Override
@@ -215,11 +206,15 @@ public class AccelerometerService extends Service implements SensorEventListener
         linearAccelerationSensor = sensorManager.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION);
         rotationVectorSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR);
         gyroscopeSensor = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
+        barometerSensor = sensorManager.getDefaultSensor(Sensor.TYPE_PRESSURE);
+
         sensorManager.registerListener(this, gravitySensor, SensorManager.SENSOR_DELAY_FASTEST);
         sensorManager.registerListener(this, magneticFieldSensor, SensorManager.SENSOR_DELAY_FASTEST);
         sensorManager.registerListener(this, linearAccelerationSensor, SensorManager.SENSOR_DELAY_FASTEST);
         sensorManager.registerListener(this, rotationVectorSensor, SensorManager.SENSOR_DELAY_FASTEST);
         sensorManager.registerListener(this, gyroscopeSensor, SensorManager.SENSOR_DELAY_FASTEST);
+        sensorManager.registerListener(this, barometerSensor, SensorManager.SENSOR_DELAY_FASTEST);
+
         startTime = System.currentTimeMillis();
     }
     @Override
@@ -251,6 +246,7 @@ public class AccelerometerService extends Service implements SensorEventListener
         sensorManager.unregisterListener(this, linearAccelerationSensor);
         sensorManager.unregisterListener(this, rotationVectorSensor);
         sensorManager.unregisterListener(this, gyroscopeSensor);
+        sensorManager.unregisterListener(this, barometerSensor);
         wakeLock.release();
     }
 }

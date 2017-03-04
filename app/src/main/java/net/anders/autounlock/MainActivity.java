@@ -77,6 +77,11 @@ public class MainActivity extends AppCompatActivity {
     private static boolean registerGeofenceEnabled = false;
     private static boolean unregisterGeofenceEnabled = false;
 
+    private static Button startBarometer;
+    private static Button stopBarometer;
+    private static boolean startBarometerEnabled = true;
+    private static boolean stopBarometerEnabled = false;
+
     private BroadcastReceiver receiver;
 
     @Override
@@ -249,6 +254,13 @@ public class MainActivity extends AppCompatActivity {
         stopAccelerometer.setEnabled(stopAccelerometerEnabled);
     }
 
+    void setStopBarometer() {
+        startBarometerEnabled = true;
+        startBarometer.setEnabled(startBarometerEnabled);
+        stopBarometerEnabled = false;
+        stopBarometer.setEnabled(stopBarometerEnabled);
+    }
+
     public void onButtonClickAccelStop(View v) {
         if (bound) {
             coreService.stopAccelerometerService();
@@ -263,6 +275,36 @@ public class MainActivity extends AppCompatActivity {
             } else {
                 allButton -= 1;
             }
+        }
+    }
+
+    public void onButtonClickBarometerStop(View v) {
+        if (bound) {
+            coreService.stopBarometerService();
+            setStopBarometer();
+
+            if (allButton == 1) {
+                startAllEnabled = true;
+                startAll.setEnabled(startAllEnabled);
+                stopAllEnabled = false;
+                stopAll.setEnabled(stopAllEnabled);
+                allButton -= 1;
+            } else {
+                allButton -= 1;
+            }
+        }
+    }
+
+    public void onButtonClickBarometer(View v) {
+        if (bound) {
+            coreService.startBarometerService();
+            //setStartAccelerometer();
+
+            startAllEnabled = false;
+            startAll.setEnabled(startAllEnabled);
+            stopAllEnabled = true;
+            stopAll.setEnabled(stopAllEnabled);
+            allButton += 1;
         }
     }
 

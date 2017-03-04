@@ -3,6 +3,7 @@ package net.anders.autounlock.Export;
 import android.os.Environment;
 import android.util.Log;
 
+import net.anders.autounlock.AR.DataSegmentation.CoordinateData;
 import net.anders.autounlock.AccelerometerData;
 
 import java.io.BufferedWriter;
@@ -60,17 +61,52 @@ public class Export {
         return "AutoUnlock-" + list.length + ".db";
     }
 
-    public static void Csv(List<AccelerometerData> calibrationAccelerometer, String activity) throws IOException {
+//    public static void CsvRawAcc(List<AccelerometerData> calibrationAccelerometer, String activity) throws IOException {
+//
+//        File root = Environment.getExternalStorageDirectory();
+//        File gpxfile = new File(root, activity + ".csv");
+//
+//        try {
+//            writer = new FileWriter(gpxfile);
+//            writeCsvHeader(activity.toString(), "x","y","z", "time", "ori");
+//
+//            for (AccelerometerData acc: calibrationAccelerometer) {
+//                writeCsvData(activity.toString(), acc.getAccelerationX(), acc.getAccelerationY(), acc.getAccelerationZ(), acc.getTime(), acc.getOrientation());
+//            }
+//
+//            writer.flush();
+//            writer.close();
+//
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+//
+//        String exportPath = constructCalibrationName(activity);
+//
+//        File outputDirectory = new File("/sdcard/AutoUnlock/");
+//        outputDirectory.mkdirs();
+//
+//        File export = new File(outputDirectory, exportPath);
+//
+//        FileChannel source = new FileInputStream(gpxfile).getChannel();
+//        FileChannel destination = new FileOutputStream(export).getChannel();
+//
+//        destination.transferFrom(source, 0, source.size());
+//        source.close();
+//        destination.close();
+//    }
+
+    public static void CsvRawAcc(List<AccelerometerData> calibrationAccelerometer, String activity) throws IOException {
 
         File root = Environment.getExternalStorageDirectory();
         File gpxfile = new File(root, activity + ".csv");
 
         try {
             writer = new FileWriter(gpxfile);
-            writeCsvHeader(activity.toString(), "x","y","z", "time");
+            writeCsvHeader("time", "acc_x","acc_y", "speed_x", "speed_y", "ori");
 
             for (AccelerometerData acc: calibrationAccelerometer) {
-                writeCsvData(activity.toString(), acc.getAccelerationX(), acc.getAccelerationY(), acc.getAccelerationZ(), acc.getTime());
+                writeCsvData(acc.getTime(), acc.getAccelerationX(), acc.getAccelerationY(), acc.getSpeedX(), acc.getSpeedY(), acc.getOrientation());
             }
 
             writer.flush();
@@ -95,13 +131,18 @@ public class Export {
         destination.close();
     }
 
-    private static void writeCsvHeader(String h1, String h2, String h3, String h4, String h5) throws IOException {
-        String line = String.format("%s;%s;%s;%s;%s\n", h1,h2,h3,h4,h5);
+    private static void writeCsvHeader(String h1, String h2, String h3, String h4, String h5, String h6) throws IOException {
+        String line = String.format("%s;%s;%s;%s;%s;%s\n", h1,h2,h3,h4,h5,h6);
         writer.write(line);
     }
 
-    private static void writeCsvData(String d, float e, float f, float g, float h) throws IOException {
-        String line = String.format("%s;%f;%f;%f;%f\n", d, e, f, g, h);
+//    private static void writeCsvData(String d, float e, float f, float g, float h, float i) throws IOException {
+//        String line = String.format("%s;%f;%f;%f;%f;%f\n", d, e, f, g, h, i);
+//        writer.write(line);
+//    }
+
+    private static void writeCsvData(float d, float e, float f, float g, float h, float i) throws IOException {
+        String line = String.format("%f;%f;%f;%f;%f;%f\n", d, e, f, g, h, i);
         writer.write(line);
     }
 
@@ -246,4 +287,95 @@ public class Export {
     }
 
 
+    public static void CsvAcc(List<AccelerometerData> calibrationAccelerometer) throws IOException {
+
+        String activity = "acc";
+        File root = Environment.getExternalStorageDirectory();
+        File gpxfile = new File(root, activity + ".csv");
+
+        try {
+            writer = new FileWriter(gpxfile);
+            writeCsvAccHeader("speed_x", "speed_y", "ori");
+
+            for (AccelerometerData acc: calibrationAccelerometer) {
+                writeCsvAccData(acc.getSpeedX(), acc.getSpeedY(), acc.getOrientation());
+            }
+
+            writer.flush();
+            writer.close();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        String exportPath = constructCalibrationName(activity);
+
+        File outputDirectory = new File("/sdcard/AutoUnlock/");
+        outputDirectory.mkdirs();
+
+        File export = new File(outputDirectory, exportPath);
+
+        FileChannel source = new FileInputStream(gpxfile).getChannel();
+        FileChannel destination = new FileOutputStream(export).getChannel();
+
+        destination.transferFrom(source, 0, source.size());
+        source.close();
+        destination.close();
+    }
+
+    private static void writeCsvAccHeader(String h1, String h2, String h3) throws IOException {
+        String line = String.format("%s;%s;%s\n", h1,h2,h3);
+        writer.write(line);
+    }
+
+    private static void writeCsvAccData(float d, float e, float f) throws IOException {
+        String line = String.format("%f;%f;%f\n", d, e, f);
+        writer.write(line);
+    }
+
+    public static void CsvCoord(List<CoordinateData> coordinateData) throws IOException {
+
+        String activity = "coord";
+        File root = Environment.getExternalStorageDirectory();
+        File gpxfile = new File(root, activity + ".csv");
+
+        try {
+            writer = new FileWriter(gpxfile);
+            writeCsvCoordHeader("x", "y");
+
+            for (CoordinateData coord: coordinateData) {
+                writeCsvCoordData(coord.getX(), coord.getY());
+            }
+
+            writer.flush();
+            writer.close();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        String exportPath = constructCalibrationName(activity);
+
+        File outputDirectory = new File("/sdcard/AutoUnlock/");
+        outputDirectory.mkdirs();
+
+        File export = new File(outputDirectory, exportPath);
+
+        FileChannel source = new FileInputStream(gpxfile).getChannel();
+        FileChannel destination = new FileOutputStream(export).getChannel();
+
+        destination.transferFrom(source, 0, source.size());
+        source.close();
+        destination.close();
+    }
+
+    private static void writeCsvCoordHeader(String h1, String h2) throws IOException {
+        String line = String.format("%s;%s\n", h1,h2);
+        writer.write(line);
+    }
+
+    private static void writeCsvCoordData(double d, double e) throws IOException {
+        String line = String.format("%f;%f\n", d, e);
+        writer.write(line);
+    }
 }

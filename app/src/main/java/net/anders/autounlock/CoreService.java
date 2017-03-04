@@ -21,6 +21,7 @@ import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.LocationServices;
 
 import net.anders.autounlock.AR.ActivityRecognition;
+import net.anders.autounlock.AR.DataSegmentation.CoordinateData;
 import net.anders.autounlock.Export.Export;
 
 import java.io.IOException;
@@ -48,6 +49,7 @@ public class CoreService extends Service implements
     private Intent dataProcessorIntent;
     private Intent scannerIntent;
     private Intent activityRecognitionIntent;
+    private Intent barometerIntent;
 
     private GoogleApiClient mGoogleApiClient;
     private net.anders.autounlock.Geofence geofence;
@@ -78,6 +80,9 @@ public class CoreService extends Service implements
     public static List<Float> windowAvg = new ArrayList<>();
     public static List<Double> windowRms = new ArrayList<>();
     public static List<Double> windowStd = new ArrayList<>();
+
+    public static List<AccelerometerData> windowAcc = new ArrayList<>();
+    public static List<CoordinateData> windowCoor = new ArrayList<>();
 
     static boolean isLockSaved = false;
 
@@ -156,6 +161,7 @@ public class CoreService extends Service implements
         dataProcessorIntent = new Intent(this, DataProcessorService.class);
         scannerIntent = new Intent(this, ScannerService.class);
         activityRecognitionIntent = new Intent(this, ActivityRecognitionService.class);
+        barometerIntent = new Intent(this, BarometerService.class);
 
         buildGoogleApiClient();
 
@@ -384,6 +390,10 @@ public class CoreService extends Service implements
         stopService(accelerometerIntent);
     }
 
+    void stopBarometerService() {
+        stopService(barometerIntent);
+    }
+
     void startLocationService() {
         Log.v(TAG, "Starting LocationService");
         Thread locationServiceThread = new Thread() {
@@ -392,6 +402,17 @@ public class CoreService extends Service implements
             }
         };
         locationServiceThread.start();
+    }
+
+    void startBarometerService() {
+        //startActivityRecognitionService();
+        Log.v(TAG, "Starting Barometer Service");
+        Thread barometerServiceThread = new Thread() {
+            public void run() {
+                startService(barometerIntent);
+            }
+        };
+        barometerServiceThread.start();
     }
 
     void stopLocationService() {
