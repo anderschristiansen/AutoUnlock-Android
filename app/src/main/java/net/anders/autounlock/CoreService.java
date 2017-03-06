@@ -75,13 +75,15 @@ public class CoreService extends Service implements
 
     // Sliding window lists
     public static List<AccelerometerData> window = new ArrayList<>();
+    public static List<AccelerometerData> windows = new ArrayList<>();
+
     public static DataBuffer<List> windowCircleBuffer;
 
     public static List<Float> windowAvg = new ArrayList<>();
     public static List<Double> windowRms = new ArrayList<>();
     public static List<Double> windowStd = new ArrayList<>();
 
-    public static List<AccelerometerData> windowAcc = new ArrayList<>();
+    //public static List<AccelerometerData> windowAcc = new ArrayList<>();
     public static List<CoordinateData> windowCoor = new ArrayList<>();
 
     static boolean isLockSaved = false;

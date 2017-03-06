@@ -89,16 +89,32 @@ public class FeatureExtraction {
 
     public static void getFeatures(List<AccelerometerData> window) {
 
-        float mean = 0;
+        /*float mean = 0;
         double rms = 0;
         float speed_x = 0;
         float speed_y = 0;
         float ori = 0;
+
         double c_x = 0;
         double c_y = 0;
-        double prevOri = 0;
+        double prevOri = 0;*/
+
+        long currentTime = System.currentTimeMillis();
+        float meanAccX, sumAccX = 0;
+        float meanAccY, sumAccY = 0;
+
 
         for (AccelerometerData acc : window) {
+            sumAccX += acc.getAccelerationX();
+            sumAccY += acc.getAccelerationY();
+        }
+
+        meanAccX = sumAccX / window.size();
+        meanAccY = sumAccY / window.size();
+
+        CoreService.windows.add(new AccelerometerData(meanAccX, meanAccY, 0, 0, 0, 0, "", currentTime, 0));
+
+       /* for (AccelerometerData acc : window) {
 
             // Mean of Accelerometer X-,Y-,Z- values
 //            mean += (acc.getAccelerationX() + acc.getAccelerationY() + acc.getAccelerationZ()) / 3;
@@ -140,7 +156,7 @@ public class FeatureExtraction {
         //CoreService.windowStd.add(stdTot);
         CoreService.windowAcc.add(temp);
         CoreService.windowCoor.add(coordinate);
-
+*/
         //TODO AVC + Angle
     }
 

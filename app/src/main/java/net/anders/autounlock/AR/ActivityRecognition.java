@@ -54,7 +54,6 @@ public class ActivityRecognition {
         //Linearization
 
         //Smoothing
-
     }
 
 
@@ -70,4 +69,5 @@ public class ActivityRecognition {
 //            CoreService.window2.clear();
 //        }
 //    }
+
 }

@@ -18,8 +18,14 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
 
+import net.anders.autounlock.AR.Recognise;
+import net.anders.autounlock.AR.Record;
 import net.anders.autounlock.Calibrator.CalibrationActivity;
 import net.anders.autounlock.Export.Export;
+
+import java.io.IOException;
+
+import be.ac.ulg.montefiore.run.jahmm.io.FileFormatException;
 
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
@@ -638,7 +644,11 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
-    public void onButtonClickGoToCalibration(View v) {
+    public void onButtonClickGoToCalibration(View v) throws InterruptedException, FileFormatException, IOException {
+
+        //Record r = new Record();
+        Recognise r = new Recognise();
+
         if (bound) {
             coreService.startAccelerometerService();
             setStartAccelerometer();

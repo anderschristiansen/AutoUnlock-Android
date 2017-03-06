@@ -52,7 +52,9 @@ public class CalibrationActivity extends Activity{
         startFullCalibration.setEnabled(false);
         activityText.setEnabled(false);
 
-        CoreService.windowAcc.clear();
+        CoreService.window.clear();
+        CoreService.windows.clear();
+
         startCountDownTimer(10000);
     }
 
@@ -117,12 +119,12 @@ public class CalibrationActivity extends Activity{
     // Send
     void ExtractCalibrationData(String activity) throws IOException {
 
-        List<AccelerometerData> calibrationAccelerometer = new ArrayList<AccelerometerData>();
-        for (AccelerometerData acc:CoreService.recordedAccelerometer) {
-            if (acc.getTime() > startTime && acc.getTime() < endTime) {
-                calibrationAccelerometer.add(acc);
-            }
-        }
+//        List<AccelerometerData> calibrationAccelerometer = new ArrayList<AccelerometerData>();
+//        for (AccelerometerData acc:CoreService.recordedAccelerometer) {
+//            if (acc.getTime() > startTime && acc.getTime() < endTime) {
+//                calibrationAccelerometer.add(acc);
+//            }
+//        }
 
 //        List<AccelerometerData> calibrationAccelerometer = new ArrayList<AccelerometerData>();
 //        for (AccelerometerData acc : CoreService.windowAcc) {
@@ -133,15 +135,15 @@ public class CalibrationActivity extends Activity{
 
         //Collections.reverse(CoreService.windowAcc);
 
-        Export.CsvRawAcc(calibrationAccelerometer, activity);
+        //Export.CsvRawAcc(calibrationAccelerometer, activity);
         //Export.CsvMean(CoreService.windowAvg);
         //Export.CsvRms(CoreService.windowRms);
         //Export.CsvStd(CoreService.windowStd);
-        Export.CsvAcc(CoreService.windowAcc);
-        Export.CsvCoord(makeCumul(CoreService.windowCoor));
+        Export.CsvWindows(CoreService.windows);
+        //Export.CsvCoord(makeCumul(CoreService.windowCoor));
 
-        CoreService.windowCoor.clear();
-        CoreService.windowAcc.clear();
+        //CoreService.windowCoor.clear();
+        //CoreService.windowAcc.clear();
     }
 
     public static List<CoordinateData> makeCumul(List<CoordinateData> list) {

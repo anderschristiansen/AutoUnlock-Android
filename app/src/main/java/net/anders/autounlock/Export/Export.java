@@ -287,7 +287,7 @@ public class Export {
     }
 
 
-    public static void CsvAcc(List<AccelerometerData> calibrationAccelerometer) throws IOException {
+    public static void CsvWindows(List<AccelerometerData> windows) throws IOException {
 
         String activity = "acc";
         File root = Environment.getExternalStorageDirectory();
@@ -295,10 +295,37 @@ public class Export {
 
         try {
             writer = new FileWriter(gpxfile);
-            writeCsvAccHeader("speed_x", "speed_y", "ori");
+            writeCsvWindowHeader("degree", "velocity");
 
-            for (AccelerometerData acc: calibrationAccelerometer) {
-                writeCsvAccData(acc.getSpeedX(), acc.getSpeedY(), acc.getOrientation());
+            double vX;
+            double vY;
+            double time;
+            double vX_prev = 0;
+            double vY_prev = 0;
+            double time_prev = 0;
+
+
+            for (AccelerometerData window: windows) {
+
+                time = (window.getTime() * Math.pow(10, -3));
+                //time = (window.getTime() / 1000) % 60 ;
+
+                if (vX_prev ==  0 && vY_prev == 0) {
+                    vX = vX_prev + window.getAccelerationX();
+                    vY = vY_prev + window.getAccelerationY();
+                } else {
+                    vX = vX_prev + window.getAccelerationX() * (time - time_prev);
+                    vY = vY_prev + window.getAccelerationY() * (time - time_prev);
+                }
+
+                double vTotal = Math.sqrt(Math.pow(vX, 2) + Math.pow(vY, 2));
+                double degree = (Math.atan(vX/vY)*180)/Math.PI;
+
+                writeCsvWindowData(degree, vTotal);
+
+                vX_prev = vX;
+                vY_prev = vY;
+                time_prev = time;
             }
 
             writer.flush();
@@ -323,13 +350,13 @@ public class Export {
         destination.close();
     }
 
-    private static void writeCsvAccHeader(String h1, String h2, String h3) throws IOException {
-        String line = String.format("%s;%s;%s\n", h1,h2,h3);
+    private static void writeCsvWindowHeader(String h1, String h2) throws IOException {
+        String line = String.format("%s;%s\n", h1,h2);
         writer.write(line);
     }
 
-    private static void writeCsvAccData(float d, float e, float f) throws IOException {
-        String line = String.format("%f;%f;%f\n", d, e, f);
+    private static void writeCsvWindowData(double d, double e) throws IOException {
+        String line = String.format("%f;%f\n", d, e);
         writer.write(line);
     }
 

@@ -57,7 +57,6 @@ public class AccelerometerService extends Service implements SensorEventListener
         } else if (event.sensor == linearAccelerationSensor) {
             System.arraycopy(event.values, 0, linearAcceleration, 0, event.values.length);
             recordLastSignificantMovement(linearAcceleration);
-            // Start AR
             accelerometerFilter(linearAcceleration[0], linearAcceleration[1], linearAcceleration[2]);
         } else if (event.sensor == rotationVectorSensor && linearAcceleration != null) {
             System.arraycopy(event.values, 0, rotationVector, 0, event.values.length);
