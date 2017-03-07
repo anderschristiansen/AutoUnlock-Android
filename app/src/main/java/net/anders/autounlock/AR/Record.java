@@ -3,6 +3,7 @@ package net.anders.autounlock.AR;
 import android.os.Environment;
 
 import java.io.File;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.InputStreamReader;
 import java.util.List;
@@ -93,7 +94,7 @@ public class Record {
         //getInstrument();
 
         learnGesture(gestureName);
-        System.out.println("1 - Guitar");
+        System.out.println("");
     }
 
     //Repeat gesture to generate observation sequences and then generate and save HMMs to text files
@@ -147,22 +148,20 @@ public class Record {
 
         System.out.println("Capturing...");
 
-        for (int i=0;i<10;i++){
-
-//			receiveMessage();
+        for (int i=0;i<101;i++){
 
             if (firstElement == true){
                 firstElement = false;
             }
             else {
 
-                ObservationInteger x = new ObservationInteger(2);
+                ObservationInteger x = new ObservationInteger(1);
                 sequencesX.add(x);
 
-                ObservationInteger y = new ObservationInteger(5);
+                ObservationInteger y = new ObservationInteger(2);
                 sequencesY.add(y);
 
-                ObservationInteger z = new ObservationInteger(4);
+                ObservationInteger z = new ObservationInteger(3);
                 sequencesZ.add(z);
 
 //				Thread.sleep(50);
@@ -186,12 +185,12 @@ public class Record {
 
     public Hmm<ObservationInteger> createHmm(List<List<ObservationInteger>> toHmm){
 
-        factory = new OpdfIntegerFactory(10);
+        factory = new OpdfIntegerFactory(100);
         kml = new KMeansLearner<ObservationInteger>(8,factory,toHmm);
         Hmm<ObservationInteger>hmm = kml.iterate();
 
         BaumWelchLearner bwl = new BaumWelchLearner();
-        bwl.setNbIterations(10);
+        bwl.setNbIterations(20);
         bwl.learn(hmm, toHmm);
         return hmm;
     }

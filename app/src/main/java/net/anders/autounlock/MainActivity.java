@@ -646,8 +646,8 @@ public class MainActivity extends AppCompatActivity {
 
     public void onButtonClickGoToCalibration(View v) throws InterruptedException, FileFormatException, IOException {
 
-        //Record r = new Record();
-        Recognise r = new Recognise();
+        Record r = new Record();
+        //Recognise r = new Recognise();
 
         if (bound) {
             coreService.startAccelerometerService();

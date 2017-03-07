@@ -1,14 +1,18 @@
 package net.anders.autounlock.AR;
 
+import android.content.Context;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.LineNumberReader;
+import java.io.OutputStreamWriter;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
@@ -210,6 +214,10 @@ public class Recognise {
         in.close();
         br.close();
 
+        changeDecimal(gestureName, hmmNo, "X");
+        changeDecimal(gestureName, hmmNo, "Y");
+        changeDecimal(gestureName, hmmNo, "Z");
+
         fileReaderX = new FileReader(new File(inputDirectory, gestureName[hmmNo] + "X.txt"));
         fileReaderY = new FileReader(new File(inputDirectory, gestureName[hmmNo] + "Y.txt"));
         fileReaderZ = new FileReader(new File(inputDirectory, gestureName[hmmNo] + "Z.txt"));
@@ -253,37 +261,54 @@ public class Recognise {
         }
     }
 
+    private void changeDecimal(String[] gestureName, int hmmNo, String type) {
+        BufferedReader b = null;
+        try {
+            String fpath = inputDirectory + "/" + gestureName[hmmNo] + type + ".txt";
+            try {
+                b = new BufferedReader(new FileReader(fpath));
+            } catch (FileNotFoundException e1) {
+                e1.printStackTrace();
+            }
+            String text = "";
+            String line = "";
+            while ((line = b.readLine()) != null) {
+                text += line.replace(",", ".") + " ";
+            }
+
+            File file = new File(inputDirectory, gestureName[hmmNo] + type + ".txt");
+            FileOutputStream stream = new FileOutputStream(file);
+            try {
+                stream.write(text.getBytes());
+            } finally {
+                stream.close();
+            }
+        } catch(Exception e){
+            e.printStackTrace();
+        }
+    }
+
     public void runContinuous(List<ObservationInteger>sequencesX, List<ObservationInteger>sequencesY, List<ObservationInteger>sequencesZ) throws InterruptedException{
-
-        //		setSocket();
-        //		sendMessage(MSG_RUN_CONTINUOUS);
         System.out.println("Capturing...");
-
         for (int i=0;i<101;i++){
-
-            //			receiveMessage();
-
             if (firstElement == true){
                 firstElement = false;
             }
             else {
-
-                ObservationInteger x = new ObservationInteger(receivedX);
+                ObservationInteger x = new ObservationInteger(1);
                 sequencesX.add(x);
-                ObservationInteger y = new ObservationInteger(receivedY);
+                ObservationInteger y = new ObservationInteger(2);
                 sequencesY.add(y);
-                ObservationInteger z = new ObservationInteger(receivedZ);
+                ObservationInteger z = new ObservationInteger(3);
                 sequencesZ.add(z);
 
                 Thread.sleep(50);
             }
         }
-
         firstElement = true;
         System.out.println("");
         System.out.println("Stopped capturing");
         System.out.println("");
-
     }
 
 
