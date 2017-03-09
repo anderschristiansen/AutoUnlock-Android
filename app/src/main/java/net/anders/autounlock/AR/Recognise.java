@@ -214,6 +214,8 @@ public class Recognise {
         in.close();
         br.close();
 
+
+        // Husk at nævn i rapport at dette var nødvendigt for at få en korrekt syntaks
         changeDecimal(gestureName, hmmNo, "X");
         changeDecimal(gestureName, hmmNo, "Y");
         changeDecimal(gestureName, hmmNo, "Z");

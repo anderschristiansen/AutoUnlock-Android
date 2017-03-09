@@ -1,18 +1,12 @@
-package net.anders.autounlock;
+package net.anders.autounlock.AR;
 
 import android.app.Service;
-import android.content.BroadcastReceiver;
-import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
-import android.net.wifi.ScanResult;
-import android.net.wifi.WifiManager;
 import android.os.IBinder;
-import android.os.PowerManager;
 import android.support.annotation.Nullable;
-import android.util.Log;
 
-import com.google.android.gms.location.ActivityRecognition;
+import net.anders.autounlock.AccelerometerData;
+import net.anders.autounlock.CoreService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -59,15 +53,19 @@ public class ActivityRecognitionService extends Service {
 
         @Override
         public void run() {
-            List<AccelerometerData> accelerometer = new ArrayList<AccelerometerData>();
 
-//            ArrayList<String> foundLocks = new ArrayList();
+            CoreService.windowBufferSize = 200;
+            CoreService.windowSize = 20;
+            CoreService.windowOverlap = 0.50;
+
+            Intent startRecognition = new Intent("START_RECOGNITION");
+            sendBroadcast(startRecognition);
 
             while (running) {
 
 
 
-                // In order to not have empty lists in the DataBuffer, previous data will be used if no new data has been found.
+                // In order to not have empty lists in the RingBuffer, previous data will be used if no new data has been found.
 
 //                if (!CoreService.recordedAccelerometer.isEmpty() || prevRecordedAccelerometer.isEmpty()) {
 //                    prevRecordedAccelerometer = CoreService.recordedAccelerometer;

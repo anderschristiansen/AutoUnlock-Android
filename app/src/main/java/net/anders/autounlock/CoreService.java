@@ -20,11 +20,11 @@ import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.LocationServices;
 
-import net.anders.autounlock.AR.ActivityRecognition;
+import net.anders.autounlock.AR.ActivityRecognitionService;
 import net.anders.autounlock.AR.DataSegmentation.CoordinateData;
+import net.anders.autounlock.AR.DataSegmentation.WindowData;
 import net.anders.autounlock.Export.Export;
 
-import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -47,6 +47,7 @@ public class CoreService extends Service implements
     private Intent wifiIntent;
     private Intent locationIntent;
     private Intent dataProcessorIntent;
+    private Intent ringProcessorIntent;
     private Intent scannerIntent;
     private Intent activityRecognitionIntent;
     private Intent barometerIntent;
@@ -70,21 +71,26 @@ public class CoreService extends Service implements
     static boolean isDetailedDataCollectionStarted = false;
     static volatile boolean isScanningForLocks = false;
 
-    static DataBuffer<List> dataBuffer;
+    //    static RingBuffer<List> ringBuffer;
     static DataStore dataStore;
 
-    // Sliding window lists
+
+    // ********** Sliding window lists ********
     public static List<AccelerometerData> window = new ArrayList<>();
     public static List<AccelerometerData> windows = new ArrayList<>();
-
-    public static DataBuffer<List> windowCircleBuffer;
-
+    public static RingBuffer<List> windowCircleBuffer;
     public static List<Float> windowAvg = new ArrayList<>();
     public static List<Double> windowRms = new ArrayList<>();
     public static List<Double> windowStd = new ArrayList<>();
-
     //public static List<AccelerometerData> windowAcc = new ArrayList<>();
     public static List<CoordinateData> windowCoor = new ArrayList<>();
+
+    public static ConcurrentCircularBuffer<WindowData> windowBuffer;
+    public static int windowBufferSize;
+    public static int windowSize;
+    public static double windowOverlap;
+    public static boolean initiateSnapshot = false;
+
 
     static boolean isLockSaved = false;
 
@@ -161,9 +167,11 @@ public class CoreService extends Service implements
         wifiIntent = new Intent(this, WifiService.class);
         bluetoothIntent = new Intent(this, BluetoothService.class);
         dataProcessorIntent = new Intent(this, DataProcessorService.class);
+        ringProcessorIntent = new Intent(this, RingProcessorService.class);
         scannerIntent = new Intent(this, ScannerService.class);
         activityRecognitionIntent = new Intent(this, ActivityRecognitionService.class);
         barometerIntent = new Intent(this, BarometerService.class);
+
 
         buildGoogleApiClient();
 
@@ -181,7 +189,11 @@ public class CoreService extends Service implements
         heuristicsTunerFilter.addAction("ADD_ORIENTATION");
         heuristicsTunerFilter.addAction("STOP_SCAN");
         heuristicsTunerFilter.addAction("START_SCAN");
-        registerReceiver(heuristicsReceiver, heuristicsTunerFilter);
+        registerReceiver(startRecognitionReceiver, heuristicsTunerFilter);
+
+        IntentFilter startRecognitionFilter = new IntentFilter();
+        startRecognitionFilter.addAction("START_RECOGNITION");
+        registerReceiver(startRecognitionReceiver, startRecognitionFilter);
 
         Log.v("CoreService", "Service created");
     }
@@ -275,7 +287,7 @@ public class CoreService extends Service implements
                             startBluetoothService();
                             startWifiService();
 
-                            // For test purposes ABC
+                            // TODO ABC For test purposes
                             scanForLocks();
                         }
                     } else if (geofence.contains("outer")) {
@@ -372,6 +384,35 @@ public class CoreService extends Service implements
                         break;
                     case 5: redoOrientation(extras.getString("Lock"));
                 }
+            }
+        }
+    };
+
+    // TODO ABC
+    private BroadcastReceiver startRecognitionReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
+
+            Log.e(TAG, "StartRecognition");
+
+            if ("START_RECOGNITION".equals(action)) {
+
+
+                startAccelerometerService();
+                startRingBuffer();
+                //startDataBuffer();
+
+//                Log.i(TAG, "onReceive: arraylist " + extras.getStringArrayList("Locks"));
+//                if (!startHeuristicsDecision(extras.getStringArrayList("Locks")))
+//                    isLocationDataCollectionStarted = true;
+//                    isDetailedDataCollectionStarted = true;
+//                    isScanningForLocks = true;
+//                    startLocationService();
+//                    startBluetoothService();
+//                    startWifiService();
+//                    scanForLocks();}
+//
             }
         }
     };
@@ -496,7 +537,7 @@ public class CoreService extends Service implements
 
     void startDataBuffer() {
         Log.d(TAG, "Starting data processing");
-        dataBuffer = new DataBuffer<List>(1000);
+        //ringBuffer = new RingBuffer<List>(1000);
         Thread dataProcessorThread = new Thread() {
             public void run() {
                 startService(dataProcessorIntent);
@@ -510,19 +551,37 @@ public class CoreService extends Service implements
         stopService(dataProcessorIntent);
     }
 
-    void startDataCollection() {
-        startBluetoothService();
-        startWifiService();
-        startLocationService();
-        startDataBuffer();
+    void startRingBuffer() {
+        Log.d(TAG, "Starting data processing");
+
+        windowBuffer = new ConcurrentCircularBuffer(WindowData.class, windowBufferSize);
+
+        Thread ringProcessorThread = new Thread() {
+            public void run() {
+                startService(ringProcessorIntent);
+            }
+        };
+        ringProcessorThread.start();
     }
 
-    void stopDataCollection() {
-        stopBluetoothService();
-        stopWifiService();
-        stopLocationService();
-        stopDataBuffer();
+    void stopRingBuffer() {
+        Log.d("CoreService", "Trying to stop ringProcessor");
+        stopService(ringProcessorIntent);
     }
+
+//    void startDataCollection() {
+//        startBluetoothService();
+//        startWifiService();
+//        startLocationService();
+//        startDataBuffer();
+//    }
+//
+//    void stopDataCollection() {
+//        stopBluetoothService();
+//        stopWifiService();
+//        stopLocationService();
+//        stopDataBuffer();
+//    }
 
     void addGeofences() {
         ArrayList<LockData> lockDataArrayList = dataStore.getKnownLocks();
@@ -690,6 +749,7 @@ public class CoreService extends Service implements
         stopWifiService();
         stopLocationService();
         stopDataBuffer();
+        stopRingBuffer();
     }
 
 //    public void ExportCalibration(float startTime, float endTime, String activity) {
@@ -716,7 +776,9 @@ public class CoreService extends Service implements
 
     void startActivityRecognitionService() {
         Log.v(TAG, "Starting ActivtiyRecognitionService");
-        windowCircleBuffer = new DataBuffer<List>(10000);
+
+//        rawBuffer = new RingBuffer<AccelerometerData>(10);
+
         Thread activityRecognitionServiceThread = new Thread() {
             public void run() {
                 startService(activityRecognitionIntent);

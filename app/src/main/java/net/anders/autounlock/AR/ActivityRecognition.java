@@ -1,14 +1,10 @@
 package net.anders.autounlock.AR;
 
 import net.anders.autounlock.AR.DataPreprocessing.FeatureExtraction;
-import net.anders.autounlock.AR.DataProcessing.SlidingWindow;
 import net.anders.autounlock.AR.DataSegmentation.Segment;
 import net.anders.autounlock.AccelerometerData;
 import net.anders.autounlock.CoreService;
-import net.anders.autounlock.Export.Export;
 
-import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -40,10 +36,10 @@ public class ActivityRecognition {
 
         //Smoothing.apply5PointSmoothing(accelerometerData);
 
-//        DataBuffer circularBuffer = new DataBuffer<>();
+//        RingBuffer circularBuffer = new RingBuffer<>();
 //        segments.add();
 //
-//        Window w = new Window(10, );
+//        WindowData w = new WindowData(10, );
 
         //AccelerometerFilter.NoiseFilter(accelerometerData);
 

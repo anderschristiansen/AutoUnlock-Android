@@ -54,7 +54,7 @@ public class DataProcessorService extends Service {
             ArrayList<String> foundLocks = new ArrayList();
 
             while (running) {
-                // In order to not have empty lists in the DataBuffer, previous data will be used if no new data has been found.
+                // In order to not have empty lists in the RingBuffer, previous data will be used if no new data has been found.
                 if (!CoreService.recordedAccelerometer.isEmpty() || prevRecordedAccelerometer.isEmpty()) {
                     prevRecordedAccelerometer = CoreService.recordedAccelerometer;
                     CoreService.recordedAccelerometer = new ArrayList<AccelerometerData>();
@@ -81,7 +81,7 @@ public class DataProcessorService extends Service {
                 dataBlob.add(prevRecordedLocation);
                 dataBlob.add(prevRecordedWifi);
 
-                CoreService.dataBuffer.add(dataBlob);
+//                CoreService.ringBuffer.add(dataBlob);
 
                 // Do not start decision making before we have at least one nearby Bluetooth device (the lock),
                 // and adapter location. We cannot be sure any Wifi access points are nearby.

@@ -74,4 +74,10 @@ public class Logging  extends Activity {
     public static void Calibrating() {
         Log.i(TAG, "Initiate calibration");
     }
+
+    public static void RingbufferInfo (String res) {
+        if (true) {
+            Log.v("Ring buffer", res);
+        }
+    }
 }

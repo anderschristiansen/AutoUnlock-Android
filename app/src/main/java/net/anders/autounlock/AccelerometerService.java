@@ -12,7 +12,12 @@ import android.os.PowerManager;
 import android.util.Log;
 
 import net.anders.autounlock.AR.ActivityRecognition;
+import net.anders.autounlock.AR.DataSegmentation.WindowData;
+import net.anders.autounlock.AR.SlidingWindow;
 import net.anders.autounlock.Export.Export;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class AccelerometerService extends Service implements SensorEventListener {
     static String TAG = "AccelerometerService";
@@ -46,6 +51,8 @@ public class AccelerometerService extends Service implements SensorEventListener
     private float dT = 0;
     private float previousVelocity[] = new float[3];
     private long startTime;
+
+    // Data for creating windows
 
     @Override
     public void onSensorChanged(SensorEvent event) {
@@ -187,9 +194,7 @@ public class AccelerometerService extends Service implements SensorEventListener
                 linearAcceleration[0], linearAcceleration[1], linearAcceleration[2],
                 velocity[0], velocity[1], velocity[2], datetime, time, CoreService.currentOrientation);
 
-        // Initiate AR
-        ActivityRecognition.accelerometerEvent(anAccelerometerEvent);
-        CoreService.recordedAccelerometer.add(anAccelerometerEvent);
+        SlidingWindow.insertAccelerometerIntoWindow(anAccelerometerEvent);
     }
 
     @Override

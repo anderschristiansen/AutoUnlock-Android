@@ -67,10 +67,13 @@
             android:name=".NotificationUtility$NotificationActionService"
             android:enabled="true"/>
         <service
-            android:name=".ActivityRecognitionService"
+            android:name=".AR.ActivityRecognitionService"
             android:enabled="true" />
         <service
             android:name=".BarometerService"
+            android:enabled="true" />
+        <service
+            android:name=".RingProcessorService"
             android:enabled="true" />
 
     </application>

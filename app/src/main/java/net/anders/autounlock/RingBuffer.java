@@ -3,15 +3,13 @@ package net.anders.autounlock;
 import java.nio.BufferOverflowException;
 import java.nio.BufferUnderflowException;
 
-public class DataBuffer<T> {
+public class RingBuffer<T> {
     private T[] buffer;
-
     private int tail;
-
     private int head;
 
     @SuppressWarnings("unchecked")
-    DataBuffer(int n) {
+    RingBuffer(int n) {
         buffer = (T[]) new Object[n];
         tail = 0;
         head = 0;
@@ -41,5 +39,13 @@ public class DataBuffer<T> {
     public T[] getAll() {
 
         return buffer;
+    }
+
+    public int getLength() {
+        return buffer.length;
+    }
+
+    public int getHead() {
+        return head;
     }
 }

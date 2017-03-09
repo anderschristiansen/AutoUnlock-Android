@@ -304,7 +304,6 @@ public class Export {
             double vY_prev = 0;
             double time_prev = 0;
 
-
             for (AccelerometerData window: windows) {
 
                 time = (window.getTime() * Math.pow(10, -3));

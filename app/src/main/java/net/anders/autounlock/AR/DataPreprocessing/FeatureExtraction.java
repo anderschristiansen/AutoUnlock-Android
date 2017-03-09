@@ -89,6 +89,8 @@ public class FeatureExtraction {
 
     public static void getFeatures(List<AccelerometerData> window) {
 
+        getDirection();
+
         /*float mean = 0;
         double rms = 0;
         float speed_x = 0;
@@ -98,21 +100,6 @@ public class FeatureExtraction {
         double c_x = 0;
         double c_y = 0;
         double prevOri = 0;*/
-
-        long currentTime = System.currentTimeMillis();
-        float meanAccX, sumAccX = 0;
-        float meanAccY, sumAccY = 0;
-
-
-        for (AccelerometerData acc : window) {
-            sumAccX += acc.getAccelerationX();
-            sumAccY += acc.getAccelerationY();
-        }
-
-        meanAccX = sumAccX / window.size();
-        meanAccY = sumAccY / window.size();
-
-        CoreService.windows.add(new AccelerometerData(meanAccX, meanAccY, 0, 0, 0, 0, "", currentTime, 0));
 
        /* for (AccelerometerData acc : window) {
 
@@ -158,6 +145,40 @@ public class FeatureExtraction {
         CoreService.windowCoor.add(coordinate);
 */
         //TODO AVC + Angle
+    }
+
+    public static void getDirection() {
+
+//        double vX;
+//        double vY;
+//        double time;
+//        double vX_prev = 0;
+//        double vY_prev = 0;
+//        double time_prev = 0;
+//
+//        for (AccelerometerData window: windows) {
+//
+//            time = (window.getTime() * Math.pow(10, -3));
+//            //time = (window.getTime() / 1000) % 60 ;
+//
+//            if (vX_prev ==  0 && vY_prev == 0) {
+//                vX = vX_prev + window.getAccelerationX();
+//                vY = vY_prev + window.getAccelerationY();
+//            } else {
+//                vX = vX_prev + window.getAccelerationX() * (time - time_prev);
+//                vY = vY_prev + window.getAccelerationY() * (time - time_prev);
+//            }
+//
+//            double vTotal = Math.sqrt(Math.pow(vX, 2) + Math.pow(vY, 2));
+//            double degree = (Math.atan(vX/vY)*180)/Math.PI;
+//
+////            writeCsvWindowData(degree, vTotal);
+//
+//            vX_prev = vX;
+//            vY_prev = vY;
+//            time_prev = time;
+//        }
+
     }
 
     static double getStdDev(List<AccelerometerData> list)

@@ -75,7 +75,7 @@ public class Record {
         System.out.println("You may record up to 5 different gestures.");
         System.out.print("Please state the name of the gesture you wish to create: ");
 
-        gestureName = "test";
+        gestureName = "test2";
         System.out.println("");
 
         File sdCardFile = new File(outputDirectory, "GestureList.txt");
@@ -148,14 +148,14 @@ public class Record {
 
         System.out.println("Capturing...");
 
-        for (int i=0;i<101;i++){
+        for (int i=0;i<10;i++){
 
             if (firstElement == true){
                 firstElement = false;
             }
             else {
 
-                ObservationInteger x = new ObservationInteger(1);
+                ObservationInteger x = new ObservationInteger(2);
                 sequencesX.add(x);
 
                 ObservationInteger y = new ObservationInteger(2);
@@ -185,8 +185,8 @@ public class Record {
 
     public Hmm<ObservationInteger> createHmm(List<List<ObservationInteger>> toHmm){
 
-        factory = new OpdfIntegerFactory(100);
-        kml = new KMeansLearner<ObservationInteger>(8,factory,toHmm);
+        factory = new OpdfIntegerFactory(10);
+        kml = new KMeansLearner<ObservationInteger>(2,factory,toHmm);
         Hmm<ObservationInteger>hmm = kml.iterate();
 
         BaumWelchLearner bwl = new BaumWelchLearner();

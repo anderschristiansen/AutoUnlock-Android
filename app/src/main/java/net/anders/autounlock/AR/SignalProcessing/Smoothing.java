@@ -1,9 +1,7 @@
 package net.anders.autounlock.AR.SignalProcessing;
 
 import net.anders.autounlock.AR.DataSegmentation.Segment;
-import net.anders.autounlock.AR.DataSegmentation.Window;
 import net.anders.autounlock.AccelerometerData;
-import net.anders.autounlock.CoreService;
 
 import java.util.List;
 

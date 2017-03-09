@@ -88,6 +88,11 @@ public class MainActivity extends AppCompatActivity {
     private static boolean startBarometerEnabled = true;
     private static boolean stopBarometerEnabled = false;
 
+    private static Button startActivityRecognition;
+    private static Button stopActivityRecognition;
+    private static boolean startActivityRecognitionEnabled = true;
+    private static boolean stopActivityRecognitionEnabled = false;
+
     private BroadcastReceiver receiver;
 
     @Override
@@ -135,6 +140,16 @@ public class MainActivity extends AppCompatActivity {
         unregisterGeofence = (Button) findViewById(R.id.unregistergeofence);
         registerGeofence.setEnabled(registerGeofenceEnabled);
         unregisterGeofence.setEnabled(unregisterGeofenceEnabled);
+
+        startBarometer = (Button) findViewById(R.id.barometerstart);
+        stopBarometer = (Button) findViewById(R.id.barometerstop);
+        startBarometer.setEnabled(startBarometerEnabled);
+        stopBarometer.setEnabled(stopBarometerEnabled);
+
+        startActivityRecognition = (Button) findViewById(R.id.activityrecognitionstart);
+        stopActivityRecognition = (Button) findViewById(R.id.activityrecognitionstop);
+        startActivityRecognition.setEnabled(startActivityRecognitionEnabled);
+        stopActivityRecognition.setEnabled(stopActivityRecognitionEnabled);
 
         DataStore dataStore = new DataStore(this);
 
@@ -260,13 +275,6 @@ public class MainActivity extends AppCompatActivity {
         stopAccelerometer.setEnabled(stopAccelerometerEnabled);
     }
 
-    void setStopBarometer() {
-        startBarometerEnabled = true;
-        startBarometer.setEnabled(startBarometerEnabled);
-        stopBarometerEnabled = false;
-        stopBarometer.setEnabled(stopBarometerEnabled);
-    }
-
     public void onButtonClickAccelStop(View v) {
         if (bound) {
             coreService.stopAccelerometerService();
@@ -281,6 +289,19 @@ public class MainActivity extends AppCompatActivity {
             } else {
                 allButton -= 1;
             }
+        }
+    }
+
+    public void onButtonClickBarometer(View v) {
+        if (bound) {
+            coreService.startBarometerService();
+            setStartBarometer();
+
+            startAllEnabled = false;
+            startAll.setEnabled(startAllEnabled);
+            stopAllEnabled = true;
+            stopAll.setEnabled(stopAllEnabled);
+            allButton += 1;
         }
     }
 
@@ -301,10 +322,24 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public void onButtonClickBarometer(View v) {
+    void setStartBarometer() {
+        startBarometerEnabled = false;
+        startBarometer.setEnabled(startBarometerEnabled);
+        stopBarometerEnabled = true;
+        stopBarometer.setEnabled(stopBarometerEnabled);
+    }
+
+    void setStopBarometer() {
+        startBarometerEnabled = true;
+        startBarometer.setEnabled(startBarometerEnabled);
+        stopBarometerEnabled = false;
+        stopBarometer.setEnabled(stopBarometerEnabled);
+    }
+
+    public void onButtonClickActivityRecognition(View v) {
         if (bound) {
-            coreService.startBarometerService();
-            //setStartAccelerometer();
+            coreService.startActivityRecognitionService();
+            setStartAcitvityRecognition();
 
             startAllEnabled = false;
             startAll.setEnabled(startAllEnabled);
@@ -312,6 +347,37 @@ public class MainActivity extends AppCompatActivity {
             stopAll.setEnabled(stopAllEnabled);
             allButton += 1;
         }
+    }
+
+    public void onButtonClickActivityRecognitionStop(View v) {
+        if (bound) {
+            coreService.stopActivityRecognitionService();
+            setStopActivityRecognition();
+
+            if (allButton == 1) {
+                startAllEnabled = true;
+                startAll.setEnabled(startAllEnabled);
+                stopAllEnabled = false;
+                stopAll.setEnabled(stopAllEnabled);
+                allButton -= 1;
+            } else {
+                allButton -= 1;
+            }
+        }
+    }
+
+    void setStartAcitvityRecognition() {
+        startActivityRecognitionEnabled = false;
+        startActivityRecognition.setEnabled(startActivityRecognitionEnabled);
+        stopActivityRecognitionEnabled = true;
+        stopActivityRecognition.setEnabled(stopActivityRecognitionEnabled);
+    }
+
+    void setStopActivityRecognition() {
+        startActivityRecognitionEnabled = true;
+        startActivityRecognition.setEnabled(startActivityRecognitionEnabled);
+        stopActivityRecognitionEnabled = false;
+        stopActivityRecognition.setEnabled(stopActivityRecognitionEnabled);
     }
 
     void setStartLocation() {
@@ -480,6 +546,7 @@ public class MainActivity extends AppCompatActivity {
     public void onButtonClickAllStart(View v) {
         if (bound) {
             coreService.startDataBuffer();
+            coreService.startRingBuffer();
             coreService.startAccelerometerService();
             coreService.startLocationService();
             coreService.startWifiService();
@@ -506,12 +573,7 @@ public class MainActivity extends AppCompatActivity {
 
     public void onButtonClickAllStop(View v) {
         if (bound) {
-            coreService.stopDataBuffer();
-            coreService.stopAccelerometerService();
-            coreService.stopLocationService();
-            coreService.stopWifiService();
-            coreService.stopBluetoothService();
-
+            coreService.StopAllServices();
             setStopAll();
 
             allButton = 0;
@@ -646,7 +708,7 @@ public class MainActivity extends AppCompatActivity {
 
     public void onButtonClickGoToCalibration(View v) throws InterruptedException, FileFormatException, IOException {
 
-        Record r = new Record();
+        //Record r = new Record();
         //Recognise r = new Recognise();
 
         if (bound) {

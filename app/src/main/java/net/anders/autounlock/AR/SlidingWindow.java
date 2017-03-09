@@ -1,5 +1,6 @@
-package net.anders.autounlock.AR.DataProcessing;
+package net.anders.autounlock.AR;
 
+import net.anders.autounlock.AR.DataSegmentation.WindowData;
 import net.anders.autounlock.AccelerometerData;
 import net.anders.autounlock.CoreService;
 
@@ -41,7 +42,6 @@ public class SlidingWindow {
 
     */
 
-
     /*
     3 windows:
         -sliding windows
@@ -51,18 +51,33 @@ public class SlidingWindow {
     and is therefore ideally suited to real-time applications
     */
 
-    public static List<List> insertAccelerometerIntoWindow(AccelerometerData accelerometerData) {
+    public static List<AccelerometerData> currentAccelerometerData = new ArrayList<>();
+    public static List<AccelerometerData> nextAccelerometerData = new ArrayList<>();
 
-        CoreService.window.add(accelerometerData);
 
-        if (CoreService.window.size() >= 100) {
-            //CoreService.windowCircleBuffer.add(CoreService.window);
+    public static void insertAccelerometerIntoWindow(AccelerometerData anAccelerometerEvent) {
 
-            List<List> list = new ArrayList<>();
-            list.add(CoreService.window);
-            CoreService.window.clear();
-            return list;
+        currentAccelerometerData.add(anAccelerometerEvent);
+
+        if (currentAccelerometerData.size() == CoreService.windowSize) {
+            createWindow(currentAccelerometerData);
+            currentAccelerometerData.clear();
         }
-        return null;
+    }
+
+    private static void createWindow(List<AccelerometerData> rawAccelerometerData) {
+        float meanAccX, sumAccX = 0;
+        float meanAccY, sumAccY = 0;
+
+        for (AccelerometerData acc : rawAccelerometerData) {
+            sumAccX += acc.getAccelerationX();
+            sumAccY += acc.getAccelerationY();
+        }
+
+        meanAccX = sumAccX / rawAccelerometerData.size();
+        meanAccY = sumAccY / rawAccelerometerData.size();
+
+        CoreService.windowBuffer.add(new WindowData(meanAccX, meanAccY, System.currentTimeMillis()));
+        CoreService.initiateSnapshot = true;
     }
 }
