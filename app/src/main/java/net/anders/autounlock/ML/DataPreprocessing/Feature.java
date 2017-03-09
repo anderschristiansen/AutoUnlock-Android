@@ -1,18 +1,21 @@
-package net.anders.autounlock.AR.DataPreprocessing;
+package net.anders.autounlock.ML.DataPreprocessing;
 
-import net.anders.autounlock.AR.DataSegmentation.CoordinateData;
+import android.util.Log;
+
 import net.anders.autounlock.AccelerometerData;
-import net.anders.autounlock.CoreService;
+import net.anders.autounlock.Export.Export;
+import net.anders.autounlock.ML.DataSegmentation.WindowData;
 
-import java.util.ArrayList;
+import java.io.IOException;
 import java.util.List;
 
 /**
  * Created by Anders on 15-02-2017.
  */
 
-public class FeatureExtraction {
+public class Feature {
 
+    private static String TAG = "Feature";
     /*
     As the three activities we are considering are mostly composed by different postures
     (sitting, standing, lying), we use two features from each sensor to represent
@@ -87,9 +90,92 @@ public class FeatureExtraction {
     static double rmsTot;
     static double stdTot;
 
-    public static void getFeatures(List<AccelerometerData> window) {
+    public static void getFeatures(WindowData[] windows) throws IOException {
+        getDirection(windows);
+    }
 
-        getDirection();
+
+
+    public static WindowData getWindow(List<AccelerometerData> rawAccelerometerData, WindowData prevWindow) {
+
+        float meanAccX, meanAccY;
+        float sumAccX = 0, sumAccY = 0;
+
+        double speedX, speedY;
+        double time_current;
+        double speedX_prev = 0, speedY_prev = 0;
+        double time_prev;
+
+        if (prevWindow != null) {
+            speedX_prev = prevWindow.getSpeedX();
+            speedY_prev = prevWindow.getSpeedY();
+            time_prev = prevWindow.getTime();
+        } else {
+            double now = System.currentTimeMillis();
+            time_prev = 0;
+        }
+
+        for (AccelerometerData acc : rawAccelerometerData) {
+            sumAccX += acc.getAccelerationX();
+            sumAccY += acc.getAccelerationY();
+        }
+
+        meanAccX = sumAccX / rawAccelerometerData.size();
+        meanAccY = sumAccY / rawAccelerometerData.size();
+
+//        Log.i(TAG, String.valueOf(meanAccX + " " + String.valueOf(meanAccY)));
+
+        time_current = System.currentTimeMillis() * Math.pow(10, -3);
+        //time_current = System.currentTimeMillis();
+
+        if (speedX_prev ==  0 && speedY_prev == 0) {
+            speedX = speedX_prev + meanAccX;
+            speedY = speedY_prev + meanAccY;
+        } else {
+            speedX = speedX_prev + meanAccX * Math.pow(time_current - time_prev, 2);
+            speedY = speedY_prev + meanAccY * Math.pow(time_current - time_prev, 2);
+        }
+
+        double velocity = Math.sqrt(Math.pow(speedX, 2) + Math.pow(speedY, 2));
+        double degree = (Math.atan(speedX/speedY)*180)/Math.PI;
+
+        //Log.i(TAG, "grader: " + String.valueOf(velocity) + " -- " + String.valueOf(degree));
+
+//        double time = time_current - time_prev;
+//        Log.i(TAG, String.valueOf(time));
+
+        return new WindowData(meanAccX, meanAccY, speedX, speedY, degree, velocity, time_current);
+    }
+
+
+
+//    public static WindowData getMovement(WindowData window, WindowData prevWindow) {
+//
+//        double vX;
+//        double vY;
+//        double time;
+//        double vX_prev = 0;
+//        double vY_prev = 0;
+//        double time_prev = 0;
+//
+//        time = (window.getTime() * Math.pow(10, -3));
+//
+//        if (vX_prev ==  0 && vY_prev == 0) {
+//            vX = vX_prev + window.getAccelerationX();
+//            vY = vY_prev + window.getAccelerationY();
+//        } else {
+//            vX = vX_prev + window.getAccelerationX() * (time - time_prev);
+//            vY = vY_prev + window.getAccelerationY() * (time - time_prev);
+//        }
+//
+//        double vTotal = Math.sqrt(Math.pow(vX, 2) + Math.pow(vY, 2));
+//        double degree = (Math.atan(vX/vY)*180)/Math.PI;
+//
+//        window.setOrientation(degree);
+//        window.setVelocity(vTotal);
+//
+//        return window;
+//    }
 
         /*float mean = 0;
         double rms = 0;
@@ -144,11 +230,11 @@ public class FeatureExtraction {
         CoreService.windowAcc.add(temp);
         CoreService.windowCoor.add(coordinate);
 */
-        //TODO AVC + Angle
-    }
+    //TODO AVC + Angle
+//    }
 
-    public static void getDirection() {
-
+    public static void getDirection(WindowData[] windows) throws IOException {
+        Export.CsvWindows(windows);
 //        double vX;
 //        double vY;
 //        double time;
@@ -156,7 +242,7 @@ public class FeatureExtraction {
 //        double vY_prev = 0;
 //        double time_prev = 0;
 //
-//        for (AccelerometerData window: windows) {
+//        for (WindowData window: windows) {
 //
 //            time = (window.getTime() * Math.pow(10, -3));
 //            //time = (window.getTime() / 1000) % 60 ;
@@ -172,7 +258,7 @@ public class FeatureExtraction {
 //            double vTotal = Math.sqrt(Math.pow(vX, 2) + Math.pow(vY, 2));
 //            double degree = (Math.atan(vX/vY)*180)/Math.PI;
 //
-////            writeCsvWindowData(degree, vTotal);
+//            Export.CsvWindows(degree, vTotal);
 //
 //            vX_prev = vX;
 //            vY_prev = vY;

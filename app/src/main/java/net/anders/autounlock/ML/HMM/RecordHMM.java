@@ -1,9 +1,6 @@
-package net.anders.autounlock.AR;
-
-import android.os.Environment;
+package net.anders.autounlock.ML.HMM;
 
 import java.io.File;
-import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.InputStreamReader;
 import java.util.List;
@@ -12,18 +9,13 @@ import be.ac.ulg.montefiore.run.jahmm.ObservationInteger;
 import be.ac.ulg.montefiore.run.jahmm.io.OpdfIntegerWriter;
 
 import java.io.BufferedReader;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.LinkedList;
-import java.util.List;
 
 import be.ac.ulg.montefiore.run.jahmm.Hmm;
-import be.ac.ulg.montefiore.run.jahmm.ObservationInteger;
 import be.ac.ulg.montefiore.run.jahmm.OpdfIntegerFactory;
 import be.ac.ulg.montefiore.run.jahmm.io.FileFormatException;
 import be.ac.ulg.montefiore.run.jahmm.io.HmmWriter;
-import be.ac.ulg.montefiore.run.jahmm.io.OpdfIntegerWriter;
 import be.ac.ulg.montefiore.run.jahmm.learn.BaumWelchLearner;
 import be.ac.ulg.montefiore.run.jahmm.learn.KMeansLearner;
 
@@ -31,7 +23,7 @@ import be.ac.ulg.montefiore.run.jahmm.learn.KMeansLearner;
  * Created by Anders on 06-03-2017.
  */
 
-public class Record {
+public class RecordHMM {
 
     // Lists of lists of values from multiple iterations (observations), used to create HMMs
     List<List<ObservationInteger>> toHmmX;
@@ -62,10 +54,10 @@ public class Record {
 
     File outputDirectory = new File("/sdcard/AutoUnlock/HMM/");
 
-    public Record() throws InterruptedException, IOException, FileFormatException {
+    public RecordHMM() throws InterruptedException, IOException, FileFormatException {
         outputDirectory.mkdirs();
         getGesture();
-        Recognise r = new Recognise();
+        RecogniseHMM r = new RecogniseHMM();
         r.Rec();
     }
 

@@ -1,8 +1,8 @@
-package net.anders.autounlock.AR;
+package net.anders.autounlock.ML.DataSegmentation;
 
-import net.anders.autounlock.AR.DataSegmentation.WindowData;
 import net.anders.autounlock.AccelerometerData;
 import net.anders.autounlock.CoreService;
+import net.anders.autounlock.ML.DataPreprocessing.Feature;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -51,33 +51,45 @@ public class SlidingWindow {
     and is therefore ideally suited to real-time applications
     */
 
-    public static List<AccelerometerData> currentAccelerometerData = new ArrayList<>();
-    public static List<AccelerometerData> nextAccelerometerData = new ArrayList<>();
+    public static List<AccelerometerData> currentAccelerometerList = new ArrayList<>();
+    public static List<AccelerometerData> nextAccelerometerList = new ArrayList<>();
+    public static WindowData prevWindow;
 
-
+    
+    
     public static void insertAccelerometerIntoWindow(AccelerometerData anAccelerometerEvent) {
 
-        currentAccelerometerData.add(anAccelerometerEvent);
+        currentAccelerometerList.add(anAccelerometerEvent);
 
-        if (currentAccelerometerData.size() == CoreService.windowSize) {
-            createWindow(currentAccelerometerData);
-            currentAccelerometerData.clear();
+        // Numbers of overlapping values in integers
+        int overlap = CoreService.windowOverlap;
+
+        // Adds accelerometerdata if it is needed for the next sliding window
+        if (overlap < currentAccelerometerList.size()) {
+            nextAccelerometerList.add(anAccelerometerEvent);
+        }
+
+        // Convert current accelerometerdata's into a window
+        if (currentAccelerometerList.size() == CoreService.windowSize) {
+            createWindow(currentAccelerometerList);
+            currentAccelerometerList.addAll(nextAccelerometerList);
+            nextAccelerometerList.clear();
         }
     }
 
+    
+    
     private static void createWindow(List<AccelerometerData> rawAccelerometerData) {
-        float meanAccX, sumAccX = 0;
-        float meanAccY, sumAccY = 0;
 
-        for (AccelerometerData acc : rawAccelerometerData) {
-            sumAccX += acc.getAccelerationX();
-            sumAccY += acc.getAccelerationY();
-        }
+        WindowData window = Feature.getWindow(rawAccelerometerData, prevWindow);
 
-        meanAccX = sumAccX / rawAccelerometerData.size();
-        meanAccY = sumAccY / rawAccelerometerData.size();
+        // Put new window into the circular buffer
+        CoreService.windowBuffer.add(window);
 
-        CoreService.windowBuffer.add(new WindowData(meanAccX, meanAccY, System.currentTimeMillis()));
-        CoreService.initiateSnapshot = true;
+        prevWindow = window;
+
+        // Tells RingProcessorService to perform a snapshot of the circular buffer
+        //CoreService.doSnapshot = true;
+        currentAccelerometerList.clear();
     }
 }

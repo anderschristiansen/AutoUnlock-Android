@@ -1,4 +1,4 @@
-package net.anders.autounlock.AR.DataSegmentation;
+package net.anders.autounlock.ML.DataSegmentation;
 
 /**
  * Created by Anders on 02-03-2017.

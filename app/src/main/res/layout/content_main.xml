@@ -180,22 +180,22 @@
                     android:layout_alignParentEnd="true"/>
 
                 <Button
-                    android:id="@+id/activityrecognitionstart"
+                    android:id="@+id/recognitionstart"
                     android:layout_height="40dp"
                     android:layout_width="200dp"
                     android:textSize="10dp"
                     android:layout_below="@id/barometerstart"
-                    android:text="Start Activtiy Recognition"
-                    android:onClick="onButtonClickActivityRecognition" />
+                    android:text="Start Recognition"
+                    android:onClick="onButtonClickRecognition" />
 
                 <Button
-                    android:id="@+id/activityrecognitionstop"
+                    android:id="@+id/recognitionstop"
                     android:layout_height="40dp"
                     android:textSize="10dp"
                     android:layout_width="wrap_content"
                     android:text="Stop"
                     android:layout_below="@+id/barometerstop"
-                    android:onClick="onButtonClickActivityRecognitionStop"
+                    android:onClick="onButtonClickRecognitionStop"
                     android:layout_alignParentEnd="true"/>
 
             </RelativeLayout>
@@ -230,12 +230,21 @@
                 android:layout_alignParentStart="true"/>
 
             <Button
+                android:id="@+id/unlock"
+                android:layout_height="wrap_content"
+                android:layout_width="200dp"
+                android:text="Unlock door"
+                android:onClick="onButtonClickUnlock"
+                android:layout_below="@+id/sensorContainer"
+                android:layout_centerHorizontal="true"/>
+
+            <Button
                 android:id="@+id/manualUnlock"
                 android:layout_height="wrap_content"
                 android:layout_width="200dp"
                 android:text="Unlock"
                 android:onClick="onButtonClickManuelUnlock"
-                android:layout_below="@+id/sensorContainer"
+                android:layout_below="@+id/unlock"
                 android:layout_centerHorizontal="true"/>
 
             <!--Old method to manuel unlock-->

@@ -1,4 +1,4 @@
-package net.anders.autounlock.AR.DataProcessing;
+package net.anders.autounlock.ML.DataProcessing;
 
 import net.anders.autounlock.AccelerometerData;
 

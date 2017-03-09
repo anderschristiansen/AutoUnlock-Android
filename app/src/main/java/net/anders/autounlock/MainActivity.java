@@ -18,8 +18,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
 
-import net.anders.autounlock.AR.Recognise;
-import net.anders.autounlock.AR.Record;
 import net.anders.autounlock.Calibrator.CalibrationActivity;
 import net.anders.autounlock.Export.Export;
 
@@ -88,10 +86,10 @@ public class MainActivity extends AppCompatActivity {
     private static boolean startBarometerEnabled = true;
     private static boolean stopBarometerEnabled = false;
 
-    private static Button startActivityRecognition;
-    private static Button stopActivityRecognition;
-    private static boolean startActivityRecognitionEnabled = true;
-    private static boolean stopActivityRecognitionEnabled = false;
+    private static Button startRecognition;
+    private static Button stopRecognition;
+    private static boolean startRecognitionEnabled = true;
+    private static boolean stopRecognitionEnabled = false;
 
     private BroadcastReceiver receiver;
 
@@ -146,10 +144,10 @@ public class MainActivity extends AppCompatActivity {
         startBarometer.setEnabled(startBarometerEnabled);
         stopBarometer.setEnabled(stopBarometerEnabled);
 
-        startActivityRecognition = (Button) findViewById(R.id.activityrecognitionstart);
-        stopActivityRecognition = (Button) findViewById(R.id.activityrecognitionstop);
-        startActivityRecognition.setEnabled(startActivityRecognitionEnabled);
-        stopActivityRecognition.setEnabled(stopActivityRecognitionEnabled);
+        startRecognition = (Button) findViewById(R.id.recognitionstart);
+        stopRecognition = (Button) findViewById(R.id.recognitionstop);
+        startRecognition.setEnabled(startRecognitionEnabled);
+        stopRecognition.setEnabled(stopRecognitionEnabled);
 
         DataStore dataStore = new DataStore(this);
 
@@ -336,10 +334,10 @@ public class MainActivity extends AppCompatActivity {
         stopBarometer.setEnabled(stopBarometerEnabled);
     }
 
-    public void onButtonClickActivityRecognition(View v) {
+    public void onButtonClickRecognition(View v) {
         if (bound) {
-            coreService.startActivityRecognitionService();
-            setStartAcitvityRecognition();
+            coreService.startRecognitionService();
+            setStartRecognition();
 
             startAllEnabled = false;
             startAll.setEnabled(startAllEnabled);
@@ -349,10 +347,10 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public void onButtonClickActivityRecognitionStop(View v) {
+    public void onButtonClickRecognitionStop(View v) {
         if (bound) {
-            coreService.stopActivityRecognitionService();
-            setStopActivityRecognition();
+            coreService.stopRecognitionService();
+            setStopRecognition();
 
             if (allButton == 1) {
                 startAllEnabled = true;
@@ -366,18 +364,18 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    void setStartAcitvityRecognition() {
-        startActivityRecognitionEnabled = false;
-        startActivityRecognition.setEnabled(startActivityRecognitionEnabled);
-        stopActivityRecognitionEnabled = true;
-        stopActivityRecognition.setEnabled(stopActivityRecognitionEnabled);
+    void setStartRecognition() {
+        startRecognitionEnabled = false;
+        startRecognition.setEnabled(startRecognitionEnabled);
+        stopRecognitionEnabled = true;
+        stopRecognition.setEnabled(stopRecognitionEnabled);
     }
 
-    void setStopActivityRecognition() {
-        startActivityRecognitionEnabled = true;
-        startActivityRecognition.setEnabled(startActivityRecognitionEnabled);
-        stopActivityRecognitionEnabled = false;
-        stopActivityRecognition.setEnabled(stopActivityRecognitionEnabled);
+    void setStopRecognition() {
+        startRecognitionEnabled = true;
+        startRecognition.setEnabled(startRecognitionEnabled);
+        stopRecognitionEnabled = false;
+        stopRecognition.setEnabled(stopRecognitionEnabled);
     }
 
     void setStartLocation() {
@@ -671,7 +669,7 @@ public class MainActivity extends AppCompatActivity {
 
     public void onButtonClickSaveDb(View v) {
         if (bound) {
-            coreService.saveDb(BluetoothService.ANDERS_BEKEY);
+            coreService.saveLock(BluetoothService.ANDERS_BEKEY);
             //Toast.makeText(this, "Lock found and saved", Toast.LENGTH_SHORT).show();
         }
     }
@@ -679,6 +677,13 @@ public class MainActivity extends AppCompatActivity {
     public void onButtonClickManuelUnlock(View v) {
         if (bound) {
             coreService.onButtonClickManualUnlock();
+        }
+    }
+
+    // TODO ABC
+    public void onButtonClickUnlock(View v) {
+        if (bound) {
+            coreService.onButtonClickUnlock();
         }
     }
 
@@ -708,8 +713,8 @@ public class MainActivity extends AppCompatActivity {
 
     public void onButtonClickGoToCalibration(View v) throws InterruptedException, FileFormatException, IOException {
 
-        //Record r = new Record();
-        //Recognise r = new Recognise();
+        //RecordHMM r = new RecordHMM();
+        //RecogniseHMM r = new RecogniseHMM();
 
         if (bound) {
             coreService.startAccelerometerService();

@@ -11,19 +11,14 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
-import com.google.android.gms.common.data.DataBuffer;
-
-import net.anders.autounlock.AR.DataSegmentation.CoordinateData;
+import net.anders.autounlock.ML.DataSegmentation.CoordinateData;
 import net.anders.autounlock.AccelerometerData;
 import net.anders.autounlock.CoreService;
 import net.anders.autounlock.Export.Export;
 import net.anders.autounlock.R;
 
 import java.io.IOException;
-import java.lang.reflect.Array;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 public class CalibrationActivity extends Activity{
@@ -139,7 +134,7 @@ public class CalibrationActivity extends Activity{
         //Export.CsvMean(CoreService.windowAvg);
         //Export.CsvRms(CoreService.windowRms);
         //Export.CsvStd(CoreService.windowStd);
-        Export.CsvWindows(CoreService.windows);
+//        Export.CsvWindows(CoreService.windows);
         //Export.CsvCoord(makeCumul(CoreService.windowCoor));
 
         //CoreService.windowCoor.clear();

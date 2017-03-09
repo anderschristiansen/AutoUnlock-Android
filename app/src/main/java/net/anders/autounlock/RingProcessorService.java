@@ -6,10 +6,7 @@ import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
-import net.anders.autounlock.AR.DataSegmentation.WindowData;
-
-import java.util.ArrayList;
-import java.util.List;
+import net.anders.autounlock.ML.DataSegmentation.WindowData;
 
 /**
  * Created by Anders on 08-03-2017.
@@ -23,7 +20,6 @@ import java.util.List;
 public class RingProcessorService extends Service {
 
     private volatile boolean running = true;
-    private WindowData window;
 
     private RingProcessor ringProcessor;
     private Thread ringCollector;
@@ -55,16 +51,18 @@ public class RingProcessorService extends Service {
 
             while (running) {
 
-                if (CoreService.initiateSnapshot) {
-                    WindowData[] snapshot = CoreService.windowBuffer.snapshot();
-
-                    if (snapshot.length != 0) {
-                        WindowData window = snapshot[snapshot.length-1];
-                        Log.i(TAG, String.valueOf(window.getAccelerationX()) + " " +String.valueOf(snapshot.length));
-                    }
-                    CoreService.initiateSnapshot = false;
-                }
-
+//                if (CoreService.doSnapshot) {
+//                    // Perform a snapshot of the current circular buffer, to avoid race conditions
+//                    WindowData[] snapshot = CoreService.windowBuffer.snapshot();
+//
+//                    if (snapshot.length != 0) {
+//                        WindowData window = snapshot[snapshot.length-1];
+//                        Log.i(TAG, String.valueOf(window.getAccelerationX()) + " " + String.valueOf(snapshot.length));
+//
+////                      Feature.getFeatures(window);
+//                    }
+//                    CoreService.doSnapshot = false;
+//                }
 
 //                AccelerometerData[] snapshot = CoreService.rawBuffer.snapshot();
 //                Log.i(TAG, String.valueOf(snapshot.length));
@@ -102,5 +100,12 @@ public class RingProcessorService extends Service {
         private void terminate() {
             running = false;
         }
+    }
+
+    public static WindowData[] getSnapshot() {
+        // Perform a snapshot of the current circular buffer, to avoid race conditions
+        WindowData[] snapshot = CoreService.windowBuffer.snapshot();
+
+        return snapshot;
     }
 }

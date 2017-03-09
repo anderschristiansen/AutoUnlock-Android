@@ -1,6 +1,4 @@
-package net.anders.autounlock.AR;
-
-import android.content.Context;
+package net.anders.autounlock.ML.HMM;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -12,13 +10,8 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.LineNumberReader;
-import java.io.OutputStreamWriter;
-import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
-import java.net.PortUnreachableException;
-import java.net.SocketException;
-import java.net.UnknownHostException;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -34,7 +27,7 @@ import be.ac.ulg.montefiore.run.jahmm.io.OpdfIntegerReader;
  * Created by Anders on 06-03-2017.
  */
 
-public class Recognise {
+public class RecogniseHMM {
 
     // MotionStar Comms
     private final static byte MSG_RUN_CONTINUOUS = 104;
@@ -81,7 +74,7 @@ public class Recognise {
     public static void start() {
 
         try {
-            Recognise one = new Recognise();
+            RecogniseHMM one = new RecogniseHMM();
         } catch (FileFormatException e) {
             e.printStackTrace();
         } catch (IOException e) {
@@ -91,7 +84,7 @@ public class Recognise {
         }
     }
 
-    public Recognise() throws FileFormatException, IOException, InterruptedException{
+    public RecogniseHMM() throws FileFormatException, IOException, InterruptedException{
         Rec();
     }
 

@@ -11,13 +11,7 @@ import android.os.IBinder;
 import android.os.PowerManager;
 import android.util.Log;
 
-import net.anders.autounlock.AR.ActivityRecognition;
-import net.anders.autounlock.AR.DataSegmentation.WindowData;
-import net.anders.autounlock.AR.SlidingWindow;
-import net.anders.autounlock.Export.Export;
-
-import java.util.ArrayList;
-import java.util.List;
+import net.anders.autounlock.ML.DataSegmentation.SlidingWindow;
 
 public class AccelerometerService extends Service implements SensorEventListener {
     static String TAG = "AccelerometerService";
@@ -144,7 +138,6 @@ public class AccelerometerService extends Service implements SensorEventListener
             float azimuth = (float) Math.toDegrees(orientation[0]);
             azimuth = (azimuth + 360) % 360;
 
-            //ActivityRecognition.oriEvent(azimuth, System.currentTimeMillis());
             CoreService.currentOrientation = azimuth;
         }
     }
@@ -194,6 +187,7 @@ public class AccelerometerService extends Service implements SensorEventListener
                 linearAcceleration[0], linearAcceleration[1], linearAcceleration[2],
                 velocity[0], velocity[1], velocity[2], datetime, time, CoreService.currentOrientation);
 
+//        Log.i(TAG, String.valueOf(CoreService.currentOrientation));
         SlidingWindow.insertAccelerometerIntoWindow(anAccelerometerEvent);
     }
 

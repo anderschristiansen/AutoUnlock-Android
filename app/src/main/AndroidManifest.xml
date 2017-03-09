@@ -67,7 +67,7 @@
             android:name=".NotificationUtility$NotificationActionService"
             android:enabled="true"/>
         <service
-            android:name=".AR.ActivityRecognitionService"
+            android:name=".ML.RecognitionService"
             android:enabled="true" />
         <service
             android:name=".BarometerService"

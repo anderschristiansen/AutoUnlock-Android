@@ -3,13 +3,12 @@ package net.anders.autounlock.Export;
 import android.os.Environment;
 import android.util.Log;
 
-import net.anders.autounlock.AR.DataSegmentation.CoordinateData;
+import net.anders.autounlock.ML.DataSegmentation.CoordinateData;
 import net.anders.autounlock.AccelerometerData;
+import net.anders.autounlock.ML.DataSegmentation.WindowData;
 
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -287,7 +286,7 @@ public class Export {
     }
 
 
-    public static void CsvWindows(List<AccelerometerData> windows) throws IOException {
+    public static void CsvWindows(WindowData[] windows) throws IOException {
 
         String activity = "acc";
         File root = Environment.getExternalStorageDirectory();
@@ -297,34 +296,8 @@ public class Export {
             writer = new FileWriter(gpxfile);
             writeCsvWindowHeader("degree", "velocity");
 
-            double vX;
-            double vY;
-            double time;
-            double vX_prev = 0;
-            double vY_prev = 0;
-            double time_prev = 0;
-
-            for (AccelerometerData window: windows) {
-
-                time = (window.getTime() * Math.pow(10, -3));
-                //time = (window.getTime() / 1000) % 60 ;
-
-                if (vX_prev ==  0 && vY_prev == 0) {
-                    vX = vX_prev + window.getAccelerationX();
-                    vY = vY_prev + window.getAccelerationY();
-                } else {
-                    vX = vX_prev + window.getAccelerationX() * (time - time_prev);
-                    vY = vY_prev + window.getAccelerationY() * (time - time_prev);
-                }
-
-                double vTotal = Math.sqrt(Math.pow(vX, 2) + Math.pow(vY, 2));
-                double degree = (Math.atan(vX/vY)*180)/Math.PI;
-
-                writeCsvWindowData(degree, vTotal);
-
-                vX_prev = vX;
-                vY_prev = vY;
-                time_prev = time;
+            for (WindowData window: windows) {
+                writeCsvWindowData(window.getOrientation(), window.getVelocity());
             }
 
             writer.flush();
@@ -354,7 +327,7 @@ public class Export {
         writer.write(line);
     }
 
-    private static void writeCsvWindowData(double d, double e) throws IOException {
+    public static void writeCsvWindowData(double d, double e) throws IOException {
         String line = String.format("%f;%f\n", d, e);
         writer.write(line);
     }
