@@ -1,8 +1,9 @@
-package net.anders.autounlock.ML.DataSegmentation;
+package net.anders.autounlock.ML.DataPreprocessing;
 
 import net.anders.autounlock.AccelerometerData;
 import net.anders.autounlock.CoreService;
-import net.anders.autounlock.ML.DataPreprocessing.Feature;
+import net.anders.autounlock.ML.DataProcessing.Feature;
+import net.anders.autounlock.ML.DataSegmentation.WindowData;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -11,7 +12,7 @@ import java.util.List;
  * Created by Anders on 21-02-2017.
  */
 
-public class SlidingWindow {
+public class WindowProcessor {
 
      /*
     Ready-to-Use Activity Recognition for Smartphones
@@ -57,7 +58,7 @@ public class SlidingWindow {
 
     
     
-    public static void insertAccelerometerIntoWindow(AccelerometerData anAccelerometerEvent) {
+    public static void insertAccelerometerEventIntoWindow(AccelerometerData anAccelerometerEvent) {
 
         currentAccelerometerList.add(anAccelerometerEvent);
 
@@ -71,17 +72,15 @@ public class SlidingWindow {
 
         // Convert current accelerometerdata's into a window
         if (currentAccelerometerList.size() == CoreService.windowSize) {
-            createWindow(currentAccelerometerList);
+            processWindow(currentAccelerometerList);
             currentAccelerometerList.addAll(nextAccelerometerList);
             nextAccelerometerList.clear();
         }
     }
-
     
-    
-    private static void createWindow(List<AccelerometerData> rawAccelerometerData) {
+    private static void processWindow(List<AccelerometerData> rawAccelerometerData) {
 
-        WindowData window = Feature.getWindow(rawAccelerometerData, prevWindow);
+        WindowData window = WindowConstruction.buildWindow(rawAccelerometerData, prevWindow);
 
         // Put new window into the circular buffer
         CoreService.windowBuffer.add(window);

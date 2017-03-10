@@ -20,17 +20,24 @@ import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.LocationServices;
 
+import net.anders.autounlock.ML.DataPreprocessing.WindowProcessor;
+import net.anders.autounlock.ML.HMM.RecogniseHMM;
+import net.anders.autounlock.ML.HMM.RecordHMM;
 import net.anders.autounlock.ML.RecognitionService;
 import net.anders.autounlock.ML.DataSegmentation.CoordinateData;
 import net.anders.autounlock.ML.DataSegmentation.WindowData;
 import net.anders.autounlock.Export.Export;
 import net.anders.autounlock.ML.RecordUnlock;
 
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+
+import be.ac.ulg.montefiore.run.jahmm.ObservationInteger;
+import be.ac.ulg.montefiore.run.jahmm.io.FileFormatException;
 
 public class CoreService extends Service implements
         GoogleApiClient.ConnectionCallbacks,
@@ -196,6 +203,7 @@ public class CoreService extends Service implements
         startRecognitionFilter.addAction("START_RECOGNITION");
         registerReceiver(startRecognitionReceiver, startRecognitionFilter);
 
+        //TODO ABC
         //startRecognitionService();
 
         Log.v("CoreService", "Service created");
@@ -289,8 +297,6 @@ public class CoreService extends Service implements
 //                            startAccelerometerService();
 //                            startBluetoothService();
 //                            startWifiService();
-//
-//                            // TODO ABC For test purposes
 //                            scanForLocks();
 //                        }
 //                    } else if (geofence.contains("outer")) {
@@ -408,7 +414,7 @@ public class CoreService extends Service implements
 
     void startAccelerometerService() {
         //startActivityRecognitionService();
-        export = new ArrayList<>();
+        //export = new ArrayList<>();
         Log.v(TAG, "Starting AccelerometerService");
         Thread accelerometerServiceThread = new Thread() {
             public void run() {
@@ -419,6 +425,7 @@ public class CoreService extends Service implements
     }
 
     void stopAccelerometerService() {
+        Log.d("CoreService", "Trying to stop accelerometerService");
         stopService(accelerometerIntent);
     }
 
@@ -559,20 +566,6 @@ public class CoreService extends Service implements
         Log.d("CoreService", "Trying to stop ringProcessor");
         stopService(ringProcessorIntent);
     }
-
-//    void startDataCollection() {
-//        startBluetoothService();
-//        startWifiService();
-//        startLocationService();
-//        startDataBuffer();
-//    }
-//
-//    void stopDataCollection() {
-//        stopBluetoothService();
-//        stopWifiService();
-//        stopLocationService();
-//        stopDataBuffer();
-//    }
 
     void addGeofences() {
         ArrayList<LockData> lockDataArrayList = dataStore.getKnownLocks();
@@ -743,8 +736,37 @@ public class CoreService extends Service implements
 //        if (!isLockSaved) {
 //            saveLock(BluetoothService.ANDERS_BEKEY);
 //        }
-
         RecordUnlock.ProcessManualUnlock();
+        /*try {
+
+            ObservationInteger v1 = new ObservationInteger(1); // state1
+            ObservationInteger v2 = new ObservationInteger(2); // state2
+            ObservationInteger v3 = new ObservationInteger(3); // state3
+            ObservationInteger v4 = new ObservationInteger(4);
+
+            List<ObservationInteger> seq1 = new ArrayList<>();
+            seq1.add(v1);
+            seq1.add(v1);
+            seq1.add(v2);
+            seq1.add(v3);
+
+            List<ObservationInteger> seq2 = new ArrayList<>();
+            seq2.add(v1);
+            seq2.add(v1);
+            seq2.add(v2);
+            seq2.add(v2);
+
+//            RecordHMM r1 = new RecordHMM(seq1, seq1);
+            RecogniseHMM r2 = new RecogniseHMM(seq1, seq1);
+            RecogniseHMM r3 = new RecogniseHMM(seq2, seq2);
+
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (FileFormatException e) {
+            e.printStackTrace();
+        }*/
     }
 
 
@@ -784,7 +806,6 @@ public class CoreService extends Service implements
 
     void startRecognitionService() {
         Log.v(TAG, "Starting RecognitionService");
-
         Thread recognitionServiceThread = new Thread() {
             public void run() {
                 startService(recognitionIntent);
@@ -794,6 +815,10 @@ public class CoreService extends Service implements
     }
 
     void stopRecognitionService() {
+        stopAccelerometerService();
+        stopRingBuffer();
+        WindowProcessor.prevWindow = null;
+        Log.d("CoreService", "Trying to stop recognitionService");
         stopService(recognitionIntent);
     }
 

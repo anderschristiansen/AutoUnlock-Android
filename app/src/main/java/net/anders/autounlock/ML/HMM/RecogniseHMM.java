@@ -1,5 +1,7 @@
 package net.anders.autounlock.ML.HMM;
 
+import android.util.Log;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -29,70 +31,57 @@ import be.ac.ulg.montefiore.run.jahmm.io.OpdfIntegerReader;
 
 public class RecogniseHMM {
 
-    // MotionStar Comms
+    private static String TAG = "RecogniseHMM";
+
     private final static byte MSG_RUN_CONTINUOUS = 104;
     private final static int PORT_NUMBER = 5000;
     private InetAddress address;
     private DatagramSocket socket;
     private	final static String IP_ADDRESS = "10.74.192.9";
-    //	MotionStar m = new MotionStar();
 
     //Observation list from one gesture performance to be compared against a saved HMM
-    public List<ObservationInteger> sequencesInstanceX, sequencesInstanceY, sequencesInstanceZ;
+    public List<ObservationInteger> sequencesInstanceOri;
+    public List<ObservationInteger> sequencesInstanceVelo;
 
     // Current received value from sensor to add to list
-    public int receivedX = 0;
-    public int receivedY = 0;
-    public int receivedZ = 0;
+    public int receivedOri = 0;
+    public int receivedVelo = 0;
 
     // Variables
     public boolean firstElement = true;
-    public int noOfGestures, instrumentNumber;
-    public FileReader fileReaderX, fileReaderY, fileReaderZ;
-    public FileWriter testWriterX, testWriterY, testWriterZ;
+    public int noOfGestures;
+    public FileReader fileReaderOri, fileReaderVelo;
+    public FileWriter testWriterOri, testWriterVelo;
     public OpdfIntegerReader opdfReader;
 
     //HMM
     public OpdfIntegerFactory factory;
-    public Hmm<ObservationInteger> hmmX, hmmY, hmmZ;
+    public Hmm<ObservationInteger> hmmOri, hmmVelo;
     public ForwardBackwardCalculator fbc;
-    public Hmm<ObservationInteger> hmm3X, hmm3Y, hmm3Z;
-    public Hmm<ObservationInteger> hmm1X, hmm1Y, hmm1Z;
-    public Hmm<ObservationInteger> hmm2X, hmm2Y, hmm2Z;
-    public Hmm<ObservationInteger> hmm4X, hmm4Y, hmm4Z;
-    public Hmm<ObservationInteger> hmm5X, hmm5Y, hmm5Z;
+    public Hmm<ObservationInteger> hmm1Ori, hmm1Velo;
+    public Hmm<ObservationInteger> hmm2Ori, hmm2Velo;
+    public Hmm<ObservationInteger> hmm3Ori, hmm3Velo;
+    public Hmm<ObservationInteger> hmm4Ori, hmm4Velo;
+    public Hmm<ObservationInteger> hmm5Ori, hmm5Velo;
 
 
-    public double probabilityX = 0;
-    public double probabilityY = 0;
-    public double probabilityZ = 0;
+    public double probabilityOri = 0;
+    public double probabilityVelo = 0;
     public double bestMatchProb = 0.00000000000000000000000001;
     public int bestMatchNo = -1;
 
     File inputDirectory = new File("/sdcard/AutoUnlock/HMM/");
 
-    public static void start() {
-
-        try {
-            RecogniseHMM one = new RecogniseHMM();
-        } catch (FileFormatException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+    public RecogniseHMM(List<ObservationInteger> seqOri, List<ObservationInteger> seqVelo) throws FileFormatException, IOException, InterruptedException{
+        sequencesInstanceOri = seqOri;
+        sequencesInstanceVelo = seqVelo;
+        Recognise();
     }
 
-    public RecogniseHMM() throws FileFormatException, IOException, InterruptedException{
-        Rec();
-    }
-
-    public void Rec() throws IOException, FileFormatException, InterruptedException{
+    public void Recognise() throws IOException, FileFormatException, InterruptedException{
 
         countGestures();
         String[] gestureName = new String[noOfGestures];
-        String[] instrumentName = new String[noOfGestures];
 
         FileInputStream in = new FileInputStream(new File(inputDirectory, "GestureList.txt"));
         BufferedReader br = new BufferedReader(new InputStreamReader(in));
@@ -110,31 +99,16 @@ public class RecogniseHMM {
             System.out.println("Gesture #[" + i + "] = " + gestureName[i]);
         }
 
-//		for(int i = 1; i< instrumentName.length;i++ ){
-//			instrumentName[i] = bm.readLine();
-//		}
-
-        //im.close();
-        //bm.close();
-
         for (int i=1; i<gestureName.length;i++){
             readHmm(i);
         }
 
-        for (int j = 1; j<11;j++){
-            sequencesInstanceX = new LinkedList<ObservationInteger>();
-            sequencesInstanceY = new LinkedList<ObservationInteger>();
-            sequencesInstanceZ = new LinkedList<ObservationInteger>();
-
-            System.out.println("");
-            System.out.println("Recognition iteration " +j);
-            System.out.println("Press Enter, and perform a saved gesture");
-            System.in.read();
-
-            runContinuous(sequencesInstanceX, sequencesInstanceY, sequencesInstanceZ);
+//        for (int j = 1; j<10;j++){
+            //sequencesInstanceX = new LinkedList<ObservationInteger>();
+//            runContinuous(sequencesInstanceX);
 
             for (int i = 1; i <gestureName.length;i++){
-                evaluate(sequencesInstanceX, sequencesInstanceY, sequencesInstanceZ, i);
+                evaluate(sequencesInstanceOri, sequencesInstanceVelo, i);
             }
 
             if (bestMatchNo <= 0){
@@ -142,41 +116,15 @@ public class RecogniseHMM {
                 System.out.println("Try again.");
             }
             else if (bestMatchNo > 0){
-                System.out.println("Best match is: "+ gestureName[bestMatchNo]+ " ("+instrumentName[bestMatchNo]+")");
-
-                if(instrumentName[bestMatchNo].equalsIgnoreCase("guitar")){
-                    instrumentNumber = 27;
+                System.out.println("Best match is: "+ gestureName[bestMatchNo]);
                     bestMatchNo = -1;
                     bestMatchProb = 0.00000000000000000000000001;
-                }
-                else if (instrumentName[bestMatchNo].equalsIgnoreCase("piano")){
-                    instrumentNumber = 0;
-                    bestMatchNo = -1;
-                    bestMatchProb = 0.00000000000000000000000001;
-                }
-                else if (instrumentName[bestMatchNo].equalsIgnoreCase("bass")){
-                    instrumentNumber = 33;
-                    bestMatchNo = -1;
-                    bestMatchProb = 0.00000000000000000000000001;
-                }
-                else if (instrumentName[bestMatchNo].equalsIgnoreCase("synth")){
-                    instrumentNumber = 81;
-                    bestMatchNo = -1;
-                    bestMatchProb = 0.00000000000000000000000001;
-                }
-                else if (instrumentName[bestMatchNo].equalsIgnoreCase("organ")){
-                    instrumentNumber = 19;
-                    bestMatchNo = -1;
-                    bestMatchProb = 0.00000000000000000000000001;
-                }
-                //				midiOutput(instrumentNumber);
             }
-        }
+//        }
 
-        System.out.println("");
-//		m.disconnect();
-        System.out.println("Restart RECOGNISE program to continue recognising gestures!");
-        System.exit(0);
+//        System.out.println("");
+//        System.out.println("Restart RECOGNISE program to continue recognising gestures!");
+//        System.exit(0);
     }
 
 
@@ -184,7 +132,6 @@ public class RecogniseHMM {
     public int countGestures() throws IOException{
 
         inputDirectory = new File("/sdcard/AutoUnlock/HMM/");
-        //File file = new File("GestureList.txt");
         LineNumberReader lnr = new LineNumberReader(new FileReader(new File(inputDirectory, "GestureList.txt")));
         lnr.skip(Long.MAX_VALUE);
         noOfGestures = lnr.getLineNumber() + 1;
@@ -209,45 +156,37 @@ public class RecogniseHMM {
 
 
         // Husk at nævn i rapport at dette var nødvendigt for at få en korrekt syntaks
-        changeDecimal(gestureName, hmmNo, "X");
-        changeDecimal(gestureName, hmmNo, "Y");
-        changeDecimal(gestureName, hmmNo, "Z");
+        changeDecimal(gestureName, hmmNo, "Ori");
+        changeDecimal(gestureName, hmmNo, "Velo");
 
-        fileReaderX = new FileReader(new File(inputDirectory, gestureName[hmmNo] + "X.txt"));
-        fileReaderY = new FileReader(new File(inputDirectory, gestureName[hmmNo] + "Y.txt"));
-        fileReaderZ = new FileReader(new File(inputDirectory, gestureName[hmmNo] + "Z.txt"));
+        fileReaderOri = new FileReader(new File(inputDirectory, gestureName[hmmNo] + "Ori.txt"));
+        fileReaderVelo = new FileReader(new File(inputDirectory, gestureName[hmmNo] + "Velo.txt"));
         opdfReader = new OpdfIntegerReader();
-
 
         switch(hmmNo){
             case 1:
-                hmm1X = HmmReader.read(fileReaderX, opdfReader);
-                hmm1Y = HmmReader.read(fileReaderY, opdfReader);
-                hmm1Z = HmmReader.read(fileReaderZ, opdfReader);
+                hmm1Ori = HmmReader.read(fileReaderOri, opdfReader);
+                hmm1Velo = HmmReader.read(fileReaderVelo, opdfReader);
                 break;
 
             case 2:
-                hmm2X = HmmReader.read(fileReaderX, opdfReader);
-                hmm2Y = HmmReader.read(fileReaderY, opdfReader);
-                hmm2Z = HmmReader.read(fileReaderZ, opdfReader);
+                hmm2Ori = HmmReader.read(fileReaderOri, opdfReader);
+                hmm2Velo = HmmReader.read(fileReaderVelo, opdfReader);
                 break;
 
             case 3:
-                hmm3X = HmmReader.read(fileReaderX, opdfReader);
-                hmm3Y = HmmReader.read(fileReaderY, opdfReader);
-                hmm3Z = HmmReader.read(fileReaderZ, opdfReader);
+                hmm3Ori = HmmReader.read(fileReaderOri, opdfReader);
+                hmm3Velo = HmmReader.read(fileReaderVelo, opdfReader);
                 break;
 
             case 4:
-                hmm4X = HmmReader.read(fileReaderX, opdfReader);
-                hmm4Y = HmmReader.read(fileReaderY, opdfReader);
-                hmm4Z = HmmReader.read(fileReaderZ, opdfReader);
+                hmm4Ori = HmmReader.read(fileReaderOri, opdfReader);
+                hmm4Velo = HmmReader.read(fileReaderVelo, opdfReader);
                 break;
 
             case 5:
-                hmm5X = HmmReader.read(fileReaderX, opdfReader);
-                hmm5Y = HmmReader.read(fileReaderY, opdfReader);
-                hmm5Z = HmmReader.read(fileReaderZ, opdfReader);
+                hmm5Ori = HmmReader.read(fileReaderOri, opdfReader);
+                hmm5Velo = HmmReader.read(fileReaderVelo, opdfReader);
                 break;
 
             default:
@@ -266,7 +205,7 @@ public class RecogniseHMM {
                 e1.printStackTrace();
             }
             String text = "";
-            String line = "";
+            String line;
             while ((line = b.readLine()) != null) {
                 text += line.replace(",", ".") + " ";
             }
@@ -283,59 +222,49 @@ public class RecogniseHMM {
         }
     }
 
-    public void runContinuous(List<ObservationInteger>sequencesX, List<ObservationInteger>sequencesY, List<ObservationInteger>sequencesZ) throws InterruptedException{
+    public void runContinuous(List<ObservationInteger>sequencesOri, List<ObservationInteger>sequencesVelo) throws InterruptedException{
         System.out.println("Capturing...");
-        for (int i=0;i<101;i++){
+        for (int i=0;i<10;i++){
             if (firstElement == true){
                 firstElement = false;
             }
             else {
-                ObservationInteger x = new ObservationInteger(1);
-                sequencesX.add(x);
-                ObservationInteger y = new ObservationInteger(2);
-                sequencesY.add(y);
-                ObservationInteger z = new ObservationInteger(3);
-                sequencesZ.add(z);
+                ObservationInteger ori = new ObservationInteger(2);
+                sequencesOri.add(ori);
 
-                Thread.sleep(50);
+                ObservationInteger velo = new ObservationInteger(2);
+                sequencesVelo.add(velo);
             }
         }
         firstElement = true;
-        System.out.println("");
         System.out.println("Stopped capturing");
-        System.out.println("");
     }
 
 
-    public void evaluate (List<ObservationInteger> x, List<ObservationInteger> y, List<ObservationInteger> z, int hmmNo){
+    public void evaluate (List<ObservationInteger> ori, List<ObservationInteger> velo, int hmmNo){
         switch (hmmNo){
             case 1:
-                probabilityX = getProbability(x, hmm1X, probabilityX);
-                probabilityY = getProbability(y, hmm1Y, probabilityY);
-                probabilityZ = getProbability(z, hmm1Z, probabilityZ);
+                probabilityOri = getProbability(ori, hmm1Ori, probabilityOri);
+                probabilityVelo = getProbability(velo, hmm1Velo, probabilityVelo);
                 break;
 
             case 2:
-                probabilityX = getProbability(x, hmm2X, probabilityX);
-                probabilityY = getProbability(y, hmm2Y, probabilityY);
-                probabilityZ = getProbability(z, hmm2Z, probabilityZ);
+                probabilityOri = getProbability(ori, hmm2Ori, probabilityOri);
+                probabilityVelo = getProbability(velo, hmm2Velo, probabilityVelo);
                 break;
             case 3:
-                probabilityX = getProbability(x, hmm3X, probabilityX);
-                probabilityY = getProbability(y, hmm3Y, probabilityY);
-                probabilityZ = getProbability(z, hmm3Z, probabilityZ);
+                probabilityOri = getProbability(ori, hmm3Ori, probabilityOri);
+                probabilityVelo = getProbability(velo, hmm3Velo, probabilityVelo);
                 break;
 
             case 4:
-                probabilityX = getProbability(x, hmm4X, probabilityX);
-                probabilityY = getProbability(y, hmm4Y, probabilityY);
-                probabilityZ = getProbability(z, hmm4Z, probabilityZ);
+                probabilityOri = getProbability(ori, hmm4Ori, probabilityOri);
+                probabilityVelo = getProbability(velo, hmm4Velo, probabilityVelo);
                 break;
 
             case 5:
-                probabilityX = getProbability(x, hmm5X, probabilityX);
-                probabilityY = getProbability(y, hmm5Y, probabilityY);
-                probabilityZ = getProbability(z, hmm5Z, probabilityZ);
+                probabilityOri = getProbability(ori, hmm5Ori, probabilityOri);
+                probabilityVelo = getProbability(velo, hmm5Velo, probabilityVelo);
                 break;
 
             default:
@@ -345,10 +274,10 @@ public class RecogniseHMM {
 
         //System.out.println("HMM " +hmmNo + " = X: " + probabilityX +" Y: " + probabilityY  +" Z: "+ probabilityZ);
 
-        if ((probabilityX + probabilityY + probabilityZ) !=0 &&
-                (probabilityX + probabilityY + probabilityZ) > bestMatchProb)
+        if ((probabilityOri + probabilityVelo) !=0 &&
+                (probabilityOri + probabilityVelo) > bestMatchProb)
         {
-            bestMatchProb = probabilityX + probabilityY + probabilityZ;
+            bestMatchProb = probabilityOri + probabilityVelo;
             bestMatchNo = hmmNo;
         }
     }

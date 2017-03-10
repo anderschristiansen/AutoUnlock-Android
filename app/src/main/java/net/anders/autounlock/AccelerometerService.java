@@ -11,7 +11,7 @@ import android.os.IBinder;
 import android.os.PowerManager;
 import android.util.Log;
 
-import net.anders.autounlock.ML.DataSegmentation.SlidingWindow;
+import net.anders.autounlock.ML.DataPreprocessing.WindowProcessor;
 
 public class AccelerometerService extends Service implements SensorEventListener {
     static String TAG = "AccelerometerService";
@@ -158,38 +158,48 @@ public class AccelerometerService extends Service implements SensorEventListener
         // earth coordinates.
         android.opengl.Matrix.multiplyMV(rotatedLinearAcceleration, 0, rotationMatrixInverted, 0, linearAcceleration, 0);
         //Log.i(TAG, "rotateAccelerationToWorldCoordinates: " + rotatedLinearAcceleration[0] + " " + rotatedLinearAcceleration[1] + " " + rotatedLinearAcceleration[2]);
-        calculateVelocity(rotatedLinearAcceleration, timestamp);
+        //calculateVelocity(rotatedLinearAcceleration, timestamp);
+
+        //TODO ABC
+        AccelerometerData anAccelerometerEvent = new AccelerometerData (
+                linearAcceleration[0],
+                linearAcceleration[1],
+                linearAcceleration[2],
+                System.currentTimeMillis(),
+                CoreService.currentOrientation);
+
+        WindowProcessor.insertAccelerometerEventIntoWindow(anAccelerometerEvent);
     }
 
     // Velocity is calculated by integrating the linear acceleration.
-    private void calculateVelocity(float[] linearAcceleration, long timestamp) {
-        if (previousTimestamp != 0) {
-            dT = (timestamp - previousTimestamp) * NS2S;
-            previousTimestamp = timestamp;
-            float velocity[] = new float[3];
-            velocity[0] = (dT * linearAcceleration[0]) + previousVelocity[0];
-            velocity[1] = (dT * linearAcceleration[1]) + previousVelocity[1];
-            velocity[2] = (dT * linearAcceleration[2]) + previousVelocity[2];
+//    private void calculateVelocity(float[] linearAcceleration, long timestamp) {
+//        if (previousTimestamp != 0) {
+//            dT = (timestamp - previousTimestamp) * NS2S;
+//            previousTimestamp = timestamp;
+//            float velocity[] = new float[3];
+//            velocity[0] = (dT * linearAcceleration[0]) + previousVelocity[0];
+//            velocity[1] = (dT * linearAcceleration[1]) + previousVelocity[1];
+//            velocity[2] = (dT * linearAcceleration[2]) + previousVelocity[2];
+//
+//            processSensorData(linearAcceleration, velocity);
+//
+//            previousVelocity = velocity;
+//        } else {
+//            previousTimestamp = timestamp;
+//        }
+//    }
 
-            processSensorData(linearAcceleration, velocity);
-
-            previousVelocity = velocity;
-        } else {
-            previousTimestamp = timestamp;
-        }
-    }
-
-    private void processSensorData (float[] linearAcceleration, float[] velocity) {
-        long time = System.currentTimeMillis();
-        String datetime = CoreService.getDateTime();
-
-        AccelerometerData anAccelerometerEvent = new AccelerometerData (
-                linearAcceleration[0], linearAcceleration[1], linearAcceleration[2],
-                velocity[0], velocity[1], velocity[2], datetime, time, CoreService.currentOrientation);
-
-//        Log.i(TAG, String.valueOf(CoreService.currentOrientation));
-        SlidingWindow.insertAccelerometerIntoWindow(anAccelerometerEvent);
-    }
+//    private void processSensorData (float[] linearAcceleration, float[] velocity) {
+//        long time = System.currentTimeMillis();
+//        String datetime = CoreService.getDateTime();
+//
+//        AccelerometerData anAccelerometerEvent = new AccelerometerData (
+//                linearAcceleration[0], linearAcceleration[1], linearAcceleration[2],
+//                velocity[0], velocity[1], velocity[2], datetime, time, CoreService.currentOrientation);
+//
+////        Log.i(TAG, String.valueOf(CoreService.currentOrientation));
+//        WindowProcessor.insertAccelerometerIntoWindow(anAccelerometerEvent);
+//    }
 
     @Override
     public void onCreate() {

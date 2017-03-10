@@ -1,6 +1,6 @@
 package net.anders.autounlock.ML;
 
-import net.anders.autounlock.ML.DataPreprocessing.Feature;
+import net.anders.autounlock.ML.DataProcessing.Feature;
 import net.anders.autounlock.ML.DataSegmentation.WindowData;
 import net.anders.autounlock.RingProcessorService;
 
