@@ -1,8 +1,11 @@
 package net.anders.autounlock.ML.HMM;
 
+import net.anders.autounlock.ML.DataSegmentation.ClusterData;
+
 import java.io.File;
 import java.io.FileWriter;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
 import java.util.List;
 
 import be.ac.ulg.montefiore.run.jahmm.ObservationInteger;
@@ -27,15 +30,15 @@ import be.ac.ulg.montefiore.run.jahmm.learn.KMeansLearner;
  * Created by Anders on 06-03-2017.
  */
 
-public class Training {
+public class ModelTraining {
 
     // Lists of lists of values from multiple iterations (observations), used to create HMMs
-    List<List<ObservationReal>> toHmmOri;
-    List<List<ObservationReal>> toHmmVelo;
+    List<List<ObservationInteger>> toHmmOri;
+    List<List<ObservationInteger>> toHmmVelo;
 
     // Lists of values from one full iteration/gesture training performance
-    List<ObservationReal> sequencesOri;
-    List<ObservationReal> sequencesVelo;
+    List<ObservationInteger> sequencesOri;
+    List<ObservationInteger> sequencesVelo;
 
     // Current received value from sensor to add to list
     public int receivedOri = 0;
@@ -45,24 +48,31 @@ public class Training {
     public boolean firstElement = true, answer = true;
     public String gestureName, input;
     public FileWriter writerOri, writerVelo, gWriter, iWriter;
-    public OpdfGaussianWriter opdfWriterOri, opdfWriterVelo;
+    public OpdfIntegerWriter opdfWriterOri, opdfWriterVelo;
     BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 
     //HMM
-    public OpdfGaussianFactory factory;
-    public Hmm<ObservationReal> hmmOri;
-    public Hmm<ObservationReal> hmmVelo;
-    public KMeansLearner<ObservationReal> kml;
+    public OpdfIntegerFactory factory;
+    public Hmm<ObservationInteger> hmmOri;
+    public Hmm<ObservationInteger> hmmVelo;
+    public KMeansLearner<ObservationInteger> kml;
 
     File outputDirectory = new File("/sdcard/AutoUnlock/HMM/");
 
-    public Training(List<ObservationReal> seqOri, List<ObservationReal> seqVelo) throws InterruptedException, IOException, FileFormatException {
-        sequencesOri = seqOri;
-        sequencesVelo = seqVelo;
-        outputDirectory.mkdirs();
-        getGesture();
+    public void train(List<ObservationInteger> seqOri, List<ObservationInteger> seqVelo) {
+//    public void train(ArrayList<ClusterData> clusters) {
+        try {
+            sequencesOri = seqOri;
+            sequencesVelo = seqVelo;
+            outputDirectory.mkdirs();
+            getGesture();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
 
-        //Classification r = new Classification(); r.Rec();
+        //ModelClassification r = new ModelClassification(); r.Rec();
     }
 
     public void getGesture() throws IOException, InterruptedException{
@@ -80,8 +90,8 @@ public class Training {
 
     //Repeat gesture to generate observation sequences and then generate and save HMMs to text files
     public void learnGesture(String gestureName) throws IOException, InterruptedException {
-        toHmmOri = new LinkedList<List<ObservationReal>>();
-        toHmmVelo = new LinkedList<List<ObservationReal>>();
+        toHmmOri = new LinkedList<List<ObservationInteger>>();
+        toHmmVelo = new LinkedList<List<ObservationInteger>>();
 
         for(int i=1;i<10;i++){
 //            sequencesX = new LinkedList<ObservationInteger>();
@@ -92,13 +102,13 @@ public class Training {
 
         hmmOri = createHmm(toHmmOri);
         writerOri = new FileWriter(new File(outputDirectory, gestureName + "Ori.txt"), true);
-        opdfWriterOri = new OpdfGaussianWriter();
+        opdfWriterOri = new OpdfIntegerWriter();
         HmmWriter.write(writerOri, opdfWriterOri, hmmOri);
         writerOri.close();
 
         hmmVelo = createHmm(toHmmVelo);
         writerVelo = new FileWriter(new File(outputDirectory, gestureName + "Velo.txt"), true);
-        opdfWriterVelo = new OpdfGaussianWriter();
+        opdfWriterVelo = new OpdfIntegerWriter();
         HmmWriter.write(writerVelo, opdfWriterVelo, hmmVelo);
         writerVelo.close();
     }
@@ -112,10 +122,10 @@ public class Training {
                 firstElement = false;
             }
             else {
-                ObservationReal ori = new ObservationReal(2);
+                ObservationInteger ori = new ObservationInteger(2);
                 sequencesOri.add(ori);
 
-                ObservationReal velo = new ObservationReal(2);
+                ObservationInteger velo = new ObservationInteger(2);
                 sequencesVelo.add(velo);
             }
         }
@@ -123,18 +133,18 @@ public class Training {
         System.out.println("Stopped capturing");
     }
 
-    public List<List<ObservationReal>> createData (List<List<ObservationReal>> toHmm, List<ObservationReal> sequences){
+    public List<List<ObservationInteger>> createData (List<List<ObservationInteger>> toHmm, List<ObservationInteger> sequences){
         toHmm.add(sequences);
         return toHmm;
     }
 
 
-    public Hmm<ObservationReal> createHmm(List<List<ObservationReal>> seq){
+    public Hmm<ObservationInteger> createHmm(List<List<ObservationInteger>> seq){
         // The factory object initialise the observation distributions of each state to a discrete distribution.
         // The argument ('2') of the OpdfIntegerFactory object constructor means that the observations can only have two values ('0' and '1').
-        factory = new OpdfGaussianFactory();
-        kml = new KMeansLearner<ObservationReal>(3, factory, seq);
-        Hmm<ObservationReal>hmm = kml.iterate();
+        factory = new OpdfIntegerFactory(10);
+        kml = new KMeansLearner<ObservationInteger>(3, factory, seq);
+        Hmm<ObservationInteger>hmm = kml.iterate();
 
         // Now we can build a BaumWelchLearner object that can find an HMM fitted to the observation sequences we've just generated
         // The Baum-Welch algorithm only finds the local minimum of its optimum function, so an initial approximation of the result is needed
@@ -144,4 +154,6 @@ public class Training {
         bwl.learn(hmm, seq);
         return hmm;
     }
+
+
 }

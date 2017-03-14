@@ -744,12 +744,8 @@ public class CoreService extends Service implements
             // Fetch every training sessions
             ArrayList<ArrayList<WindowData>> trainingSessions =  dataStore.getTrainingSessions();
 
-            // Get features
-            LearningProcessor.Learn(trainingSessions);
-
-            // Get Clusters + Classification
-
-            // Make models
+            // Start learning procedure
+            LearningProcessor.Start(trainingSessions);
         }
     }
 
@@ -758,8 +754,11 @@ public class CoreService extends Service implements
     }
 
     public static void updateCluster(int cur_id, int next_id) {
-
         dataStore.updateCluster(cur_id, next_id);
+    }
+
+    public static int getClusterId(int id) {
+        return dataStore.getClusterId(id);
     }
 
     public static void accelerometerEvent(AccelerometerData anAccelerometerEvent) {
@@ -789,9 +788,9 @@ public class CoreService extends Service implements
             seq2.add(v2);
             seq2.add(v2);
 
-//            Training r1 = new Training(seq1, seq1);
-            Classification r2 = new Classification(seq1, seq1);
-            Classification r3 = new Classification(seq2, seq2);
+//            ModelTraining r1 = new ModelTraining(seq1, seq1);
+            ModelClassification r2 = new ModelClassification(seq1, seq1);
+            ModelClassification r3 = new ModelClassification(seq2, seq2);
 
         } catch (InterruptedException e) {
             e.printStackTrace();

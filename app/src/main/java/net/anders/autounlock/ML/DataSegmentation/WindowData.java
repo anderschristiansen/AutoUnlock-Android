@@ -10,10 +10,8 @@ public class WindowData {
     double accelerationY;
     double speedX;
     double speedY;
-
     double orientation;
     double velocity;
-
     double time;
 
     public WindowData(double accelerationX, double accelerationY, double speedX, double speedY, double orientation, double velocity, double time) {

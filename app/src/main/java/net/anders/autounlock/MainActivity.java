@@ -713,8 +713,8 @@ public class MainActivity extends AppCompatActivity {
 
     public void onButtonClickGoToCalibration(View v) throws InterruptedException, FileFormatException, IOException {
 
-        //Training r = new Training();
-        //Classification r = new Classification();
+        //ModelTraining r = new ModelTraining();
+        //ModelClassification r = new ModelClassification();
 
         if (bound) {
             coreService.startAccelerometerService();

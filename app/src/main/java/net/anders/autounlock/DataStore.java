@@ -57,7 +57,7 @@ class DataStore {
     private static final String LOCATION_ACCURACY = "accuracy";
     private static final String LOCATION_DATETIME = "datetime";
 
-    //TODO ABC Unlock Training
+    //TODO ABC Unlock ModelTraining
     private static final String TRAINING_TABLE = "training";
     private static final String TRAINING_ID = "id";
     private static final String TRAINING_CLUSTER = "cluster";
