@@ -1,21 +1,25 @@
 package net.anders.autounlock.ML.DataProcessing;
 
 import android.util.Log;
+import android.view.Window;
 
 import net.anders.autounlock.AccelerometerData;
+import net.anders.autounlock.CoreService;
 import net.anders.autounlock.Export.Export;
 import net.anders.autounlock.ML.DataSegmentation.WindowData;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
  * Created by Anders on 15-02-2017.
  */
 
-public class Feature {
+public class Features {
 
-    private static String TAG = "Feature";
+    private static String TAG = "Features";
     /*
     As the three activities we are considering are mostly composed by different postures
     (sitting, standing, lying), we use two features from each sensor to represent
@@ -39,7 +43,7 @@ public class Feature {
 
     Mean, standard deviations, energy, entropy, mean value of Minmax sums
     and correlation are the most commonly extracted features.
-    Feature extraction is usually performed through both overlapping and non-overlapping sliding windows.
+    Features extraction is usually performed through both overlapping and non-overlapping sliding windows.
     Sliding window is a common and successful approach in
     HAR, especially due to its role in recognizing some pattern
     in the data that is over some time interval [7]. We extracted
@@ -89,20 +93,34 @@ public class Feature {
     static float meanTot;
     static double rmsTot;
     static double stdTot;
+    //        getMin(session);
+    //        getMax(train);
+    //        getStdDev(train);
 
-    public static void getFeatures(WindowData[] snapshot) throws IOException {
+    public static boolean processTraining(WindowData currentWindow, WindowData nextWindow) {
 
-        getStdDev(snapshot);
+        double c_ori = currentWindow.getOrientation();
+        double c_velo = currentWindow.getVelocity();
+        double n_ori = nextWindow.getOrientation();
+        double n_velo = nextWindow.getVelocity();
 
-        saveSnapshotAsCsv(snapshot);
+        if ((Math.abs(c_ori - n_ori) < CoreService.orientationThreshold) &&
+                (Math.abs(c_velo - n_velo) < CoreService.velocityThreshold)) {
+            return true;
+        }
+        return false;
     }
 
-    public static void saveSnapshotAsCsv(WindowData[] windows) throws IOException {
-        Export.Windows(windows);
+    static double getMin(ArrayList<WindowData> session) {
+        double min = 0;
+
+        for (WindowData window : session) {
+
+        }
+        return min;
     }
 
-    static double getStdDev(WindowData[] snapshot)
-    {
+    static double getStdDev(WindowData[] snapshot) {
         return Math.sqrt(getVariance(snapshot));
     }
 
@@ -118,33 +136,33 @@ public class Feature {
         return temp/snapshot.length;
     }
 
-//    public static WindowData getMovement(WindowData window, WindowData prevWindow) {
-//
-//        double vX;
-//        double vY;
-//        double time;
-//        double vX_prev = 0;
-//        double vY_prev = 0;
-//        double time_prev = 0;
-//
-//        time = (window.getTime() * Math.pow(10, -3));
-//
-//        if (vX_prev ==  0 && vY_prev == 0) {
-//            vX = vX_prev + window.getAccelerationX();
-//            vY = vY_prev + window.getAccelerationY();
-//        } else {
-//            vX = vX_prev + window.getAccelerationX() * (time - time_prev);
-//            vY = vY_prev + window.getAccelerationY() * (time - time_prev);
-//        }
-//
-//        double vTotal = Math.sqrt(Math.pow(vX, 2) + Math.pow(vY, 2));
-//        double degree = (Math.atan(vX/vY)*180)/Math.PI;
-//
-//        window.setOrientation(degree);
-//        window.setVelocity(vTotal);
-//
-//        return window;
-//    }
+    public static WindowData getMovement(WindowData window, WindowData prevWindow) {
+
+        double vX;
+        double vY;
+        double time;
+        double vX_prev = 0;
+        double vY_prev = 0;
+        double time_prev = 0;
+
+        time = (window.getTime() * Math.pow(10, -3));
+
+        if (vX_prev ==  0 && vY_prev == 0) {
+            vX = vX_prev + window.getAccelerationX();
+            vY = vY_prev + window.getAccelerationY();
+        } else {
+            vX = vX_prev + window.getAccelerationX() * (time - time_prev);
+            vY = vY_prev + window.getAccelerationY() * (time - time_prev);
+        }
+
+        double vTotal = Math.sqrt(Math.pow(vX, 2) + Math.pow(vY, 2));
+        double degree = (Math.atan(vX/vY)*180)/Math.PI;
+
+        window.setOrientation(degree);
+        window.setVelocity(vTotal);
+
+        return window;
+    }
 
         /*float mean = 0;
         double rms = 0;

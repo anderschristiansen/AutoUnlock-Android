@@ -29,9 +29,9 @@ import be.ac.ulg.montefiore.run.jahmm.io.OpdfIntegerReader;
  * Created by Anders on 06-03-2017.
  */
 
-public class RecogniseHMM {
+public class Classification {
 
-    private static String TAG = "RecogniseHMM";
+    private static String TAG = "Classification";
 
     private final static byte MSG_RUN_CONTINUOUS = 104;
     private final static int PORT_NUMBER = 5000;
@@ -72,7 +72,7 @@ public class RecogniseHMM {
 
     File inputDirectory = new File("/sdcard/AutoUnlock/HMM/");
 
-    public RecogniseHMM(List<ObservationInteger> seqOri, List<ObservationInteger> seqVelo) throws FileFormatException, IOException, InterruptedException{
+    public Classification(List<ObservationInteger> seqOri, List<ObservationInteger> seqVelo) throws FileFormatException, IOException, InterruptedException{
         sequencesInstanceOri = seqOri;
         sequencesInstanceVelo = seqVelo;
         Recognise();

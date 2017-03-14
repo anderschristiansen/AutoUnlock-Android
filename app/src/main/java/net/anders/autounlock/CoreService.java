@@ -21,23 +21,17 @@ import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.LocationServices;
 
 import net.anders.autounlock.ML.DataPreprocessing.WindowProcessor;
-import net.anders.autounlock.ML.HMM.RecogniseHMM;
-import net.anders.autounlock.ML.HMM.RecordHMM;
+import net.anders.autounlock.ML.LearningProcess;
 import net.anders.autounlock.ML.RecognitionService;
 import net.anders.autounlock.ML.DataSegmentation.CoordinateData;
 import net.anders.autounlock.ML.DataSegmentation.WindowData;
 import net.anders.autounlock.Export.Export;
-import net.anders.autounlock.ML.RecordUnlock;
 
-import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
-
-import be.ac.ulg.montefiore.run.jahmm.ObservationInteger;
-import be.ac.ulg.montefiore.run.jahmm.io.FileFormatException;
 
 public class CoreService extends Service implements
         GoogleApiClient.ConnectionCallbacks,
@@ -100,6 +94,9 @@ public class CoreService extends Service implements
     public static int windowOverlap;
     public static boolean doSnapshot = false;
     public static int manualUnLockCalibration;
+    public static int numberOfTrainingSessions;
+    public static int orientationThreshold;
+    public static int velocityThreshold;
 
     // Used to know if one is needed to be added
     static boolean isLockSaved = false;
@@ -167,7 +164,7 @@ public class CoreService extends Service implements
         startForeground(1337, notification);
 
         dataStore = new DataStore(this);
-        geofence = new net.anders.autounlock.Geofence();
+        geofence = new Geofence();
         //heuristics = new Heuristics();
 
         accelerometerIntent = new Intent(this, AccelerometerService.class);
@@ -713,30 +710,68 @@ public class CoreService extends Service implements
         return dateFormat.format(date);
     }
 
-    void onButtonClickManualUnlock() {
-        stopAccelerometerService();
-        stopBluetoothService();
-        stopWifiService();
-        stopLocationService();
-        Export.Database();
-        isScanningForLocks = false;
-        isDetailedDataCollectionStarted = false;
-        isLocationDataCollectionStarted = false;
-
-        Toast.makeText(getApplicationContext(), "BeKey unlocked", Toast.LENGTH_SHORT).show();
-
-        Logging.Unlock();
-    }
+//    void onButtonClickManualUnlock() {
+//        stopAccelerometerService();
+//        stopBluetoothService();
+//        stopWifiService();
+//        stopLocationService();
+//        Export.Database();
+//        isScanningForLocks = false;
+//        isDetailedDataCollectionStarted = false;
+//        isLocationDataCollectionStarted = false;
+//
+//        Toast.makeText(getApplicationContext(), "BeKey unlocked", Toast.LENGTH_SHORT).show();
+//
+//        Logging.Unlock();
+//    }
 
     //TODO ABC
     void onButtonClickUnlock() {
-        Toast.makeText(getApplicationContext(), "BeKey unlocked", Toast.LENGTH_SHORT).show();
 
         // TODO ABC Om lås er gemt skal hentes fra db
-//        if (!isLockSaved) {
-//            saveLock(BluetoothService.ANDERS_BEKEY);
-//        }
-        RecordUnlock.ProcessManualUnlock();
+        if (dataStore.getKnownLocks().isEmpty()) {
+            saveLock(BluetoothService.ANDERS_BEKEY);
+        }
+
+        if (dataStore.getTrainingSessionCount() >= numberOfTrainingSessions) {
+            Toast.makeText(getApplicationContext(), "The app will now calibrate", Toast.LENGTH_SHORT).show();
+
+            // Fetch every training sessions
+            ArrayList<ArrayList<WindowData>> trainingSessions =  dataStore.getTrainingSessions();
+
+            // Get features
+            LearningProcess.Learn(trainingSessions);
+
+            // Get Clusters + Classification
+
+            // Make models
+
+        } else {
+            WindowData[] snapshot = RingProcessorService.getSnapshot();
+            dataStore.insertTrainingData(snapshot);
+
+            Log.i(TAG, "Snapshot length: " + String.valueOf(snapshot.length));
+
+            Toast.makeText(getApplicationContext(), "BeKey unlocked", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    public static boolean isClustered(int id) {
+        return dataStore.isClustered(id);
+    }
+
+    public static void updateCluster(int id, int cluster) {
+        dataStore.updateCluster(id, cluster);
+    }
+
+    public static void accelerometerEvent(AccelerometerData anAccelerometerEvent) {
+        WindowProcessor.insertAccelerometerEventIntoWindow(anAccelerometerEvent);
+    }
+
+    public static void windowReady(WindowData window) {
+        RingProcessorService.addWindow(window);
+    }
+
         /*try {
 
             ObservationInteger v1 = new ObservationInteger(1); // state1
@@ -756,9 +791,9 @@ public class CoreService extends Service implements
             seq2.add(v2);
             seq2.add(v2);
 
-//            RecordHMM r1 = new RecordHMM(seq1, seq1);
-            RecogniseHMM r2 = new RecogniseHMM(seq1, seq1);
-            RecogniseHMM r3 = new RecogniseHMM(seq2, seq2);
+//            Training r1 = new Training(seq1, seq1);
+            Classification r2 = new Classification(seq1, seq1);
+            Classification r3 = new Classification(seq2, seq2);
 
         } catch (InterruptedException e) {
             e.printStackTrace();
@@ -767,7 +802,7 @@ public class CoreService extends Service implements
         } catch (FileFormatException e) {
             e.printStackTrace();
         }*/
-    }
+
 
 
 

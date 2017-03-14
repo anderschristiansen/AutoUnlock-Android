@@ -2,7 +2,6 @@ package net.anders.autounlock.ML.DataPreprocessing;
 
 import net.anders.autounlock.AccelerometerData;
 import net.anders.autounlock.CoreService;
-import net.anders.autounlock.ML.DataProcessing.Feature;
 import net.anders.autounlock.ML.DataSegmentation.WindowData;
 
 import java.util.ArrayList;
@@ -83,7 +82,9 @@ public class WindowProcessor {
         WindowData window = WindowConstruction.buildWindow(rawAccelerometerData, prevWindow);
 
         // Put new window into the circular buffer
-        CoreService.windowBuffer.add(window);
+//        CoreService.windowBuffer.add(window);
+        CoreService.windowReady(window);
+
 
         prevWindow = window;
 

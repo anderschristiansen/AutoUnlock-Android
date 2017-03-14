@@ -18,7 +18,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
 
-import net.anders.autounlock.Calibrator.CalibrationActivity;
 import net.anders.autounlock.Export.Export;
 
 import java.io.IOException;
@@ -663,22 +662,23 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void onButtonClickExportDatastore(View v) {
-        //CoreService.ExportDb();
         Export.Database();
+        Export.Windows(RingProcessorService.getSnapshot());
     }
 
-    public void onButtonClickSaveDb(View v) {
-        if (bound) {
-            coreService.saveLock(BluetoothService.ANDERS_BEKEY);
-            //Toast.makeText(this, "Lock found and saved", Toast.LENGTH_SHORT).show();
-        }
-    }
 
-    public void onButtonClickManuelUnlock(View v) {
-        if (bound) {
-            coreService.onButtonClickManualUnlock();
-        }
-    }
+//    public void onButtonClickSaveDb(View v) {
+//        if (bound) {
+//            coreService.saveLock(BluetoothService.ANDERS_BEKEY);
+//            //Toast.makeText(this, "Lock found and saved", Toast.LENGTH_SHORT).show();
+//        }
+//    }
+
+//    public void onButtonClickManuelUnlock(View v) {
+//        if (bound) {
+//            coreService.onButtonClickManualUnlock();
+//        }
+//    }
 
     // TODO ABC
     public void onButtonClickUnlock(View v) {
@@ -713,8 +713,8 @@ public class MainActivity extends AppCompatActivity {
 
     public void onButtonClickGoToCalibration(View v) throws InterruptedException, FileFormatException, IOException {
 
-        //RecordHMM r = new RecordHMM();
-        //RecogniseHMM r = new RecogniseHMM();
+        //Training r = new Training();
+        //Classification r = new Classification();
 
         if (bound) {
             coreService.startAccelerometerService();

@@ -59,7 +59,7 @@ public class RingProcessorService extends Service {
 //                        WindowData window = snapshot[snapshot.length-1];
 //                        Log.i(TAG, String.valueOf(window.getAccelerationX()) + " " + String.valueOf(snapshot.length));
 //
-////                      Feature.getFeatures(window);
+////                      Features.getFeatures(window);
 //                    }
 //                    CoreService.doSnapshot = false;
 //                }
@@ -107,5 +107,9 @@ public class RingProcessorService extends Service {
         WindowData[] snapshot = CoreService.windowBuffer.snapshot();
 
         return snapshot;
+    }
+
+    public static void addWindow(WindowData window) {
+        CoreService.windowBuffer.add(window);
     }
 }

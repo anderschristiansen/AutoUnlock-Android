@@ -168,7 +168,7 @@ public class AccelerometerService extends Service implements SensorEventListener
                 System.currentTimeMillis(),
                 CoreService.currentOrientation);
 
-        WindowProcessor.insertAccelerometerEventIntoWindow(anAccelerometerEvent);
+        CoreService.accelerometerEvent(anAccelerometerEvent);
     }
 
     // Velocity is calculated by integrating the linear acceleration.

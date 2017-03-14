@@ -1,4 +1,4 @@
-package net.anders.autounlock.Calibrator;
+package net.anders.autounlock;
 
 import android.media.Ringtone;
 import android.media.RingtoneManager;

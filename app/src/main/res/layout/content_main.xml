@@ -238,24 +238,24 @@
                 android:layout_below="@+id/sensorContainer"
                 android:layout_centerHorizontal="true"/>
 
-            <Button
-                android:id="@+id/manualUnlock"
-                android:layout_height="wrap_content"
-                android:layout_width="200dp"
-                android:text="Unlock"
-                android:onClick="onButtonClickManuelUnlock"
-                android:layout_below="@+id/unlock"
-                android:layout_centerHorizontal="true"/>
+            <!--<Button-->
+                <!--android:id="@+id/manualUnlock"-->
+                <!--android:layout_height="wrap_content"-->
+                <!--android:layout_width="200dp"-->
+                <!--android:text="Unlock"-->
+                <!--android:onClick="onButtonClickManuelUnlock"-->
+                <!--android:layout_below="@+id/unlock"-->
+                <!--android:layout_centerHorizontal="true"/>-->
 
             <!--Old method to manuel unlock-->
-            <Button
-                android:id="@+id/saveDb"
-                android:layout_height="wrap_content"
-                android:layout_width="200dp"
-                android:text="Save lock"
-                android:onClick="onButtonClickSaveDb"
-                android:layout_below="@+id/manualUnlock"
-                android:layout_centerHorizontal="true"/>
+            <!--<Button-->
+                <!--android:id="@+id/saveDb"-->
+                <!--android:layout_height="wrap_content"-->
+                <!--android:layout_width="200dp"-->
+                <!--android:text="Save lock"-->
+                <!--android:onClick="onButtonClickSaveDb"-->
+                <!--android:layout_below="@+id/unlock"-->
+                <!--android:layout_centerHorizontal="true"/>-->
 
             <Button
                 android:id="@+id/exportDb"
@@ -263,7 +263,7 @@
                 android:layout_width="200dp"
                 android:text="Export database"
                 android:onClick="onButtonClickExportDatastore"
-                android:layout_below="@+id/saveDb"
+                android:layout_below="@+id/unlock"
                 android:layout_centerHorizontal="true"/>
 
             <Button

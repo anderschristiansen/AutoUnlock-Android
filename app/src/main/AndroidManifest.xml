@@ -35,7 +35,7 @@
             android:taskAffinity=""
             android:theme="@style/AppTheme.NoActionBar"></activity>
         <activity
-            android:name=".Calibrator.CalibrationActivity"
+            android:name=".CalibrationActivity"
             android:launchMode="singleTask"
             android:label="@string/title_activity_calibration"></activity>
 

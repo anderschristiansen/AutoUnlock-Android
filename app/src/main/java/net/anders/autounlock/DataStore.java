@@ -6,8 +6,12 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
+import android.view.Window;
+
+import net.anders.autounlock.ML.DataSegmentation.WindowData;
 
 import java.util.ArrayList;
+import java.util.List;
 
 class DataStore {
     private static final String DATABASE_NAME = "datastore.db";
@@ -52,6 +56,24 @@ class DataStore {
     private static final String LOCATION_LONGITUDE = "longitude";
     private static final String LOCATION_ACCURACY = "accuracy";
     private static final String LOCATION_DATETIME = "datetime";
+
+    //TODO ABC Unlock Training
+    private static final String TRAINING_TABLE = "training";
+    private static final String TRAINING_ID = "id";
+    private static final String TRAINING_CLUSTER = "cluster";
+    private static final String TRAINING_NAME = "name";
+
+    // TODO ABC Unlock data
+    private static final String UNLOCK_TABLE = "unlock";
+    private static final String UNLOCK_TID = "trainingId";
+    private static final String UNLOCK_ORIENTATION = "orientation";
+    private static final String UNLOCK_VELOCITY = "velocity";
+    private static final String UNLOCK_ACCELERATIONX = "accelerationX";
+    private static final String UNLOCK_ACCELERATIONY = "accelerationY";
+    private static final String UNLOCK_SPEEDX = "speedX";
+    private static final String UNLOCK_SPEEDY = "speedY";
+
+
 
     private static final String DECISION_TABLE = "decision";
     private static final String DECISION_DECISION = "decision";
@@ -271,7 +293,7 @@ class DataStore {
     }
 
     void insertAccelerometer(float accelerometerX, float accelerometerY, float accelerometerZ,
-                                    float speedX, float speedY, float speedZ, String datetime, long timestamp) {
+                             float speedX, float speedY, float speedZ, String datetime, long timestamp) {
         ContentValues contentValues = new ContentValues();
         contentValues.put(ACCELERATION_X, accelerometerX);
         contentValues.put(ACCELERATION_Y, accelerometerY);
@@ -390,6 +412,133 @@ class DataStore {
         }
     }
 
+    // TODO ABC
+    void insertTrainingData(WindowData[] snapshot) {
+        ContentValues contentValues = new ContentValues();
+
+        contentValues.put(TRAINING_NAME, "UNLOCK");
+
+        try {
+            database = databaseHelper.getWritableDatabase();
+            database.beginTransaction();
+            database.replace(TRAINING_TABLE, null, contentValues);
+            database.setTransactionSuccessful();
+        } finally {
+            database.endTransaction();
+        }
+
+        Cursor c = database.rawQuery("SELECT last_insert_rowid()", null);
+        c.moveToFirst();
+        int id = c.getInt(0);
+
+        insertUnlock(snapshot, id);
+    }
+
+    void insertUnlock(WindowData[] snapshot, int id) {
+        ContentValues contentValues = new ContentValues();
+        contentValues.put(UNLOCK_TID, id);
+
+        for (WindowData window: snapshot) {
+            contentValues.put(UNLOCK_ACCELERATIONX, window.getAccelerationX());
+            contentValues.put(UNLOCK_ACCELERATIONY, window.getAccelerationY());
+            contentValues.put(UNLOCK_SPEEDX, window.getSpeedX());
+            contentValues.put(UNLOCK_SPEEDY, window.getSpeedY());
+            contentValues.put(UNLOCK_ORIENTATION, window.getOrientation());
+            contentValues.put(UNLOCK_VELOCITY, window.getVelocity());
+            contentValues.put(TIMESTAMP, window.getTime());
+
+            try {
+                database = databaseHelper.getWritableDatabase();
+                database.beginTransaction();
+                database.replace(UNLOCK_TABLE, null, contentValues);
+                database.setTransactionSuccessful();
+            } finally {
+                database.endTransaction();
+            }
+        }
+    }
+
+    int getTrainingSessionCount() {
+        int cnt;
+        try {
+            database = databaseHelper.getReadableDatabase();
+            database.beginTransaction();
+
+            String countQuery = "SELECT * FROM " + TRAINING_TABLE + ";";
+            Cursor cursor = database.rawQuery(countQuery, null);
+            cnt = cursor.getCount();
+            cursor.close();
+        } finally {
+            database.endTransaction();
+        }
+        return cnt;
+    }
+
+    ArrayList<ArrayList<WindowData>> getTrainingSessions() {
+
+        ArrayList<ArrayList<WindowData>> trainingsArrayList = new ArrayList<>();
+
+        int cntTrain = getTrainingSessionCount();
+
+        try {
+            database = databaseHelper.getReadableDatabase();
+            database.beginTransaction();
+
+            for (int i = 1; i < cntTrain+1; i++) {
+                ArrayList<WindowData> trainingArrayList = new ArrayList<>();
+
+                String trainQuery = "SELECT * FROM " + UNLOCK_TABLE + " WHERE " + UNLOCK_TID + "='" + i + "';";
+                Cursor trainCursor = database.rawQuery(trainQuery, null);
+
+                if (trainCursor.moveToFirst()) {
+                    do {
+                        double accelerationX = trainCursor.getDouble(trainCursor.getColumnIndex(UNLOCK_ACCELERATIONX));
+                        double accelerationY = trainCursor.getDouble(trainCursor.getColumnIndex(UNLOCK_ACCELERATIONY));
+                        double speedX = trainCursor.getDouble(trainCursor.getColumnIndex(UNLOCK_SPEEDX));
+                        double speedY = trainCursor.getDouble(trainCursor.getColumnIndex(UNLOCK_SPEEDY));
+                        double orientation = trainCursor.getDouble(trainCursor.getColumnIndex(UNLOCK_ORIENTATION));
+                        double velocity = trainCursor.getDouble(trainCursor.getColumnIndex(UNLOCK_VELOCITY));
+                        double time = trainCursor.getDouble(trainCursor.getColumnIndex(TIMESTAMP));
+                        trainingArrayList.add(new WindowData(accelerationX, accelerationY, speedX, speedY, orientation, velocity, time));
+                    } while (trainCursor.moveToNext());
+                }
+                trainCursor.close();
+                trainingsArrayList.add(trainingArrayList);
+            }
+        } finally {
+            database.endTransaction();
+        }
+        return trainingsArrayList;
+    }
+
+    boolean isClustered(int id) {
+        boolean clustered = false;
+        try {
+            database = databaseHelper.getReadableDatabase();
+            database.beginTransaction();
+
+            String countQuery = "SELECT " + TRAINING_CLUSTER + " FROM " + TRAINING_TABLE + " WHERE " + TRAINING_ID + "=" + id + ";";
+            Cursor cursor = database.rawQuery(countQuery, null);
+
+            if(cursor.moveToFirst()){
+                if (cursor.getInt(0) != 0) {
+                    clustered = true;
+                }
+            }
+            cursor.close();
+        } finally {
+            database.endTransaction();
+        }
+        return clustered;
+    }
+
+    void updateCluster(int id, int cluster) {
+            ContentValues args = new ContentValues();
+            args.put(TRAINING_ID, id);
+            args.put(TRAINING_CLUSTER, cluster);
+            database.update(TRAINING_TABLE, args, TRAINING_ID + "=" + id, null);
+    }
+
     private class DatabaseHelper extends SQLiteOpenHelper {
         DatabaseHelper(Context context) {
             super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -416,6 +565,7 @@ class DataStore {
         }
 
         private void createDatastore(SQLiteDatabase database) {
+            database.execSQL("PRAGMA foreign_keys = ON;");
             database.execSQL("CREATE TABLE " + LOCK_TABLE + " ("
                     + LOCK_MAC + " TEXT PRIMARY KEY, "
                     + LOCK_PASSPHRASE + " TEXT, "
@@ -460,7 +610,25 @@ class DataStore {
                     + LOCATION_ACCURACY + " TEXT, "
                     + LOCATION_DATETIME + " TEXT, "
                     + TIMESTAMP + " LONG)");
+
+            database.execSQL("CREATE TABLE " + TRAINING_TABLE + " ("
+                    + TRAINING_ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
+                    + TRAINING_CLUSTER + " INTEGER DEFAULT 0, "
+                    + TRAINING_NAME + " TEXT)");
+
+            database.execSQL("CREATE TABLE " + UNLOCK_TABLE + " ("
+//                    + UNLOCK_ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
+                    + UNLOCK_TID + " INTEGER,"
+                    + UNLOCK_ACCELERATIONX + " DOUBLE, "
+                    + UNLOCK_ACCELERATIONY + " DOUBLE, "
+                    + UNLOCK_SPEEDX + " DOUBLE, "
+                    + UNLOCK_SPEEDY + " DOUBLE, "
+                    + UNLOCK_ORIENTATION + " DOUBLE, "
+                    + UNLOCK_VELOCITY + " DOUBLE, "
+                    + TIMESTAMP + " LONG, "
+                    + "FOREIGN KEY(" + UNLOCK_TID + ") REFERENCES " + TRAINING_TABLE + "(" + TRAINING_ID + "));");
         }
+
 
         private void dropDatastore() {
             database.execSQL("DROP TABLE IF EXISTS " + LOCK_TABLE);
@@ -470,6 +638,8 @@ class DataStore {
             database.execSQL("DROP TABLE IF EXISTS " + LOCATION_TABLE);
             database.execSQL("DROP TABLE IF EXISTS " + DECISION_TABLE);
             database.execSQL("DROP TABLE IF EXISTS " + BUFFER_TABLE);
+            database.execSQL("DROP TABLE IF EXISTS " + UNLOCK_TABLE);
+            database.execSQL("DROP TABLE IF EXISTS " + TRAINING_TABLE);
         }
     }
 }
