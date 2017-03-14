@@ -532,11 +532,66 @@ class DataStore {
         return clustered;
     }
 
-    void updateCluster(int id, int cluster) {
+    int getClusterId(int id) {
+        int cluster_id = 0;
+        try {
+            database = databaseHelper.getReadableDatabase();
+            database.beginTransaction();
+
+            String countQuery = "SELECT " + TRAINING_CLUSTER + " FROM " + TRAINING_TABLE + " WHERE " + TRAINING_ID + "=" + id + ";";
+            Cursor cursor = database.rawQuery(countQuery, null);
+
+            if(cursor.moveToFirst()){
+                if (cursor.getInt(0) != 0) {
+                    cluster_id = cursor.getInt(0);
+                }
+            }
+            cursor.close();
+        } finally {
+            database.endTransaction();
+        }
+        return cluster_id;
+    }
+
+    int getClusterCount() {
+        int cnt;
+        try {
+            database = databaseHelper.getReadableDatabase();
+            database.beginTransaction();
+
+            String countQuery = "SELECT MAX(" + TRAINING_CLUSTER + ") FROM " + TRAINING_TABLE + ";";
+            Cursor cursor = database.rawQuery(countQuery, null);
+            cursor.moveToFirst();
+            cnt = cursor.getInt(0);
+            cursor.close();
+        } finally {
+            database.endTransaction();
+        }
+        return cnt;
+    }
+
+    void updateCluster(int cur_id, int next_id) {
+
+        int clusterValue;
+
+            if (isClustered(next_id) && getClusterId(next_id) != 0)  {
+                clusterValue = getClusterId(next_id);
+            }
+            else {
+                int ctn = getClusterCount() + 1;
+                clusterValue = ctn;
+            }
+
             ContentValues args = new ContentValues();
-            args.put(TRAINING_ID, id);
-            args.put(TRAINING_CLUSTER, cluster);
-            database.update(TRAINING_TABLE, args, TRAINING_ID + "=" + id, null);
+            args.put(TRAINING_ID, cur_id);
+            args.put(TRAINING_CLUSTER, clusterValue);
+            database.update(TRAINING_TABLE, args, TRAINING_ID + "=" + cur_id, null);
+
+            ContentValues args2 = new ContentValues();
+            args2.put(TRAINING_ID, next_id);
+            args2.put(TRAINING_CLUSTER, clusterValue);
+            database.update(TRAINING_TABLE, args2, TRAINING_ID + "=" + next_id, null);
+
     }
 
     private class DatabaseHelper extends SQLiteOpenHelper {

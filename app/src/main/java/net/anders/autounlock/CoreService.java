@@ -21,11 +21,10 @@ import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.LocationServices;
 
 import net.anders.autounlock.ML.DataPreprocessing.WindowProcessor;
-import net.anders.autounlock.ML.LearningProcess;
+import net.anders.autounlock.ML.LearningProcessor;
 import net.anders.autounlock.ML.RecognitionService;
 import net.anders.autounlock.ML.DataSegmentation.CoordinateData;
 import net.anders.autounlock.ML.DataSegmentation.WindowData;
-import net.anders.autounlock.Export.Export;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -201,7 +200,7 @@ public class CoreService extends Service implements
         registerReceiver(startRecognitionReceiver, startRecognitionFilter);
 
         //TODO ABC
-        //startRecognitionService();
+        startRecognitionService();
 
         Log.v("CoreService", "Service created");
     }
@@ -733,6 +732,12 @@ public class CoreService extends Service implements
             saveLock(BluetoothService.ANDERS_BEKEY);
         }
 
+        WindowData[] snapshot = RingProcessorService.getSnapshot();
+        dataStore.insertTrainingData(snapshot);
+
+        Log.i(TAG, "Snapshot length: " + String.valueOf(snapshot.length));
+        Toast.makeText(getApplicationContext(), "BeKey unlocked", Toast.LENGTH_SHORT).show();
+
         if (dataStore.getTrainingSessionCount() >= numberOfTrainingSessions) {
             Toast.makeText(getApplicationContext(), "The app will now calibrate", Toast.LENGTH_SHORT).show();
 
@@ -740,19 +745,11 @@ public class CoreService extends Service implements
             ArrayList<ArrayList<WindowData>> trainingSessions =  dataStore.getTrainingSessions();
 
             // Get features
-            LearningProcess.Learn(trainingSessions);
+            LearningProcessor.Learn(trainingSessions);
 
             // Get Clusters + Classification
 
             // Make models
-
-        } else {
-            WindowData[] snapshot = RingProcessorService.getSnapshot();
-            dataStore.insertTrainingData(snapshot);
-
-            Log.i(TAG, "Snapshot length: " + String.valueOf(snapshot.length));
-
-            Toast.makeText(getApplicationContext(), "BeKey unlocked", Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -760,8 +757,9 @@ public class CoreService extends Service implements
         return dataStore.isClustered(id);
     }
 
-    public static void updateCluster(int id, int cluster) {
-        dataStore.updateCluster(id, cluster);
+    public static void updateCluster(int cur_id, int next_id) {
+
+        dataStore.updateCluster(cur_id, next_id);
     }
 
     public static void accelerometerEvent(AccelerometerData anAccelerometerEvent) {
