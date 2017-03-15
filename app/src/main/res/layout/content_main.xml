@@ -26,6 +26,7 @@
             android:layout_height="wrap_content">
 
             <ToggleButton
+                android:visibility="gone"
                 android:id="@+id/sensorToggle"
                 android:layout_width="200dp"
                 android:layout_height="wrap_content"
@@ -35,6 +36,7 @@
                 android:onClick="onButtonClickToggleSensorContainer"/>
 
             <RelativeLayout
+                android:visibility="gone"
                 android:id="@+id/sensorContainer"
                 android:layout_below="@+id/sensorToggle"
                 android:layout_width="wrap_content"
@@ -238,6 +240,15 @@
                 android:layout_below="@+id/sensorContainer"
                 android:layout_centerHorizontal="true"/>
 
+            <Button
+                android:id="@+id/lock"
+                android:layout_height="wrap_content"
+                android:layout_width="200dp"
+                android:text="Lock door"
+                android:onClick="onButtonClickLock"
+                android:layout_below="@+id/unlock"
+                android:layout_centerHorizontal="true"/>
+
             <!--<Button-->
                 <!--android:id="@+id/manualUnlock"-->
                 <!--android:layout_height="wrap_content"-->
@@ -263,10 +274,11 @@
                 android:layout_width="200dp"
                 android:text="Export database"
                 android:onClick="onButtonClickExportDatastore"
-                android:layout_below="@+id/unlock"
+                android:layout_below="@+id/lock"
                 android:layout_centerHorizontal="true"/>
 
             <Button
+                android:visibility="gone"
                 android:id="@+id/deleteDb"
                 android:layout_height="wrap_content"
                 android:layout_width="200dp"
@@ -279,6 +291,7 @@
         </RelativeLayout>
 
     <RelativeLayout
+        android:visibility="gone"
         android:id="@+id/infoContainer"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

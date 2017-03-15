@@ -59,11 +59,11 @@ public class ModelTraining {
 
     File outputDirectory = new File("/sdcard/AutoUnlock/HMM/");
 
-    public void train(List<ObservationInteger> seqOri, List<ObservationInteger> seqVelo) {
-//    public void train(ArrayList<ClusterData> clusters) {
+//    public void train(List<ObservationInteger> seqOri, List<ObservationInteger> seqVelo) {
+    public void train(ArrayList<ClusterData> clusters) {
         try {
-            sequencesOri = seqOri;
-            sequencesVelo = seqVelo;
+//            sequencesOri = seqOri;
+//            sequencesVelo = seqVelo;
             outputDirectory.mkdirs();
             getGesture();
         } catch (IOException e) {

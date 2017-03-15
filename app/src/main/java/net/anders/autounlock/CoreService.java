@@ -749,6 +749,11 @@ public class CoreService extends Service implements
         }
     }
 
+    // TODO ABC
+    void onButtonClickLock() {
+
+    }
+
     public static boolean isClustered(int id) {
         return dataStore.isClustered(id);
     }

@@ -687,6 +687,13 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    // TODO ABC
+    public void onButtonClickLock(View v) {
+        if (bound) {
+            coreService.onButtonClickLock();
+        }
+    }
+
 
     public void onButtonClickDeleteAccelerometerData(View v) {
         if (bound) {

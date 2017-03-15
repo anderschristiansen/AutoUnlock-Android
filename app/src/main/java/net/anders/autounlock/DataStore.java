@@ -60,6 +60,7 @@ class DataStore {
     //TODO ABC Unlock ModelTraining
     private static final String TRAINING_TABLE = "training";
     private static final String TRAINING_ID = "id";
+    private static final String TRAINING_UNLOCK = "";
     private static final String TRAINING_CLUSTER = "cluster";
     private static final String TRAINING_NAME = "name";
 
@@ -73,8 +74,7 @@ class DataStore {
     private static final String UNLOCK_SPEEDX = "speedX";
     private static final String UNLOCK_SPEEDY = "speedY";
 
-
-
+    // TODO ABC
     private static final String DECISION_TABLE = "decision";
     private static final String DECISION_DECISION = "decision";
 
