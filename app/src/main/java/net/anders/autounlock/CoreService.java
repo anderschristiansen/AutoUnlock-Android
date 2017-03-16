@@ -21,6 +21,7 @@ import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.LocationServices;
 
 import net.anders.autounlock.ML.DataPreprocessing.WindowProcessor;
+import net.anders.autounlock.ML.DataSegmentation.SessionData;
 import net.anders.autounlock.ML.LearningProcessor;
 import net.anders.autounlock.ML.RecognitionService;
 import net.anders.autounlock.ML.DataSegmentation.CoordinateData;
@@ -92,10 +93,11 @@ public class CoreService extends Service implements
     public static double windowPercentageOverlap;
     public static int windowOverlap;
     public static boolean doSnapshot = false;
-    public static int manualUnLockCalibration;
-    public static int numberOfTrainingSessions;
+//    public static int manualUnLockCalibration;
+    public static int reqCaliSessions;
     public static int orientationThreshold;
     public static int velocityThreshold;
+    public static boolean unlockDoor;
 
     // Used to know if one is needed to be added
     static boolean isLockSaved = false;
@@ -732,27 +734,52 @@ public class CoreService extends Service implements
             saveLock(BluetoothService.ANDERS_BEKEY);
         }
 
-        WindowData[] snapshot = RingProcessorService.getSnapshot();
-        dataStore.insertTrainingData(snapshot);
+        unlockDoor = true;
+        handleDoorSession(unlockDoor);
 
-        Log.i(TAG, "Snapshot length: " + String.valueOf(snapshot.length));
-        Toast.makeText(getApplicationContext(), "BeKey unlocked", Toast.LENGTH_SHORT).show();
-
-        if (dataStore.getTrainingSessionCount() >= numberOfTrainingSessions) {
-            Toast.makeText(getApplicationContext(), "The app will now calibrate", Toast.LENGTH_SHORT).show();
-
-            // Fetch every training sessions
-            ArrayList<ArrayList<WindowData>> trainingSessions =  dataStore.getTrainingSessions();
-
-            // Start learning procedure
-            LearningProcessor.Start(trainingSessions);
-        }
     }
 
     // TODO ABC
     void onButtonClickLock() {
+        // TODO ABC Om lås er gemt skal hentes fra db
+        if (dataStore.getKnownLocks().isEmpty()) {
+            saveLock(BluetoothService.ANDERS_BEKEY);
+        }
 
+        unlockDoor = false;
+        handleDoorSession(unlockDoor);
     }
+
+    void handleDoorSession(boolean unlockDoor) {
+        WindowData[] snapshot = RingProcessorService.getSnapshot();
+        dataStore.insertSession(snapshot, unlockDoor);
+
+        Log.i(TAG, "Snapshot length: " + String.valueOf(snapshot.length));
+
+        int cntSession = dataStore.getSessionCount(unlockDoor);
+
+        if (cntSession >= reqCaliSessions && unlockDoor) {
+            Toast.makeText(getApplicationContext(), "BeKey unlocked! The app will now calibrate unlock sessions", Toast.LENGTH_SHORT).show();
+
+            // Fetch every UNLOCK sessions
+            ArrayList<SessionData> unlock_sessions =  dataStore.getSessions(unlockDoor);
+
+            // Start learning procedure
+            LearningProcessor.Start(unlock_sessions, unlockDoor);
+        }
+        else if (cntSession >= reqCaliSessions && !unlockDoor) {
+            Toast.makeText(getApplicationContext(), "BeKey unlocked! The app will now calibrate lock sessions", Toast.LENGTH_SHORT).show();
+
+            // Fetch every LOCK sessions
+            ArrayList<SessionData> lock_sessions =  dataStore.getSessions(unlockDoor);
+
+            // Start learning procedure
+            LearningProcessor.Start(lock_sessions, unlockDoor);
+        }
+        Toast.makeText(getApplicationContext(), "BeKey unlocked", Toast.LENGTH_SHORT).show();
+    }
+
+
 
     public static boolean isClustered(int id) {
         return dataStore.isClustered(id);
@@ -793,9 +820,9 @@ public class CoreService extends Service implements
             seq2.add(v2);
             seq2.add(v2);
 
-//            ModelTraining r1 = new ModelTraining(seq1, seq1);
-            ModelClassification r2 = new ModelClassification(seq1, seq1);
-            ModelClassification r3 = new ModelClassification(seq2, seq2);
+//            TrainHMM r1 = new TrainHMM(seq1, seq1);
+            RecogniseSession r2 = new RecogniseSession(seq1, seq1);
+            RecogniseSession r3 = new RecogniseSession(seq2, seq2);
 
         } catch (InterruptedException e) {
             e.printStackTrace();

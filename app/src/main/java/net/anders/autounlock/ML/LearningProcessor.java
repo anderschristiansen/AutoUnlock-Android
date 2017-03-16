@@ -2,14 +2,14 @@ package net.anders.autounlock.ML;
 
 import android.util.Log;
 
-import net.anders.autounlock.CoreService;
-import net.anders.autounlock.ML.DataProcessing.Features;
-import net.anders.autounlock.ML.DataSegmentation.ClusterData;
-import net.anders.autounlock.ML.DataSegmentation.ClustersData;
-import net.anders.autounlock.ML.DataSegmentation.WindowData;
-import net.anders.autounlock.ML.HMM.ModelTraining;
+import net.anders.autounlock.ML.DataProcessing.Clustering;
+import net.anders.autounlock.ML.DataSegmentation.SessionData;
+import net.anders.autounlock.ML.HMM.RecogniseSession;
+import net.anders.autounlock.ML.HMM.TrainHMM;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by Anders on 09-03-2017.
@@ -19,60 +19,49 @@ public class LearningProcessor {
 
     private static final String TAG = "LearningProcessor";
 
-    public static void Start(ArrayList<ArrayList<WindowData>> trainingSessions)  {
+    public static void Start(ArrayList<SessionData> sessions, boolean unlockDoor)  {
 
         // Method to identify clusters in the training sessions
-        ArrayList<ClusterData> clusters = ClusterTrainingSessions(trainingSessions);
+        ArrayList<SessionData> clusters = Clustering.AnalyseClusters(sessions, unlockDoor);
 
-        // Make models
-         ModelTraining mt = new ModelTraining();
-         mt.train(clusters);
-    }
+        // Create a map to hold sublists of clusters
+        Map<Integer, ArrayList<SessionData>> map = new HashMap<>();
 
-    private static ArrayList<ClusterData> ClusterTrainingSessions(ArrayList<ArrayList<WindowData>> trainingSessions) {
+        for(SessionData session : clusters){
+            // Fetch the list for this object's cluster id
+            ArrayList<SessionData> temp = map.get(session.getClusterId());
 
-        ArrayList<ClusterData> clusters = new ArrayList<>();
-
-        // For each train in unlocksessions
-        for (int i = 0; i < trainingSessions.size(); i++) {
-
-            ArrayList<WindowData> curTrain = trainingSessions.get(i);
-
-            // If the train session is already clustered, skip
-            if (!CoreService.isClustered(i+1)) {
-
-                for (int j = 0; j < trainingSessions.size(); j++) {
-                    if(j!=i){
-                        ArrayList<WindowData> nextTrain = trainingSessions.get(j);
-
-                        boolean cluster = true;
-
-                        // Compares each window in i train with against the next train
-                        for (int k = 0; k < curTrain.size(); k++) {
-                            WindowData curWindow = curTrain.get(k);
-                            WindowData nextWindow = nextTrain.get(k);
-
-                            // Break if the windows are not within the required thresholds,
-                            // else continue to investigate if sessions should be clustered
-                            if (!Features.processTraining(curWindow, nextWindow)) {
-                                cluster = false;
-                                Log.i(TAG, "CLUSTER NOT EXISTING: ModelTraining session " + String.valueOf(i) + " and " + String.valueOf(i+1));
-                                break;
-                            }
-                        }
-                        if (cluster) {
-                            // Update the two train sessions to be clustered together
-                            Log.i(TAG, "CLUSTER FOUND: ModelTraining session " + String.valueOf(i) + " and " + String.valueOf(i+1));
-                            CoreService.updateCluster(i+1, j+1); // Current train
-                            break;
-                        }
-                    }
-                }
+            if(temp == null){
+                // If the list is null we haven't seen an
+                // object with this cluster id before, so create
+                // a new list and add it to the map
+                temp = new ArrayList<SessionData>();
+                map.put(session.getClusterId(), temp);
             }
-            clusters.add(new ClusterData(CoreService.getClusterId(i+1), curTrain));
+            temp.add(session);
         }
 
-        return clusters;
+        for (Map.Entry<Integer, ArrayList<SessionData>> entry : map.entrySet()) {
+            TrainHMM model = new TrainHMM();
+
+            ArrayList<SessionData> temp = new ArrayList<>();
+
+            for (SessionData session:entry.getValue()) {
+                temp.add(session);
+            }
+            model.train(temp, unlockDoor);
+        }
+
+//        RecogniseSession reg = new RecogniseSession();
+//
+//        SessionData c = clusters.get(4);
+//        reg.recognise(c);
+//
+//        SessionData c2 = clusters.get(5);
+//        reg.recognise(c2);
+//
+//        SessionData c3 = clusters.get(1);
+//        reg.recognise(c3);
     }
 }
 
@@ -93,7 +82,7 @@ public class LearningProcessor {
 //                sequencesVelo.add(new ObservationReal(2.4));
 //
 //                try {
-//                ModelTraining t = new ModelTraining(sequencesOri, sequencesVelo);
+//                TrainHMM t = new TrainHMM(sequencesOri, sequencesVelo);
 //                } catch (InterruptedException e) {
 //                e.printStackTrace();
 //                } catch (IOException e) {

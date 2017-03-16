@@ -45,13 +45,13 @@ public class RecognitionService extends Service {
         public void run() {
 
             // Numbers of times needed for manual unlocking before enough data is collected
-            CoreService.manualUnLockCalibration = 5;
+//            CoreService.manualUnLockCalibration = 5;
             CoreService.windowBufferSize = 10;
             CoreService.windowSize = 30;
             // Last % of current window will be overlapping toused in the next window
             CoreService.windowPercentageOverlap = 0;
             CoreService.windowOverlap =  CoreService.windowSize - ((int)(CoreService.windowSize *  CoreService.windowPercentageOverlap));
-            CoreService.numberOfTrainingSessions = 3;
+            CoreService.reqCaliSessions = 10;
             CoreService.orientationThreshold = 50;
             CoreService.velocityThreshold = 50;
 

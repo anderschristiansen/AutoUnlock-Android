@@ -720,8 +720,8 @@ public class MainActivity extends AppCompatActivity {
 
     public void onButtonClickGoToCalibration(View v) throws InterruptedException, FileFormatException, IOException {
 
-        //ModelTraining r = new ModelTraining();
-        //ModelClassification r = new ModelClassification();
+        //TrainHMM r = new TrainHMM();
+        //RecogniseSession r = new RecogniseSession();
 
         if (bound) {
             coreService.startAccelerometerService();

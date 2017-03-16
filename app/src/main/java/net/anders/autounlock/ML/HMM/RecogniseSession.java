@@ -2,6 +2,9 @@ package net.anders.autounlock.ML.HMM;
 
 import android.util.Log;
 
+import net.anders.autounlock.ML.DataSegmentation.SessionData;
+import net.anders.autounlock.ML.DataSegmentation.WindowData;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -14,6 +17,7 @@ import java.io.InputStreamReader;
 import java.io.LineNumberReader;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -29,9 +33,9 @@ import be.ac.ulg.montefiore.run.jahmm.io.OpdfIntegerReader;
  * Created by Anders on 06-03-2017.
  */
 
-public class ModelClassification {
+public class RecogniseSession {
 
-    private static String TAG = "ModelClassification";
+    private static String TAG = "RecogniseSession";
 
     private final static byte MSG_RUN_CONTINUOUS = 104;
     private final static int PORT_NUMBER = 5000;
@@ -40,8 +44,8 @@ public class ModelClassification {
     private	final static String IP_ADDRESS = "10.74.192.9";
 
     //Observation list from one gesture performance to be compared against a saved HMM
-    public List<ObservationInteger> sequencesInstanceOri;
-    public List<ObservationInteger> sequencesInstanceVelo;
+    public List<ObservationInteger> sequencesInstanceOri = new ArrayList<>();
+    public List<ObservationInteger> sequencesInstanceVelo = new ArrayList<>();
 
     // Current received value from sensor to add to list
     public int receivedOri = 0;
@@ -49,7 +53,7 @@ public class ModelClassification {
 
     // Variables
     public boolean firstElement = true;
-    public int noOfGestures;
+    public int noOfSessions;
     public FileReader fileReaderOri, fileReaderVelo;
     public FileWriter testWriterOri, testWriterVelo;
     public OpdfIntegerReader opdfReader;
@@ -72,42 +76,36 @@ public class ModelClassification {
 
     File inputDirectory = new File("/sdcard/AutoUnlock/HMM/");
 
-    public ModelClassification(List<ObservationInteger> seqOri, List<ObservationInteger> seqVelo) throws FileFormatException, IOException, InterruptedException{
-        sequencesInstanceOri = seqOri;
-        sequencesInstanceVelo = seqVelo;
-        Recognise();
-    }
+    public void recognise(SessionData session) {
 
-    public void Recognise() throws IOException, FileFormatException, InterruptedException{
+        try {
+            countSessions();
 
-        countGestures();
-        String[] gestureName = new String[noOfGestures];
+            String[] sessionName = new String[noOfSessions];
 
-        FileInputStream in = new FileInputStream(new File(inputDirectory, "GestureList.txt"));
-        BufferedReader br = new BufferedReader(new InputStreamReader(in));
+            FileInputStream in = new FileInputStream(new File(inputDirectory, "Overview.txt"));
+            BufferedReader br = new BufferedReader(new InputStreamReader(in));
 
-        for(int i = 1; i<gestureName.length;i++){
-            gestureName[i] = br.readLine();
-        }
-        in.close();
-        br.close();
+            for(int i = 1; i<sessionName.length;i++){
+                sessionName[i] = br.readLine();
+            }
+            in.close();
+            br.close();
 
-        System.out.println("");
-        System.out.println("Your saved gestures are:");
+            System.out.println("");
+            System.out.println("Your saved sessions are:");
 
-        for (int i = 1; i<gestureName.length; i++){
-            System.out.println("Gesture #[" + i + "] = " + gestureName[i]);
-        }
+            for (int i = 1; i<sessionName.length; i++){
+                System.out.println("Session #[" + i + "] = " + sessionName[i]);
+            }
 
-        for (int i=1; i<gestureName.length;i++){
-            readHmm(i);
-        }
+            for (int i=1; i<sessionName.length;i++){
+                readHmm(i);
+            }
 
-//        for (int j = 1; j<10;j++){
-            //sequencesInstanceX = new LinkedList<ObservationInteger>();
-//            runContinuous(sequencesInstanceX);
+            createData(session.getWindows());
 
-            for (int i = 1; i <gestureName.length;i++){
+            for (int i = 1; i <sessionName.length;i++){
                 evaluate(sequencesInstanceOri, sequencesInstanceVelo, i);
             }
 
@@ -116,51 +114,58 @@ public class ModelClassification {
                 System.out.println("Try again.");
             }
             else if (bestMatchNo > 0){
-                System.out.println("Best match is: "+ gestureName[bestMatchNo]);
-                    bestMatchNo = -1;
-                    bestMatchProb = 0.00000000000000000000000001;
+                System.out.println("Best match is: "+ sessionName[bestMatchNo] + " with probabilty " + bestMatchProb);
+                bestMatchNo = -1;
+                bestMatchProb = 0.00000000000000000000000001;
             }
-//        }
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (FileFormatException e) {
+            e.printStackTrace();
+        }
+    }
 
-//        System.out.println("");
-//        System.out.println("Restart RECOGNISE program to continue recognising gestures!");
-//        System.exit(0);
+    public void createData(List<WindowData> windows){
+        for (WindowData window : windows) {
+            sequencesInstanceOri.add(new ObservationInteger((int)window.getOrientation()));
+            sequencesInstanceVelo.add(new ObservationInteger((int)window.getVelocity()));
+        }
     }
 
 
     //Counts the the number of saved gestures to give a correct length to the array
-    public int countGestures() throws IOException{
+    public int countSessions() throws IOException {
 
         inputDirectory = new File("/sdcard/AutoUnlock/HMM/");
-        LineNumberReader lnr = new LineNumberReader(new FileReader(new File(inputDirectory, "GestureList.txt")));
+        LineNumberReader lnr = new LineNumberReader(new FileReader(new File(inputDirectory, "Overview.txt")));
         lnr.skip(Long.MAX_VALUE);
-        noOfGestures = lnr.getLineNumber() + 1;
+        noOfSessions = lnr.getLineNumber() + 1;
         lnr.close();
 
-        return noOfGestures;
+        return noOfSessions;
     }
 
 
     //Reads each HMM from the saved text files
-    public void readHmm(int hmmNo)throws FileFormatException, FileNotFoundException, IOException{
+    public void readHmm(int hmmNo) throws FileFormatException, FileNotFoundException, IOException{
 
-        String[] gestureName = new String[noOfGestures];
-        FileInputStream in = new FileInputStream(new File(inputDirectory, "GestureList.txt"));
+        String[] fileName = new String[noOfSessions];
+        FileInputStream in = new FileInputStream(new File(inputDirectory, "Overview.txt"));
         BufferedReader br = new BufferedReader(new InputStreamReader(in));
 
-        for(int i = 1; i<gestureName.length;i++ ){
-            gestureName[i] = br.readLine();
+        for(int i = 1; i<fileName.length;i++ ){
+            fileName[i] = br.readLine();
         }
         in.close();
         br.close();
 
 
         // Husk at nævn i rapport at dette var nødvendigt for at få en korrekt syntaks
-        changeDecimal(gestureName, hmmNo, "Ori");
-        changeDecimal(gestureName, hmmNo, "Velo");
+        changeDecimal(fileName, hmmNo, "_ori.txt");
+        changeDecimal(fileName, hmmNo, "_velo.txt");
 
-        fileReaderOri = new FileReader(new File(inputDirectory, gestureName[hmmNo] + "Ori.txt"));
-        fileReaderVelo = new FileReader(new File(inputDirectory, gestureName[hmmNo] + "Velo.txt"));
+        fileReaderOri = new FileReader(new File(inputDirectory, fileName[hmmNo] + "_ori.txt"));
+        fileReaderVelo = new FileReader(new File(inputDirectory, fileName[hmmNo] + "_velo.txt"));
         opdfReader = new OpdfIntegerReader();
 
         switch(hmmNo){
@@ -195,10 +200,10 @@ public class ModelClassification {
         }
     }
 
-    private void changeDecimal(String[] gestureName, int hmmNo, String type) {
+    private void changeDecimal(String[] fileName, int hmmNo, String type) {
         BufferedReader b = null;
         try {
-            String fpath = inputDirectory + "/" + gestureName[hmmNo] + type + ".txt";
+            String fpath = inputDirectory + "/" + fileName[hmmNo] + type;
             try {
                 b = new BufferedReader(new FileReader(fpath));
             } catch (FileNotFoundException e1) {
@@ -210,7 +215,7 @@ public class ModelClassification {
                 text += line.replace(",", ".") + " ";
             }
 
-            File file = new File(inputDirectory, gestureName[hmmNo] + type + ".txt");
+            File file = new File(inputDirectory, fileName[hmmNo] + type);
             FileOutputStream stream = new FileOutputStream(file);
             try {
                 stream.write(text.getBytes());
@@ -221,25 +226,6 @@ public class ModelClassification {
             e.printStackTrace();
         }
     }
-
-    public void runContinuous(List<ObservationInteger>sequencesOri, List<ObservationInteger>sequencesVelo) throws InterruptedException{
-        System.out.println("Capturing...");
-        for (int i=0;i<10;i++){
-            if (firstElement == true){
-                firstElement = false;
-            }
-            else {
-                ObservationInteger ori = new ObservationInteger(2);
-                sequencesOri.add(ori);
-
-                ObservationInteger velo = new ObservationInteger(2);
-                sequencesVelo.add(velo);
-            }
-        }
-        firstElement = true;
-        System.out.println("Stopped capturing");
-    }
-
 
     public void evaluate (List<ObservationInteger> ori, List<ObservationInteger> velo, int hmmNo){
         switch (hmmNo){
