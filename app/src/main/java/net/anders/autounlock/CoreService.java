@@ -20,6 +20,7 @@ import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.LocationServices;
 
+import net.anders.autounlock.Export.Export;
 import net.anders.autounlock.ML.DataPreprocessing.WindowProcessor;
 import net.anders.autounlock.ML.DataSegmentation.SessionData;
 import net.anders.autounlock.ML.LearningProcessor;
@@ -159,7 +160,7 @@ public class CoreService extends Service implements
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0);
 
         Notification notification = new NotificationCompat.Builder(this)
-                .setSmallIcon(R.mipmap.ic_launcher)
+                .setSmallIcon(R.drawable.bekey_logo)
                 .setContentTitle("AutoUnlock")
                 .setContentText("Service running in the background")
                 .setContentIntent(pendingIntent).build();
@@ -901,6 +902,11 @@ public class CoreService extends Service implements
         WindowProcessor.prevWindow = null;
         Log.d("CoreService", "Trying to stop MachineLearningService");
         stopService(machineLearningIntent);
+    }
+
+    void exportDB() {
+        Export.Database();
+        Toast.makeText(getApplicationContext(), "Database exported", Toast.LENGTH_SHORT).show();
     }
 
 }

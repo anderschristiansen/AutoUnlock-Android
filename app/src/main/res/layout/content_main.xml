@@ -10,298 +10,326 @@
     tools:context="net.anders.autounlock.MainActivity">
 
     <!--<ScrollView-->
-        <!--android:id="@+id/controlsContainerScroll"-->
-        <!--android:layout_below="@+id/infoContainer"-->
-        <!--android:layout_width="match_parent"-->
-        <!--android:layout_height="wrap_content"-->
-        <!--android:paddingLeft="@dimen/activity_horizontal_margin"-->
-        <!--android:paddingRight="@dimen/activity_horizontal_margin"-->
-        <!--android:paddingTop="@dimen/activity_vertical_margin"-->
-        <!--android:paddingBottom="@dimen/activity_vertical_margin">-->
+    <!--android:id="@+id/controlsContainerScroll"-->
+    <!--android:layout_below="@+id/infoContainer"-->
+    <!--android:layout_width="match_parent"-->
+    <!--android:layout_height="wrap_content"-->
+    <!--android:paddingLeft="@dimen/activity_horizontal_margin"-->
+    <!--android:paddingRight="@dimen/activity_horizontal_margin"-->
+    <!--android:paddingTop="@dimen/activity_vertical_margin"-->
+    <!--android:paddingBottom="@dimen/activity_vertical_margin">-->
 
+    <RelativeLayout
+        android:id="@+id/controlsContainer"
+        android:layout_below="@+id/infoContainer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
 
+        <ToggleButton
+            android:visibility="gone"
+            android:id="@+id/sensorToggle"
+            android:layout_width="200dp"
+            android:layout_height="wrap_content"
+            android:textOff="show"
+            android:textOn="hide"
+            android:layout_centerHorizontal="true"
+            android:onClick="onButtonClickToggleSensorContainer"/>
 
         <RelativeLayout
-            android:id="@+id/controlsContainer"
-            android:layout_below="@+id/infoContainer"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:visibility="gone"
+            android:id="@+id/sensorContainer"
+            android:layout_below="@+id/sensorToggle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/background_border"
+            android:padding="10dp"
+            android:layout_margin="10dp">
 
-            <ToggleButton
-                android:visibility="gone"
-                android:id="@+id/sensorToggle"
+            <Button
+                android:id="@+id/accstart"
+                android:layout_height="40dp"
                 android:layout_width="200dp"
-                android:layout_height="wrap_content"
-                android:textOff="show"
-                android:textOn="hide"
-                android:layout_centerHorizontal="true"
-                android:onClick="onButtonClickToggleSensorContainer"/>
-
-            <RelativeLayout
-                android:visibility="gone"
-                android:id="@+id/sensorContainer"
-                android:layout_below="@+id/sensorToggle"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:background="@drawable/background_border"
-                android:padding="10dp"
-                android:layout_margin="10dp">
-
-                <Button
-                    android:id="@+id/accstart"
-                    android:layout_height="40dp"
-                    android:layout_width="200dp"
-                    android:textSize="10dp"
-                    android:text="Start Acceleration Service"
-                    android:onClick="onButtonClickAccel"
-                    android:layout_alignParentTop="true"
-                    android:layout_alignParentStart="true" />
-
-                <Button
-                    android:id="@+id/accstop"
-                    android:layout_height="40dp"
-                    android:textSize="10dp"
-                    android:layout_width="wrap_content"
-                    android:text="Stop"
-                    android:onClick="onButtonClickAccelStop"
-                    android:layout_alignParentEnd="true"/>
-
-                <Button
-                    android:id="@+id/locationstop"
-                    android:layout_height="40dp"
-                    android:textSize="10dp"
-                    android:layout_width="wrap_content"
-                    android:text="Stop"
-                    android:onClick="onButtonClickLocationStop"
-                    android:layout_alignTop="@+id/locationstart"
-                    android:layout_alignStart="@+id/accstop"/>
-
-                <Button
-                    android:id="@+id/wifistart"
-                    android:layout_height="40dp"
-                    android:layout_width="200dp"
-                    android:textSize="10dp"
-                    android:text="Start Wifi Service"
-                    android:onClick="onButtonClickWifi"
-                    android:layout_below="@+id/locationstart"
-                    android:layout_alignParentStart="true"/>
-
-                <Button
-                    android:id="@+id/wifistop"
-                    android:layout_height="40dp"
-                    android:textSize="10dp"
-                    android:layout_width="wrap_content"
-                    android:text="Stop"
-                    android:onClick="onButtonClickWifiStop"
-                    android:layout_below="@+id/locationstop"
-                    android:layout_alignParentEnd="true"/>
-
-                <Button
-                    android:id="@+id/bluetoothstart"
-                    android:layout_height="40dp"
-                    android:layout_width="200dp"
-                    android:textSize="10dp"
-                    android:layout_below="@id/wifistart"
-                    android:text="Start Bluetooth Service"
-                    android:onClick="onButtonClickBluetooth" />
-
-                <Button
-                    android:id="@+id/bluetoothstop"
-                    android:layout_height="40dp"
-                    android:textSize="10dp"
-                    android:layout_width="wrap_content"
-                    android:text="Stop"
-                    android:onClick="onButtonClickBluetoothStop"
-                    android:layout_below="@+id/wifistop"
-                    android:layout_alignParentEnd="true"/>
-
-                <Button
-                    android:id="@+id/allstop"
-                    android:layout_height="40dp"
-                    android:textSize="10dp"
-                    android:layout_width="wrap_content"
-                    android:text="Stop"
-                    android:onClick="onButtonClickAllStop"
-                    android:layout_below="@+id/bluetoothstop"
-                    android:layout_alignParentEnd="true" />
-
-                <Button
-                    android:id="@+id/databufferstop"
-                    android:layout_height="40dp"
-                    android:textSize="10dp"
-                    android:layout_width="wrap_content"
-                    android:text="Stop"
-                    android:onClick="onButtonClickDataBufferStop"
-                    android:layout_below="@+id/allstop"
-                    android:layout_alignParentEnd="true"/>
-
-                <Button
-                    android:id="@+id/locationstart"
-                    android:layout_height="40dp"
-                    android:layout_width="200dp"
-                    android:textSize="10dp"
-                    android:text="Start Location Service"
-                    android:onClick="onButtonClickLocation"
-                    android:layout_below="@+id/accstart"
-                    android:layout_alignParentStart="true" />
-
-                <Button
-                    android:id="@+id/allstart"
-                    android:layout_height="40dp"
-                    android:layout_width="200dp"
-                    android:textSize="10dp"
-                    android:text="Start All Services"
-                    android:onClick="onButtonClickAllStart"
-                    android:layout_below="@+id/bluetoothstart"
-                    android:layout_alignParentStart="true" />
-
-                <Button
-                    android:id="@+id/databufferstart"
-                    android:layout_height="40dp"
-                    android:layout_width="200dp"
-                    android:textSize="10dp"
-                    android:layout_below="@id/allstart"
-                    android:text="Start Data Buffer"
-                    android:onClick="onButtonClickDataBuffer" />
-
-                <Button
-                    android:id="@+id/barometerstart"
-                    android:layout_height="40dp"
-                    android:layout_width="200dp"
-                    android:textSize="10dp"
-                    android:layout_below="@id/databufferstart"
-                    android:text="Start Barometer service"
-                    android:onClick="onButtonClickBarometer" />
-
-                <Button
-                    android:id="@+id/barometerstop"
-                    android:layout_height="40dp"
-                    android:textSize="10dp"
-                    android:layout_width="wrap_content"
-                    android:text="Stop"
-                    android:layout_below="@+id/databufferstop"
-                    android:onClick="onButtonClickBarometerStop"
-                    android:layout_alignParentEnd="true"/>
-
-                <Button
-                    android:id="@+id/machinelearningstart"
-                    android:layout_height="40dp"
-                    android:layout_width="200dp"
-                    android:textSize="10dp"
-                    android:layout_below="@id/barometerstart"
-                    android:text="Start Machine Learning"
-                    android:onClick="onButtonClickMachineLearning" />
-
-                <Button
-                    android:id="@+id/machinelearningstop"
-                    android:layout_height="40dp"
-                    android:textSize="10dp"
-                    android:layout_width="wrap_content"
-                    android:text="Stop"
-                    android:layout_below="@+id/barometerstop"
-                    android:onClick="onButtonClickMachineLearningStop"
-                    android:layout_alignParentEnd="true"/>
-
-            </RelativeLayout>
+                android:textSize="10dp"
+                android:text="Start Acceleration Service"
+                android:onClick="onButtonClickAccel"
+                android:layout_alignParentTop="true"
+                android:layout_alignParentStart="true" />
 
             <Button
-                android:visibility="gone"
-                android:id="@+id/addgeofence"
-                android:layout_height="wrap_content"
+                android:id="@+id/accstop"
+                android:layout_height="40dp"
+                android:textSize="10dp"
                 android:layout_width="wrap_content"
-                android:layout_below="@id/sensorContainer"
-                android:text="Add geofence"
-                android:onClick="onButtonClickAddGeofence" />
+                android:text="Stop"
+                android:onClick="onButtonClickAccelStop"
+                android:layout_alignParentEnd="true"/>
 
             <Button
-                android:visibility="gone"
-                android:id="@+id/registergeofence"
-                android:layout_height="wrap_content"
+                android:id="@+id/locationstop"
+                android:layout_height="40dp"
+                android:textSize="10dp"
                 android:layout_width="wrap_content"
-                android:text="Register Geofence"
-                android:onClick="onButtonClickRegisterGeofence"
-                android:layout_below="@+id/addgeofence"
+                android:text="Stop"
+                android:onClick="onButtonClickLocationStop"
+                android:layout_alignTop="@+id/locationstart"
+                android:layout_alignStart="@+id/accstop"/>
+
+            <Button
+                android:id="@+id/wifistart"
+                android:layout_height="40dp"
+                android:layout_width="200dp"
+                android:textSize="10dp"
+                android:text="Start Wifi Service"
+                android:onClick="onButtonClickWifi"
+                android:layout_below="@+id/locationstart"
                 android:layout_alignParentStart="true"/>
 
             <Button
-                android:visibility="gone"
-                android:id="@+id/unregistergeofence"
-                android:layout_height="wrap_content"
+                android:id="@+id/wifistop"
+                android:layout_height="40dp"
+                android:textSize="10dp"
                 android:layout_width="wrap_content"
-                android:text="Unregister Geofence"
-                android:onClick="onButtonClickUnregisterGeofence"
-                android:layout_below="@+id/registergeofence"
-                android:layout_alignParentStart="true"/>
+                android:text="Stop"
+                android:onClick="onButtonClickWifiStop"
+                android:layout_below="@+id/locationstop"
+                android:layout_alignParentEnd="true"/>
 
             <Button
-                android:id="@+id/addlock"
-                android:layout_height="wrap_content"
+                android:id="@+id/bluetoothstart"
+                android:layout_height="40dp"
                 android:layout_width="200dp"
-                android:text="Add lock"
-                android:onClick="onButtonClickAddLock"
-                android:layout_below="@+id/sensorContainer"
-                android:layout_centerHorizontal="true"/>
+                android:textSize="10dp"
+                android:layout_below="@id/wifistart"
+                android:text="Start Bluetooth Service"
+                android:onClick="onButtonClickBluetooth" />
 
             <Button
-                android:visibility="gone"
-                android:id="@+id/unlock"
-                android:layout_height="wrap_content"
-                android:layout_width="200dp"
-                android:text="Unlock door"
-                android:onClick="onButtonClickUnlock"
-                android:layout_below="@+id/addlock"
-                android:layout_centerHorizontal="true"/>
+                android:id="@+id/bluetoothstop"
+                android:layout_height="40dp"
+                android:textSize="10dp"
+                android:layout_width="wrap_content"
+                android:text="Stop"
+                android:onClick="onButtonClickBluetoothStop"
+                android:layout_below="@+id/wifistop"
+                android:layout_alignParentEnd="true"/>
 
             <Button
-                android:visibility="gone"
-                android:id="@+id/lock"
-                android:layout_height="wrap_content"
-                android:layout_width="200dp"
-                android:text="Lock door"
-                android:onClick="onButtonClickLock"
-                android:layout_below="@+id/unlock"
-                android:layout_centerHorizontal="true"/>
-
-            <!--<Button-->
-                <!--android:id="@+id/manualUnlock"-->
-                <!--android:layout_height="wrap_content"-->
-                <!--android:layout_width="200dp"-->
-                <!--android:text="Unlock"-->
-                <!--android:onClick="onButtonClickManuelUnlock"-->
-                <!--android:layout_below="@+id/unlock"-->
-                <!--android:layout_centerHorizontal="true"/>-->
-
-            <!--Old method to manuel unlock-->
-            <!--<Button-->
-                <!--android:id="@+id/saveDb"-->
-                <!--android:layout_height="wrap_content"-->
-                <!--android:layout_width="200dp"-->
-                <!--android:text="Save lock"-->
-                <!--android:onClick="onButtonClickSaveDb"-->
-                <!--android:layout_below="@+id/unlock"-->
-                <!--android:layout_centerHorizontal="true"/>-->
+                android:id="@+id/allstop"
+                android:layout_height="40dp"
+                android:textSize="10dp"
+                android:layout_width="wrap_content"
+                android:text="Stop"
+                android:onClick="onButtonClickAllStop"
+                android:layout_below="@+id/bluetoothstop"
+                android:layout_alignParentEnd="true" />
 
             <Button
-                android:id="@+id/exportDb"
-                android:layout_height="wrap_content"
-                android:layout_width="200dp"
-                android:text="Export database"
-                android:onClick="onButtonClickExportDatastore"
-                android:layout_below="@+id/lock"
-                android:layout_centerHorizontal="true"/>
+                android:id="@+id/databufferstop"
+                android:layout_height="40dp"
+                android:textSize="10dp"
+                android:layout_width="wrap_content"
+                android:text="Stop"
+                android:onClick="onButtonClickDataBufferStop"
+                android:layout_below="@+id/allstop"
+                android:layout_alignParentEnd="true"/>
 
             <Button
-                android:visibility="gone"
-                android:id="@+id/deleteDb"
-                android:layout_height="wrap_content"
+                android:id="@+id/locationstart"
+                android:layout_height="40dp"
                 android:layout_width="200dp"
-                android:text="Wipe data"
-                android:onClick="onButtonClickDeleteAccelerometerData"
-                android:layout_below="@+id/exportDb"
-                android:layout_centerHorizontal="true"/>
+                android:textSize="10dp"
+                android:text="Start Location Service"
+                android:onClick="onButtonClickLocation"
+                android:layout_below="@+id/accstart"
+                android:layout_alignParentStart="true" />
 
+            <Button
+                android:id="@+id/allstart"
+                android:layout_height="40dp"
+                android:layout_width="200dp"
+                android:textSize="10dp"
+                android:text="Start All Services"
+                android:onClick="onButtonClickAllStart"
+                android:layout_below="@+id/bluetoothstart"
+                android:layout_alignParentStart="true" />
+
+            <Button
+                android:id="@+id/databufferstart"
+                android:layout_height="40dp"
+                android:layout_width="200dp"
+                android:textSize="10dp"
+                android:layout_below="@id/allstart"
+                android:text="Start Data Buffer"
+                android:onClick="onButtonClickDataBuffer" />
+
+            <Button
+                android:id="@+id/barometerstart"
+                android:layout_height="40dp"
+                android:layout_width="200dp"
+                android:textSize="10dp"
+                android:layout_below="@id/databufferstart"
+                android:text="Start Barometer service"
+                android:onClick="onButtonClickBarometer" />
+
+            <Button
+                android:id="@+id/barometerstop"
+                android:layout_height="40dp"
+                android:textSize="10dp"
+                android:layout_width="wrap_content"
+                android:text="Stop"
+                android:layout_below="@+id/databufferstop"
+                android:onClick="onButtonClickBarometerStop"
+                android:layout_alignParentEnd="true"/>
+
+            <Button
+                android:id="@+id/machinelearningstart"
+                android:layout_height="40dp"
+                android:layout_width="200dp"
+                android:textSize="10dp"
+                android:layout_below="@id/barometerstart"
+                android:text="Start Machine Learning"
+                android:onClick="onButtonClickMachineLearning" />
+
+            <Button
+                android:id="@+id/machinelearningstop"
+                android:layout_height="40dp"
+                android:textSize="10dp"
+                android:layout_width="wrap_content"
+                android:text="Stop"
+                android:layout_below="@+id/barometerstop"
+                android:onClick="onButtonClickMachineLearningStop"
+                android:layout_alignParentEnd="true"/>
 
         </RelativeLayout>
+
+        <Button
+            android:visibility="gone"
+            android:id="@+id/addgeofence"
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
+            android:layout_below="@id/sensorContainer"
+            android:text="Add geofence"
+            android:onClick="onButtonClickAddGeofence" />
+
+        <Button
+            android:visibility="gone"
+            android:id="@+id/registergeofence"
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
+            android:text="Register Geofence"
+            android:onClick="onButtonClickRegisterGeofence"
+            android:layout_below="@+id/addgeofence"
+            android:layout_alignParentStart="true"/>
+
+        <Button
+            android:visibility="gone"
+            android:id="@+id/unregistergeofence"
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
+            android:text="Unregister Geofence"
+            android:onClick="onButtonClickUnregisterGeofence"
+            android:layout_below="@+id/registergeofence"
+            android:layout_alignParentStart="true"/>
+
+        <RelativeLayout
+            android:id="@+id/exportLayout"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/sensorContainer"
+            android:layout_alignParentRight="true">
+            <TextView
+                android:id="@+id/exportTv"
+                android:layout_margin="5dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="EXPORT"/>
+            <Button
+                android:id="@+id/exportDb"
+                android:layout_height="50dp"
+                android:layout_width="50dp"
+                android:text=""
+                android:onClick="onButtonClickExportDatastore"
+                android:layout_below="@+id/exportTv"
+                android:layout_centerHorizontal="true"
+                android:background="@drawable/settings" />
+        </RelativeLayout>
+
+        <TextView
+            android:id="@+id/addlockView"
+            android:layout_marginTop="60dp"
+            android:layout_below="@id/exportLayout"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="STAY IN FRONT OF DOOR \n AND ADD LOCK"
+            android:textAlignment="center"
+            android:textSize="20dp"
+            android:layout_centerHorizontal="true"/>
+        <Button
+            android:id="@+id/addlock"
+            android:layout_margin="40dp"
+            android:layout_height="120dp"
+            android:layout_width="120dp"
+            android:text=""
+            android:onClick="onButtonClickAddLock"
+            android:layout_below="@+id/addlockView"
+            android:layout_centerHorizontal="true"
+            android:background="@drawable/add_lock"/>
+
+        <Button
+            android:visibility="gone"
+            android:id="@+id/unlock"
+            android:layout_margin="40dp"
+            android:layout_height="120dp"
+            android:layout_width="120dp"
+            android:onClick="onButtonClickUnlock"
+            android:layout_below="@+id/addlock"
+            android:layout_centerHorizontal="true"
+            android:background="@drawable/unlock"/>
+
+        <Button
+            android:visibility="gone"
+            android:id="@+id/lock"
+            android:layout_margin="40dp"
+            android:layout_height="120dp"
+            android:layout_width="120dp"
+            android:onClick="onButtonClickLock"
+            android:layout_below="@+id/unlock"
+            android:layout_centerHorizontal="true"
+            android:background="@drawable/lock"/>
+
+        <!--<Button-->
+        <!--android:id="@+id/manualUnlock"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:layout_width="200dp"-->
+        <!--android:text="Unlock"-->
+        <!--android:onClick="onButtonClickManuelUnlock"-->
+        <!--android:layout_below="@+id/unlock"-->
+        <!--android:layout_centerHorizontal="true"/>-->
+
+        <!--Old method to manuel unlock-->
+        <!--<Button-->
+        <!--android:id="@+id/saveDb"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:layout_width="200dp"-->
+        <!--android:text="Save lock"-->
+        <!--android:onClick="onButtonClickSaveDb"-->
+        <!--android:layout_below="@+id/unlock"-->
+        <!--android:layout_centerHorizontal="true"/>-->
+
+
+
+        <Button
+            android:visibility="gone"
+            android:id="@+id/deleteDb"
+            android:layout_height="wrap_content"
+            android:layout_width="200dp"
+            android:text="Wipe data"
+            android:onClick="onButtonClickDeleteAccelerometerData"
+            android:layout_below="@+id/exportDb"
+            android:layout_centerHorizontal="true"/>
+
+
+    </RelativeLayout>
 
     <RelativeLayout
         android:visibility="gone"
@@ -416,14 +444,14 @@
         </LinearLayout>
 
         <!--<Button-->
-            <!--android:text="Calibrate"-->
-            <!--android:layout_width="wrap_content"-->
-            <!--android:layout_height="wrap_content"-->
-            <!--android:id="@+id/calibration"-->
-            <!--android:onClick="onButtonClickGoToCalibration"-->
-            <!--style="@style/Widget.AppCompat.Button.Borderless"-->
-            <!--android:layout_alignParentTop="true"-->
-            <!--android:layout_alignParentEnd="true" />-->
+        <!--android:text="Calibrate"-->
+        <!--android:layout_width="wrap_content"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:id="@+id/calibration"-->
+        <!--android:onClick="onButtonClickGoToCalibration"-->
+        <!--style="@style/Widget.AppCompat.Button.Borderless"-->
+        <!--android:layout_alignParentTop="true"-->
+        <!--android:layout_alignParentEnd="true" />-->
 
         <Button
             android:text="Calibrate"

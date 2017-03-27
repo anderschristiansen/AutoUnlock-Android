@@ -40,7 +40,9 @@ public class MainActivity extends AppCompatActivity {
     static TextView locationView;
     static TextView lockScanningView;
     static TextView accelerometerView;
+    static TextView addlockView;
     static RelativeLayout sensorContainer;
+
 
     private static Button addLock;
     private static Button unlockDoor;
@@ -163,6 +165,7 @@ public class MainActivity extends AppCompatActivity {
         locationView = (TextView) findViewById(R.id.location);
         lockScanningView = (TextView) findViewById(R.id.lock);
         accelerometerView = (TextView) findViewById(R.id.accelerometer);
+        addlockView = (TextView) findViewById(R.id.addlockView);
 
 //        trainingView = findViewById(R.id.feedbackControlsContainer);
 //        trainingBtleMacValue = (TextView) findViewById(R.id.btleMacValue);
@@ -676,7 +679,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void onButtonClickExportDatastore(View v) {
-        Export.Database();
+        coreService.exportDB();
 //        Export.Windows(RingBuffer.getSnapshot());
     }
 
@@ -700,6 +703,7 @@ public class MainActivity extends AppCompatActivity {
         if (bound) {
             coreService.onButtonClickAddLock();
             addLock.setVisibility(View.GONE);
+            addlockView.setVisibility(View.GONE);
             unlockDoor.setVisibility(View.VISIBLE);
             lockDoor.setVisibility(View.VISIBLE);
         }
