@@ -1,17 +1,6 @@
-package net.anders.autounlock.ML.DataProcessing;
+package net.anders.autounlock.MachineLearning;
 
-import android.util.Log;
-import android.view.Window;
-
-import net.anders.autounlock.AccelerometerData;
-import net.anders.autounlock.CoreService;
-import net.anders.autounlock.Export.Export;
-import net.anders.autounlock.ML.DataSegmentation.WindowData;
-
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 
 /**
  * Created by Anders on 15-02-2017.
@@ -97,19 +86,19 @@ public class Features {
     //        getMax(train);
     //        getStdDev(train);
 
-    public static boolean processTraining(WindowData currentWindow, WindowData nextWindow) {
-
-        double c_ori = currentWindow.getOrientation();
-        double c_velo = currentWindow.getVelocity();
-        double n_ori = nextWindow.getOrientation();
-        double n_velo = nextWindow.getVelocity();
-
-        if ((Math.abs(c_ori - n_ori) < CoreService.orientationThreshold) &&
-                (Math.abs(c_velo - n_velo) < CoreService.velocityThreshold)) {
-            return true;
-        }
-        return false;
-    }
+//    public static boolean similarity(WindowData currentWindow, WindowData nextWindow) {
+//
+//        double c_ori = currentWindow.getOrientation();
+//        double c_velo = currentWindow.getVelocity();
+//        double n_ori = nextWindow.getOrientation();
+//        double n_velo = nextWindow.getVelocity();
+//
+//        if ((Math.abs(c_ori - n_ori) < CoreService.orientationThreshold) &&
+//                (Math.abs(c_velo - n_velo) < CoreService.velocityThreshold)) {
+//            return true;
+//        }
+//        return false;
+//    }
 
     static double getMin(ArrayList<WindowData> session) {
         double min = 0;

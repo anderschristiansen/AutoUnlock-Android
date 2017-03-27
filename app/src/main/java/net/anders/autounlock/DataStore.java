@@ -7,8 +7,8 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
-import net.anders.autounlock.ML.DataSegmentation.SessionData;
-import net.anders.autounlock.ML.DataSegmentation.WindowData;
+import net.anders.autounlock.MachineLearning.SessionData;
+import net.anders.autounlock.MachineLearning.WindowData;
 
 import java.util.ArrayList;
 
@@ -67,10 +67,11 @@ class DataStore {
     private static final String WINDOW_SESSION_ID = "session_id";
     private static final String WINDOW_ORIENTATION = "orientation";
     private static final String WINDOW_VELOCITY = "velocity";
-    private static final String WINDOW_ACCELERATIONX = "acceleration_x";
-    private static final String WINDOW_ACCELERATIONY = "acceleration_y";
-    private static final String WINDOW_SPEEDX = "speed_x";
-    private static final String WINDOW_SPEEDY = "speed_y";
+    private static final String WINDOW_ACCELERATION_X = "acceleration_x";
+    private static final String WINDOW_ACCELERATION_Y = "acceleration_y";
+    private static final String WINDOW_SPEED_X = "speed_x";
+    private static final String WINDOW_SPEED_Y = "speed_y";
+    private static final String WINDOW_ACCELERATION_MAG = "acceleration_mag";
 
     // TODO ABC
     private static final String DECISION_TABLE = "decision";
@@ -437,12 +438,13 @@ class DataStore {
         contentValues.put(WINDOW_SESSION_ID, id);
 
         for (WindowData window: snapshot) {
-            contentValues.put(WINDOW_ACCELERATIONX, window.getAccelerationX());
-            contentValues.put(WINDOW_ACCELERATIONY, window.getAccelerationY());
-            contentValues.put(WINDOW_SPEEDX, window.getSpeedX());
-            contentValues.put(WINDOW_SPEEDY, window.getSpeedY());
+            contentValues.put(WINDOW_ACCELERATION_X, window.getAccelerationX());
+            contentValues.put(WINDOW_ACCELERATION_Y, window.getAccelerationY());
+            contentValues.put(WINDOW_SPEED_X, window.getSpeedX());
+            contentValues.put(WINDOW_SPEED_Y, window.getSpeedY());
             contentValues.put(WINDOW_ORIENTATION, window.getOrientation());
             contentValues.put(WINDOW_VELOCITY, window.getVelocity());
+            contentValues.put(WINDOW_ACCELERATION_MAG, window.getAccelerationMag());
             contentValues.put(TIMESTAMP, window.getTime());
 
             try {
@@ -498,7 +500,6 @@ class DataStore {
                             + " ON " + WINDOW_SESSION_ID + "=" + SESSION_ID
                             + " WHERE " + SESSION_DOOR_UNLOCK + ";";
                 } else {
-//                    sessionQuery = "SELECT * FROM " + WINDOW_TABLE + " WHERE NOT(" + SESSION_DOOR_UNLOCK + ") AND " + WINDOW_SESSION_ID + "='" + i + "';";
                     sessionQuery = "SELECT * FROM " + WINDOW_TABLE
                             + " INNER JOIN " + SESSION_TABLE
                             + " ON " + WINDOW_SESSION_ID + "=" + SESSION_ID
@@ -510,12 +511,13 @@ class DataStore {
                 if (sessionCursor.moveToFirst()) {
                     do {
                         cur_id = sessionCursor.getInt(sessionCursor.getColumnIndex(WINDOW_SESSION_ID));
-                        double accelerationX = sessionCursor.getDouble(sessionCursor.getColumnIndex(WINDOW_ACCELERATIONX));
-                        double accelerationY = sessionCursor.getDouble(sessionCursor.getColumnIndex(WINDOW_ACCELERATIONY));
-                        double speedX = sessionCursor.getDouble(sessionCursor.getColumnIndex(WINDOW_SPEEDX));
-                        double speedY = sessionCursor.getDouble(sessionCursor.getColumnIndex(WINDOW_SPEEDY));
+                        double accelerationX = sessionCursor.getDouble(sessionCursor.getColumnIndex(WINDOW_ACCELERATION_X));
+                        double accelerationY = sessionCursor.getDouble(sessionCursor.getColumnIndex(WINDOW_ACCELERATION_Y));
+                        double speedX = sessionCursor.getDouble(sessionCursor.getColumnIndex(WINDOW_SPEED_X));
+                        double speedY = sessionCursor.getDouble(sessionCursor.getColumnIndex(WINDOW_SPEED_Y));
                         double orientation = sessionCursor.getDouble(sessionCursor.getColumnIndex(WINDOW_ORIENTATION));
                         double velocity = sessionCursor.getDouble(sessionCursor.getColumnIndex(WINDOW_VELOCITY));
+                        double accelerationMag = sessionCursor.getDouble(sessionCursor.getColumnIndex(WINDOW_ACCELERATION_MAG));
                         double time = sessionCursor.getDouble(sessionCursor.getColumnIndex(TIMESTAMP));
 
                         if (cur_id != prev_id && prev_id != 0) {
@@ -523,7 +525,7 @@ class DataStore {
                             clusters.add(cluster);
                             session = new ArrayList<>();
                         }
-                        session.add(new WindowData(accelerationX, accelerationY, speedX, speedY, orientation, velocity, time));
+                        session.add(new WindowData(accelerationX, accelerationY, speedX, speedY, orientation, velocity, accelerationMag, time));
                         prev_id = cur_id;
                     } while (sessionCursor.moveToNext());
 
@@ -703,12 +705,13 @@ class DataStore {
             database.execSQL("CREATE TABLE " + WINDOW_TABLE + " ("
 //                    + WINDOW_ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
                     + WINDOW_SESSION_ID + " INTEGER,"
-                    + WINDOW_ACCELERATIONX + " DOUBLE, "
-                    + WINDOW_ACCELERATIONY + " DOUBLE, "
-                    + WINDOW_SPEEDX + " DOUBLE, "
-                    + WINDOW_SPEEDY + " DOUBLE, "
+                    + WINDOW_ACCELERATION_X + " DOUBLE, "
+                    + WINDOW_ACCELERATION_Y + " DOUBLE, "
+                    + WINDOW_SPEED_X + " DOUBLE, "
+                    + WINDOW_SPEED_Y + " DOUBLE, "
                     + WINDOW_ORIENTATION + " DOUBLE, "
                     + WINDOW_VELOCITY + " DOUBLE, "
+                    + WINDOW_ACCELERATION_MAG + " DOUBLE, "
                     + TIMESTAMP + " LONG, "
                     + "FOREIGN KEY(" + WINDOW_SESSION_ID + ") REFERENCES " + SESSION_TABLE + "(" + SESSION_ID + "));");
         }

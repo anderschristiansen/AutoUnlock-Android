@@ -1,10 +1,8 @@
-package net.anders.autounlock.ML.DataProcessing;
+package net.anders.autounlock.MachineLearning;
 
 import android.util.Log;
 
 import net.anders.autounlock.CoreService;
-import net.anders.autounlock.ML.DataSegmentation.SessionData;
-import net.anders.autounlock.ML.DataSegmentation.WindowData;
 
 import java.util.ArrayList;
 
@@ -42,15 +40,15 @@ public class Clustering {
 
                             // Break if the windows are not within the required thresholds,
                             // else continue to investigate if sessions should be clustered
-                            if (!Features.processTraining(currentWindow, nextWindow)) {
+                            if (!similarity(currentWindow, nextWindow)) {
                                 cluster = false;
-                                Log.i(TAG, "CLUSTER NOT EXISTING: TrainHMM session " + String.valueOf(i) + " and " + String.valueOf(i+1));
+                                Log.i(TAG, "CLUSTER NOT EXISTING: Record session " + String.valueOf(i) + " and " + String.valueOf(i+1));
                                 break;
                             }
                         }
                         if (cluster) {
                             // Update the two train sessions to be clustered together
-                            Log.i(TAG, "CLUSTER FOUND: TrainHMM session " + String.valueOf(i) + " and " + String.valueOf(i+1));
+                            Log.i(TAG, "CLUSTER FOUND: Record session " + String.valueOf(i) + " and " + String.valueOf(i+1));
                             CoreService.updateCluster(i+1, j+1); // Current train
                             break;
                         }
@@ -60,6 +58,20 @@ public class Clustering {
             clusters.add(new SessionData(currentSession.getId(), CoreService.getClusterId(i+1), currentSession.getWindows()));
         }
         return clusters;
+    }
+
+    public static boolean similarity(WindowData currentWindow, WindowData nextWindow) {
+
+        double c_ori = currentWindow.getOrientation();
+        double c_velo = currentWindow.getVelocity();
+        double n_ori = nextWindow.getOrientation();
+        double n_velo = nextWindow.getVelocity();
+
+        if ((Math.abs(c_ori - n_ori) < CoreService.orientationThreshold) &&
+                (Math.abs(c_velo - n_velo) < CoreService.velocityThreshold)) {
+            return true;
+        }
+        return false;
     }
 }
 

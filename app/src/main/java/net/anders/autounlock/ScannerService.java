@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.util.Log;
+import android.view.View;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -47,52 +48,32 @@ public class ScannerService extends Service {
             long startTime = System.currentTimeMillis();
 
             while (running) {
-                Log.i(TAG, "run: Scanning for locks " + CoreService.activeInnerGeofences.toString());
+//                Log.i(TAG, "run: Scanning for locks " + CoreService.activeInnerGeofences.toString());
                 for (BluetoothData bluetoothData : CoreService.recordedBluetooth) {
-                    Log.e(TAG, "run: activeInnerGeofences " + bluetoothData.getSource() + CoreService.activeInnerGeofences.toString());
+//                    Log.e(TAG, "run: activeInnerGeofences " + bluetoothData.getSource() + CoreService.activeInnerGeofences.toString());
                     if (CoreService.activeInnerGeofences.contains(bluetoothData.getSource())) {
                         foundLocks.add(bluetoothData.getSource());
                     }
                 }
-                Log.i(TAG, "run: " + "Current Orientation=" + CoreService.currentOrientation + " Last Significant Movement=" + CoreService.lastSignificantMovement);
+//                Log.i(TAG, "run: " + "Current Orientation=" + CoreService.currentOrientation + " Last Significant Movement=" + CoreService.lastSignificantMovement);
                 if (!foundLocks.isEmpty() && !CoreService.recordedLocation.isEmpty() && System.currentTimeMillis() - CoreService.lastSignificantMovement > 2000) {
                     for (String foundLock : foundLocks) {
-                        LockData foundLockWithDetails = CoreService.dataStore.getLockDetails(foundLock);
-                        if (foundLockWithDetails.getOrientation() == -1) {
-                            NotificationUtility notification = new NotificationUtility();
-                            notification.displayOrientationNotification(getApplicationContext(), foundLockWithDetails.getMAC(), CoreService.currentOrientation);
-                            sendBroadcast(stopScan);
-                            running = false;
-                            CoreService.isScanningForLocks = false;
-                            stopSelf();
-                        } else if (Math.min(
-                                        Math.abs(CoreService.currentOrientation - foundLockWithDetails.getOrientation()),
-                                        Math.min(
-                                                Math.abs((CoreService.currentOrientation - foundLockWithDetails.getOrientation()) + 360),
-                                                Math.abs((CoreService.currentOrientation - foundLockWithDetails.getOrientation()) - 360)))
-                                < 22.5 ) {
-                            decisionLocks.add(foundLock);
-                        }
+//                        LockData foundLockWithDetails = CoreService.dataStore.getLockDetails(foundLock);
+                        decisionLocks.add(foundLock);
                     }
-                    if (!decisionLocks.isEmpty()) {
-                        Intent startDecision = new Intent("START_DECISION");
-                        startDecision.putStringArrayListExtra("Locks", decisionLocks);
-                        sendBroadcast(startDecision);
 
-                        sendBroadcast(stopScan);
-                        running = false;
-                        CoreService.isScanningForLocks = false;
-                        stopSelf();
+                    if (!decisionLocks.isEmpty()) {
+                        Log.i(TAG, "FOUND LOCK");
+
+//                        Intent startDecision = new Intent("START_DECISION");
+//                        startDecision.putStringArrayListExtra("Locks", decisionLocks);
+//                        sendBroadcast(startDecision);
+//
+//                        sendBroadcast(stopScan);
+//                        running = false;
+//                        CoreService.isScanningForLocks = false;
+//                        stopSelf();
                     }
-                } else if (!foundLocks.isEmpty()) {
-                    foundLocks = new ArrayList<>();
-                    decisionLocks = new ArrayList<>();
-                } else if (System.currentTimeMillis() - startTime > 60000) {
-                    Log.e(TAG, "run: here?");
-                    sendBroadcast(stopScan);
-                    running = false;
-                    CoreService.isScanningForLocks = false;
-                    stopSelf();
                 }
 
                 try {

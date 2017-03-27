@@ -1,4 +1,4 @@
-package net.anders.autounlock.ML.DataSegmentation;
+package net.anders.autounlock.MachineLearning;
 
 /**
  * Created by Anders on 22-02-2017.
@@ -12,22 +12,24 @@ public class WindowData {
     double speedY;
     double orientation;
     double velocity;
+    double accelerationMag;
     double time;
 
-    public WindowData(double accelerationX, double accelerationY, double speedX, double speedY, double orientation, double velocity, double time) {
+    public WindowData(double accelerationX, double accelerationY, double speedX, double speedY, double orientation, double velocity, double accelerationMag, double time) {
         this.accelerationX = accelerationX;
         this.accelerationY = accelerationY;
         this.speedX = speedX;
         this.speedY = speedY;
         this.orientation = orientation;
         this.velocity = velocity;
+        this.accelerationMag = accelerationMag;
         this.time = time;
     }
 
     public double getAccelerationX() {
         return accelerationX;
     }
-    public void setAccelerationX(int accelerationX) {
+    public void setAccelerationX(double accelerationX) {
         this.accelerationX = accelerationX;
     }
 
@@ -63,6 +65,13 @@ public class WindowData {
         return velocity;
     }
     public void setVelocity(double velocity) { this.velocity = velocity;}
+
+    public double getAccelerationMag() {
+        return accelerationMag;
+    }
+    public void setAccelerationMag(double accelerationMag) {
+        this.accelerationMag = accelerationMag;
+    }
 
     public double getTime() {
         return time;

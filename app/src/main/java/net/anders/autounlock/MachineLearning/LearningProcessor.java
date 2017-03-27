@@ -1,11 +1,6 @@
-package net.anders.autounlock.ML;
+package net.anders.autounlock.MachineLearning;
 
-import android.util.Log;
-
-import net.anders.autounlock.ML.DataProcessing.Clustering;
-import net.anders.autounlock.ML.DataSegmentation.SessionData;
-import net.anders.autounlock.ML.HMM.RecogniseSession;
-import net.anders.autounlock.ML.HMM.TrainHMM;
+import net.anders.autounlock.MachineLearning.HMM.Record;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -19,7 +14,7 @@ public class LearningProcessor {
 
     private static final String TAG = "LearningProcessor";
 
-    public static void Start(ArrayList<SessionData> sessions, boolean unlockDoor)  {
+    public static void Start(ArrayList<SessionData> sessions, boolean unlockDoor) {
 
         // Method to identify clusters in the training sessions
         ArrayList<SessionData> clusters = Clustering.AnalyseClusters(sessions, unlockDoor);
@@ -27,11 +22,11 @@ public class LearningProcessor {
         // Create a map to hold sublists of clusters
         Map<Integer, ArrayList<SessionData>> map = new HashMap<>();
 
-        for(SessionData session : clusters){
+        for (SessionData session : clusters) {
             // Fetch the list for this object's cluster id
             ArrayList<SessionData> temp = map.get(session.getClusterId());
 
-            if(temp == null){
+            if (temp == null) {
                 // If the list is null we haven't seen an
                 // object with this cluster id before, so create
                 // a new list and add it to the map
@@ -42,17 +37,18 @@ public class LearningProcessor {
         }
 
         for (Map.Entry<Integer, ArrayList<SessionData>> entry : map.entrySet()) {
-            TrainHMM model = new TrainHMM();
+            Record model = new Record();
 
             ArrayList<SessionData> temp = new ArrayList<>();
 
-            for (SessionData session:entry.getValue()) {
+            for (SessionData session : entry.getValue()) {
                 temp.add(session);
             }
-            model.train(temp, unlockDoor);
+            model.record(temp, unlockDoor);
         }
-
-//        RecogniseSession reg = new RecogniseSession();
+    }
+}
+//        Recognise reg = new Recognise();
 //
 //        SessionData c = clusters.get(4);
 //        reg.recognise(c);
@@ -62,10 +58,6 @@ public class LearningProcessor {
 //
 //        SessionData c3 = clusters.get(1);
 //        reg.recognise(c3);
-    }
-}
-
-
 
 //
 //    List<ObservationReal> sequencesOri = new ArrayList<>();
@@ -82,7 +74,7 @@ public class LearningProcessor {
 //                sequencesVelo.add(new ObservationReal(2.4));
 //
 //                try {
-//                TrainHMM t = new TrainHMM(sequencesOri, sequencesVelo);
+//                Record t = new Record(sequencesOri, sequencesVelo);
 //                } catch (InterruptedException e) {
 //                e.printStackTrace();
 //                } catch (IOException e) {

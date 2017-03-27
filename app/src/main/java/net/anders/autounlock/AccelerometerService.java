@@ -11,8 +11,6 @@ import android.os.IBinder;
 import android.os.PowerManager;
 import android.util.Log;
 
-import net.anders.autounlock.ML.DataPreprocessing.WindowProcessor;
-
 public class AccelerometerService extends Service implements SensorEventListener {
     static String TAG = "AccelerometerService";
     private static final boolean ADAPTIVE_ACCELEROMETER_FILTER = true;

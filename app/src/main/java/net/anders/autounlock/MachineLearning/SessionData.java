@@ -1,4 +1,4 @@
-package net.anders.autounlock.ML.DataSegmentation;
+package net.anders.autounlock.MachineLearning;
 
 import java.util.ArrayList;
 

@@ -13,6 +13,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
+import android.view.View;
 import android.widget.Toast;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -21,12 +22,12 @@ import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.LocationServices;
 
 import net.anders.autounlock.Export.Export;
-import net.anders.autounlock.ML.DataPreprocessing.WindowProcessor;
-import net.anders.autounlock.ML.DataSegmentation.SessionData;
-import net.anders.autounlock.ML.LearningProcessor;
-import net.anders.autounlock.ML.MachineLearningService;
-import net.anders.autounlock.ML.DataSegmentation.CoordinateData;
-import net.anders.autounlock.ML.DataSegmentation.WindowData;
+import net.anders.autounlock.MachineLearning.PatternRecognitionService;
+import net.anders.autounlock.MachineLearning.WindowProcessor;
+import net.anders.autounlock.MachineLearning.SessionData;
+import net.anders.autounlock.MachineLearning.LearningProcessor;
+import net.anders.autounlock.MachineLearning.CoordinateData;
+import net.anders.autounlock.MachineLearning.WindowData;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -52,7 +53,7 @@ public class CoreService extends Service implements
     private Intent dataProcessorIntent;
     private Intent ringProcessorIntent;
     private Intent scannerIntent;
-    private Intent machineLearningIntent;
+    private Intent patternRecognitionIntent;
     private Intent barometerIntent;
 
     private GoogleApiClient mGoogleApiClient;
@@ -74,7 +75,6 @@ public class CoreService extends Service implements
     static boolean isDetailedDataCollectionStarted = false;
     static volatile boolean isScanningForLocks = false;
 
-    //    static RingBuffer<List> ringBuffer;
     static DataStore dataStore;
 
 
@@ -95,7 +95,7 @@ public class CoreService extends Service implements
     public static int windowOverlap;
     public static boolean doSnapshot = false;
     //    public static int manualUnLockCalibration;
-    public static int reqCaliSessions;
+    public static int reqTrainingSessions;
     public static int orientationThreshold;
     public static int velocityThreshold;
     public static boolean unlockDoor;
@@ -178,7 +178,7 @@ public class CoreService extends Service implements
         dataProcessorIntent = new Intent(this, DataProcessorService.class);
         ringProcessorIntent = new Intent(this, RingProcessorService.class);
         scannerIntent = new Intent(this, ScannerService.class);
-        machineLearningIntent = new Intent(this, MachineLearningService.class);
+        patternRecognitionIntent = new Intent(this, PatternRecognitionService.class);
         barometerIntent = new Intent(this, BarometerService.class);
 
 
@@ -198,11 +198,11 @@ public class CoreService extends Service implements
         heuristicsTunerFilter.addAction("ADD_ORIENTATION");
         heuristicsTunerFilter.addAction("STOP_SCAN");
         heuristicsTunerFilter.addAction("START_SCAN");
-        registerReceiver(startMachineLearningReceiver, heuristicsTunerFilter);
+        registerReceiver(heuristicsReceiver, heuristicsTunerFilter);
 
-        IntentFilter startMachineLearningFilter = new IntentFilter();
-        startMachineLearningFilter.addAction("START_MACHINELEARNING");
-        registerReceiver(startMachineLearningReceiver, startMachineLearningFilter);
+        IntentFilter startPatternRecognitionFilter = new IntentFilter();
+        startPatternRecognitionFilter.addAction("START_PATTERNRECOGNITION");
+        registerReceiver(startPatternRecognitionReceiver, startPatternRecognitionFilter);
 
 
 
@@ -210,10 +210,11 @@ public class CoreService extends Service implements
         // CoreService.manualUnLockCalibration = 5;
         CoreService.windowBufferSize = 10;
         CoreService.windowSize = 30;
+
         // Last % of current window will be overlapping toused in the next window
         CoreService.windowPercentageOverlap = 0;
         CoreService.windowOverlap =  CoreService.windowSize - ((int)(CoreService.windowSize *  CoreService.windowPercentageOverlap));
-        CoreService.reqCaliSessions = 10;
+        CoreService.reqTrainingSessions = 5;
         CoreService.orientationThreshold = 50;
         CoreService.velocityThreshold = 50;
 
@@ -316,7 +317,7 @@ public class CoreService extends Service implements
                         activeOuterGeofences.add(geofence.substring(5));
 
                         // TODO ABC
-//                        startMachineLearningService();
+//                        startPatternRecognitionService();
                         startRingBuffer();
                         if (!isLocationDataCollectionStarted) {
                             isLocationDataCollectionStarted = true;
@@ -334,12 +335,16 @@ public class CoreService extends Service implements
                             stopAccelerometerService();
                             stopBluetoothService();
                             stopWifiService();
+
+                            MainActivity.lockDoor.setVisibility(View.GONE);
+                            MainActivity.unlockDoor.setVisibility(View.GONE);
+                            MainActivity.lockView.setVisibility(View.VISIBLE);
                         }
                     } else if (geofence.contains("outer")) {
                         Logging.GeofenceExited("Outer");
 
                         // TODO ABC
-                        stopMachineLearningService();
+                        stopPatternRecognitionService();
 
                         if (isLocationDataCollectionStarted && activeOuterGeofences.isEmpty()) {
                             isLocationDataCollectionStarted = false;
@@ -418,14 +423,14 @@ public class CoreService extends Service implements
     };
 
     // TODO ABC
-    private BroadcastReceiver startMachineLearningReceiver = new BroadcastReceiver() {
+    private BroadcastReceiver startPatternRecognitionReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
 
-            Log.e(TAG, "StartMachineLearning");
+            Log.e(TAG, "StartPatternRecognition");
 
-            if ("START_MACHINELEARNING".equals(action)) {
+            if ("START_PATTERNRECOGNITION".equals(action)) {
 //                startAccelerometerService();
 //                startRingBuffer();
             }
@@ -691,6 +696,10 @@ public class CoreService extends Service implements
     }
 
     private void scanForLocks() {
+        MainActivity.lockDoor.setVisibility(View.VISIBLE);
+        MainActivity.unlockDoor.setVisibility(View.VISIBLE);
+        MainActivity.lockView.setVisibility(View.GONE);
+
         Log.e(TAG, "scanForLocks: " + activeInnerGeofences);
         Thread scannerServiceThread = new Thread() {
             public void run() {
@@ -700,46 +709,12 @@ public class CoreService extends Service implements
         scannerServiceThread.start();
     }
 
-    void getLock(String lockMAC) {
-        LockData lock = dataStore.getLockDetails(lockMAC);
-        if (lock == null) {
-            Log.d(TAG, "no lock found");
-        } else {
-            Log.e(TAG, lock.toString());
-        }
-    }
-
-    void deleteAccelerometerData() {
-        //for testing
-        stopAccelerometerService();
-//        stopBluetoothService();
-//        stopWifiService();
-//        stopLocationService();
-
-        dataStore.deleteAccelerometerData();
-    }
-
     static String getDateTime() {
         SimpleDateFormat dateFormat = new SimpleDateFormat(
                 "yyyy-MM-dd HH:mm:ss", Locale.getDefault());
         Date date = new Date();
         return dateFormat.format(date);
     }
-
-//    void onButtonClickManualUnlock() {
-//        stopAccelerometerService();
-//        stopBluetoothService();
-//        stopWifiService();
-//        stopLocationService();
-//        Export.Database();
-//        isScanningForLocks = false;
-//        isDetailedDataCollectionStarted = false;
-//        isLocationDataCollectionStarted = false;
-//
-//        Toast.makeText(getApplicationContext(), "BeKey unlocked", Toast.LENGTH_SHORT).show();
-//
-//        Logging.Unlock();
-//    }
 
     //TODO ABC
     void onButtonClickAddLock() {
@@ -763,7 +738,6 @@ public class CoreService extends Service implements
         if (dataStore.getKnownLocks().isEmpty()) {
             saveLock(BluetoothService.ANDERS_BEKEY);
         }
-
         unlockDoor = false;
         handleDoorSession(unlockDoor);
     }
@@ -776,7 +750,7 @@ public class CoreService extends Service implements
 
         int cntSession = dataStore.getSessionCount(unlockDoor);
 
-        if (cntSession >= reqCaliSessions && unlockDoor) {
+        if (cntSession >= reqTrainingSessions && unlockDoor) {
             Toast.makeText(getApplicationContext(), "BeKey unlocked! The app will now calibrate unlock sessions", Toast.LENGTH_SHORT).show();
 
             // Fetch every UNLOCK sessions
@@ -785,8 +759,8 @@ public class CoreService extends Service implements
             // Start learning procedure
             LearningProcessor.Start(unlock_sessions, unlockDoor);
         }
-        else if (cntSession >= reqCaliSessions && !unlockDoor) {
-            Toast.makeText(getApplicationContext(), "BeKey unlocked! The app will now calibrate lock sessions", Toast.LENGTH_SHORT).show();
+        else if (cntSession >= reqTrainingSessions && !unlockDoor) {
+            Toast.makeText(getApplicationContext(), "BeKey locked! The app will now calibrate lock sessions", Toast.LENGTH_SHORT).show();
 
             // Fetch every LOCK sessions
             ArrayList<SessionData> lock_sessions =  dataStore.getSessions(unlockDoor);
@@ -794,10 +768,13 @@ public class CoreService extends Service implements
             // Start learning procedure
             LearningProcessor.Start(lock_sessions, unlockDoor);
         }
-        Toast.makeText(getApplicationContext(), "BeKey unlocked", Toast.LENGTH_SHORT).show();
+        if (unlockDoor) {
+            Toast.makeText(getApplicationContext(), "BeKey unlocked", Toast.LENGTH_SHORT).show();
+        } else {
+            Toast.makeText(getApplicationContext(), "BeKey locked", Toast.LENGTH_SHORT).show();
+        }
+
     }
-
-
 
     public static boolean isClustered(int id) {
         return dataStore.isClustered(id);
@@ -817,43 +794,8 @@ public class CoreService extends Service implements
 
     public static void windowReady(WindowData window) {
         RingBuffer.addWindow(window);
+        Log.i(TAG, "MAG: " + window.getAccelerationMag());
     }
-
-        /*try {
-
-            ObservationInteger v1 = new ObservationInteger(1); // state1
-            ObservationInteger v2 = new ObservationInteger(2); // state2
-            ObservationInteger v3 = new ObservationInteger(3); // state3
-            ObservationInteger v4 = new ObservationInteger(4);
-
-            List<ObservationInteger> seq1 = new ArrayList<>();
-            seq1.add(v1);
-            seq1.add(v1);
-            seq1.add(v2);
-            seq1.add(v3);
-
-            List<ObservationInteger> seq2 = new ArrayList<>();
-            seq2.add(v1);
-            seq2.add(v1);
-            seq2.add(v2);
-            seq2.add(v2);
-
-//            TrainHMM r1 = new TrainHMM(seq1, seq1);
-            RecogniseSession r2 = new RecogniseSession(seq1, seq1);
-            RecogniseSession r3 = new RecogniseSession(seq2, seq2);
-
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (FileFormatException e) {
-            e.printStackTrace();
-        }*/
-
-
-
-
-
 
     public void StopAllServices() {
         stopAccelerometerService();
@@ -864,49 +806,26 @@ public class CoreService extends Service implements
         stopRingBuffer();
     }
 
-//    public void ExportCalibration(float startTime, float endTime, String activity) {
-//        stopAccelerometerService();
-//        stopIt();
-//        List<AccelerometerData> list = null;
-//
-//        for (AccelerometerData data:recordedAccelerometer) {
-//            if (data.getTime() > startTime && data.getTime() < endTime) {
-//                list.add(data);
-//            }
-//        }
-//
-//    }
-//
-//    public void stopIt(){
-//        stopAccelerometerService();
-//    }
-
-//    public static void initiateAR(AccelerometerData accelerometerData) {
-//        ActivityRecognition.gatherWindows(accelerometerData);
-//    }
-
-
-    void startMachineLearningService() {
-        Log.v(TAG, "Starting MachineLearningService");
-        Thread machineLearningServiceThread = new Thread() {
+    void startPatternRecognitionService() {
+        Log.v(TAG, "Starting PatternRecognitionService");
+        Thread patternRecognitionServiceThread = new Thread() {
             public void run() {
-                startService(machineLearningIntent);
+                startService(patternRecognitionIntent);
             }
         };
-        machineLearningServiceThread.start();
+        patternRecognitionServiceThread.start();
     }
 
-    void stopMachineLearningService() {
+    void stopPatternRecognitionService() {
         stopAccelerometerService();
         stopRingBuffer();
         WindowProcessor.prevWindow = null;
-        Log.d("CoreService", "Trying to stop MachineLearningService");
-        stopService(machineLearningIntent);
+        Log.d("CoreService", "Trying to stop PatternRecognitionService");
+        stopService(patternRecognitionIntent);
     }
 
     void exportDB() {
         Export.Database();
         Toast.makeText(getApplicationContext(), "Database exported", Toast.LENGTH_SHORT).show();
     }
-
 }

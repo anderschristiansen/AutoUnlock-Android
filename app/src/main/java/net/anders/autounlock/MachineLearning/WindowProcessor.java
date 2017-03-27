@@ -1,8 +1,7 @@
-package net.anders.autounlock.ML.DataPreprocessing;
+package net.anders.autounlock.MachineLearning;
 
 import net.anders.autounlock.AccelerometerData;
 import net.anders.autounlock.CoreService;
-import net.anders.autounlock.ML.DataSegmentation.WindowData;
 
 import java.util.ArrayList;
 import java.util.List;

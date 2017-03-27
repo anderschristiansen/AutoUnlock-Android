@@ -1,8 +1,6 @@
-package net.anders.autounlock.ML.DataPreprocessing;
+package net.anders.autounlock.MachineLearning;
 
 import net.anders.autounlock.AccelerometerData;
-import net.anders.autounlock.CoreService;
-import net.anders.autounlock.ML.DataSegmentation.WindowData;
 
 import java.util.List;
 
@@ -14,8 +12,8 @@ public class WindowConstruction {
 
     public static WindowData buildWindow(List<AccelerometerData> rawAccelerometerData, WindowData prevWindow) {
 
-        float meanAccX, meanAccY, meanOri;
-        float sumAccX = 0, sumAccY = 0, sumOri = 0;
+        float meanAccX, meanAccY, meanOri, meanMag;
+        float sumAccX = 0, sumAccY = 0, sumOri = 0, sumMag = 0;
 
         double speedX, speedY, time_current, time_prev;
         double speedX_prev = 0, speedY_prev = 0;
@@ -32,10 +30,12 @@ public class WindowConstruction {
             sumAccX += acc.getAccelerationX();
             sumAccY += acc.getAccelerationY();
             sumOri += acc.getOrientation();
+            sumMag += Math.sqrt(acc.getAccelerationX()*acc.getAccelerationX() + acc.getAccelerationY()*acc.getAccelerationY() + acc.getAccelerationZ()*acc.getAccelerationZ());
         }
         meanAccX = sumAccX / rawAccelerometerData.size();
         meanAccY = sumAccY / rawAccelerometerData.size();
         meanOri = sumOri / rawAccelerometerData.size();
+        meanMag = sumMag / rawAccelerometerData.size();
 
         time_current = System.currentTimeMillis() * Math.pow(10, -3);
 
@@ -48,9 +48,7 @@ public class WindowConstruction {
         }
 
         double velocity = Math.sqrt(Math.pow(speedX, 2) + Math.pow(speedY, 2));
-//        double degree = (Math.atan(speedX/speedY)*180)/Math.PI;
-//        Log.i(TAG, "grader: " + String.valueOf(velocity) + " -- " + String.valueOf(degree));
 
-        return new WindowData(meanAccX, meanAccY, speedX, speedY, meanOri, velocity, time_current);
+        return new WindowData(meanAccX, meanAccY, speedX, speedY, meanOri, velocity, meanMag, time_current);
     }
 }

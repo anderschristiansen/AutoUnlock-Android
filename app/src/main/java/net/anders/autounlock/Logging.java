@@ -37,47 +37,15 @@ public class Logging  extends Activity {
     public static void GeofenceEntered(String res) {
         if (true) {
             Log.i(TAG, res + " geofence entered");
-            MainActivity.geofenceStatusView.setText(res + " geofence entered");
         }
     }
 
     public static void GeofenceExited(String res) {
         if (true) {
             Log.i(TAG, res + " geofence exited");
-            MainActivity.geofenceStatusView.setText(res + " geofence exited");
         }
-    }
-
-    public static void LockScore() {
     }
 
     public static void Location(double latitude, double longitude) {
-            MainActivity.locationView.setText(latitude + ", " + longitude);
-    }
-
-    public static void LockScanning(boolean status) {
-            if (status) {
-                MainActivity.lockScanningView.setText(Boolean.toString(status));
-            } else {
-                MainActivity.lockScanningView.setText(Boolean.toString(status));
-            }
-    }
-
-    public static void Unlock() {
-        Log.i(TAG, "Manuel unlock and save DB +++ STOP SERVICES +++");
-    }
-
-    public static void DisplayAccelerometer(float x, float y, float z) {
-        MainActivity.accelerometerView.setText(x + " ; " + y + " ; " + z);
-    }
-
-    public static void Calibrating() {
-        Log.i(TAG, "Initiate calibration");
-    }
-
-    public static void RingbufferInfo (String res) {
-        if (true) {
-            Log.v("Ring buffer", res);
-        }
     }
 }

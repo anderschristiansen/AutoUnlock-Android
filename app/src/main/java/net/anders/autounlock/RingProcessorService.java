@@ -4,9 +4,6 @@ import android.app.Service;
 import android.content.Intent;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
-import android.util.Log;
-
-import net.anders.autounlock.ML.DataSegmentation.WindowData;
 
 /**
  * Created by Anders on 08-03-2017.

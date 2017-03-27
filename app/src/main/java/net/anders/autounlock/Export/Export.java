@@ -3,9 +3,8 @@ package net.anders.autounlock.Export;
 import android.os.Environment;
 import android.util.Log;
 
-import net.anders.autounlock.ML.DataSegmentation.CoordinateData;
-import net.anders.autounlock.AccelerometerData;
-import net.anders.autounlock.ML.DataSegmentation.WindowData;
+import net.anders.autounlock.MachineLearning.CoordinateData;
+import net.anders.autounlock.MachineLearning.WindowData;
 
 import java.io.File;
 import java.io.FileInputStream;

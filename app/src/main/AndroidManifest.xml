@@ -34,10 +34,6 @@
             android:launchMode="singleTask"
             android:taskAffinity=""
             android:theme="@style/AppTheme.NoActionBar"></activity>
-        <activity
-            android:name=".CalibrationActivity"
-            android:launchMode="singleTask"
-            android:label="@string/title_activity_calibration"></activity>
 
         <service
             android:name=".CoreService"
@@ -67,7 +63,7 @@
             android:name=".NotificationUtility$NotificationActionService"
             android:enabled="true"/>
         <service
-            android:name=".ML.MachineLearningService"
+            android:name=".MachineLearning.PatternRecognitionService"
             android:enabled="true" />
         <service
             android:name=".BarometerService"

@@ -4,24 +4,14 @@ public class AccelerometerData {
     float accelerationX;
     float accelerationY;
     float accelerationZ;
-//    float speedX;
-//    float speedY;
-//    float speedZ;
-//    String datetime;
     long time;
     float orientation;
 
 
-    public AccelerometerData(float accelerationX, float accelerationY, float accelerationZ,
-//                             float speedX, float speedY, float speedZ, String datetime,
-                             long time, float orientation) {
+    public AccelerometerData(float accelerationX, float accelerationY, float accelerationZ, long time, float orientation) {
         this.accelerationX = accelerationX;
         this.accelerationY = accelerationY;
         this.accelerationZ = accelerationZ;
-//        this.speedX = speedX;
-//        this.speedY = speedY;
-//        this.speedZ = speedZ;
-//        this.datetime = datetime;
         this.time = time;
         this.orientation = orientation;
     }
@@ -50,30 +40,6 @@ public class AccelerometerData {
         this.accelerationZ = accelerationZ;
     }
 
-//    public float getSpeedX() {
-//        return speedX;
-//    }
-//
-//    public void setSpeedX(float speedX) {
-//        this.speedX = speedX;
-//    }
-//
-//    public float getSpeedY() {
-//        return speedY;
-//    }
-//
-//    public void setSpeedY(float speedY) {
-//        this.speedY = speedY;
-//    }
-//
-//    public float getSpeedZ() {
-//        return speedZ;
-//    }
-//
-//    public void setSpeedZ(float speedZ) {
-//        this.speedZ = speedZ;
-//    }
-
     public long getTime() {
         return time;
     }
@@ -92,10 +58,6 @@ public class AccelerometerData {
                 "accelerationX=" + accelerationX +
                 ", accelerationY=" + accelerationY +
                 ", accelerationZ=" + accelerationZ +
-//                ", speedX=" + speedX +
-//                ", speedY=" + speedY +
-//                ", speedZ=" + speedZ +
-//                ", datetime=" + datetime +
                 ", time=" + time +
                 ", orientation=" + orientation +
                 '}';

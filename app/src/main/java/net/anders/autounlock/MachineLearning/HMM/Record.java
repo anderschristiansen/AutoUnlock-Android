@@ -1,7 +1,7 @@
-package net.anders.autounlock.ML.HMM;
+package net.anders.autounlock.MachineLearning.HMM;
 
-import net.anders.autounlock.ML.DataSegmentation.SessionData;
-import net.anders.autounlock.ML.DataSegmentation.WindowData;
+import net.anders.autounlock.MachineLearning.SessionData;
+import net.anders.autounlock.MachineLearning.WindowData;
 
 import java.io.File;
 import java.io.FileReader;
@@ -28,7 +28,7 @@ import be.ac.ulg.montefiore.run.jahmm.learn.KMeansLearner;
  * Created by Anders on 06-03-2017.
  */
 
-public class TrainHMM {
+public class Record {
 
     // Lists of lists of values from multiple iterations (observations), used to create HMMs
     List<List<ObservationInteger>> toHmmOri;
@@ -55,7 +55,7 @@ public class TrainHMM {
     File outputDirectory = new File("/sdcard/AutoUnlock/HMM/");
 
 
-    public void train(ArrayList<SessionData> clusters, boolean unlockDoor) {
+    public void record(ArrayList<SessionData> clusters, boolean unlockDoor) {
         this.unlockDoor = unlockDoor;
         this.clusters = clusters;
 

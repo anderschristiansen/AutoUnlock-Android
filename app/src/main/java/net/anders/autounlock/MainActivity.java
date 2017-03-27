@@ -28,73 +28,12 @@ public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
     private CoreService coreService;
     private boolean bound = false;
-    private static boolean geofencAdded = false;
-    private static int allButton = 0;
 
-    private View trainingView;
-    private TextView trainingBtleMacValue;
-    private TextView trainingBtleRssiValue;
+    static TextView lockView;
 
-    /*TextViews for UI*/
-    static TextView geofenceStatusView;
-    static TextView locationView;
-    static TextView lockScanningView;
-    static TextView accelerometerView;
-    static TextView addlockView;
-    static RelativeLayout sensorContainer;
-
-
-    private static Button addLock;
-    private static Button unlockDoor;
-    private static Button lockDoor;
-
-    /*Togglebutton to show/hide sensor container*/
-    private static ToggleButton sensorToggle;
-
-    private static Button startAccelerometer;
-    private static Button stopAccelerometer;
-    private static boolean startAccelerometerEnabled = true;
-    private static boolean stopAccelerometerEnabled = false;
-
-    private static Button startLocation;
-    private static Button stopLocation;
-    private static boolean startLocationEnabled = true;
-    private static boolean stopLocationEnabled = false;
-
-    private static Button startWifi;
-    private static Button stopWifi;
-    private static boolean startWifiEnabled = true;
-    private static boolean stopWifiEnabled = false;
-
-    private static Button startBluetooth;
-    private static Button stopBluetooth;
-    private static boolean startBluetoothEnabled = true;
-    private static boolean stopBluetoothEnabled = false;
-
-    private static Button startAll;
-    private static Button stopAll;
-    private static boolean startAllEnabled = true;
-    private static boolean stopAllEnabled = false;
-
-    private static Button startBuffer;
-    private static Button stopBuffer;
-    private static boolean startBufferEnabled = true;
-    private static boolean stopBufferEnabled = false;
-
-    private static Button registerGeofence;
-    private static Button unregisterGeofence;
-    private static boolean registerGeofenceEnabled = false;
-    private static boolean unregisterGeofenceEnabled = false;
-
-    private static Button startBarometer;
-    private static Button stopBarometer;
-    private static boolean startBarometerEnabled = true;
-    private static boolean stopBarometerEnabled = false;
-
-    private static Button startMachineLearning;
-    private static Button stopMachineLearning;
-    private static boolean startMachineLearningEnabled = true;
-    private static boolean stopMachineLearningEnabled = false;
+    static Button addLock;
+    static Button unlockDoor;
+    static Button lockDoor;
 
     private BroadcastReceiver receiver;
 
@@ -105,79 +44,21 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        sensorToggle = (ToggleButton) findViewById(R.id.sensorToggle);
-        sensorContainer = (RelativeLayout) findViewById(R.id.sensorContainer);
-        sensorContainer.setVisibility(View.GONE);
-
         addLock = (Button) findViewById(R.id.addlock);
         unlockDoor = (Button) findViewById(R.id.unlock);
         lockDoor = (Button) findViewById(R.id.lock);
 
-        startAccelerometer = (Button) findViewById(R.id.accstart);
-        stopAccelerometer = (Button) findViewById(R.id.accstop);
-        startAccelerometer.setEnabled(startAccelerometerEnabled);
-        stopAccelerometer.setEnabled(stopAccelerometerEnabled);
-
-        startLocation = (Button) findViewById(R.id.locationstart);
-        stopLocation = (Button) findViewById(R.id.locationstop);
-        startLocation.setEnabled(startLocationEnabled);
-        stopLocation.setEnabled(stopLocationEnabled);
-
-        startWifi = (Button) findViewById(R.id.wifistart);
-        stopWifi = (Button) findViewById(R.id.wifistop);
-        startWifi.setEnabled(startWifiEnabled);
-        stopWifi.setEnabled(stopWifiEnabled);
-
-        startBluetooth = (Button) findViewById(R.id.bluetoothstart);
-        stopBluetooth = (Button) findViewById(R.id.bluetoothstop);
-        startBluetooth.setEnabled(startBluetoothEnabled);
-        stopBluetooth.setEnabled(stopBluetoothEnabled);
-
-        startAll = (Button) findViewById(R.id.allstart);
-        stopAll = (Button) findViewById(R.id.allstop);
-        startAll.setEnabled(startAllEnabled);
-        stopAll.setEnabled(stopAllEnabled);
-
-        startBuffer = (Button) findViewById(R.id.databufferstart);
-        stopBuffer = (Button) findViewById(R.id.databufferstop);
-        startBuffer.setEnabled(startBufferEnabled);
-        stopBuffer.setEnabled(stopBufferEnabled);
-
-        registerGeofence = (Button) findViewById(R.id.registergeofence);
-        unregisterGeofence = (Button) findViewById(R.id.unregistergeofence);
-        registerGeofence.setEnabled(registerGeofenceEnabled);
-        unregisterGeofence.setEnabled(unregisterGeofenceEnabled);
-
-        startBarometer = (Button) findViewById(R.id.barometerstart);
-        stopBarometer = (Button) findViewById(R.id.barometerstop);
-        startBarometer.setEnabled(startBarometerEnabled);
-        stopBarometer.setEnabled(stopBarometerEnabled);
-
-        startMachineLearning = (Button) findViewById(R.id.machinelearningstart);
-        stopMachineLearning = (Button) findViewById(R.id.machinelearningstop);
-        startMachineLearning.setEnabled(startMachineLearningEnabled);
-        stopMachineLearning.setEnabled(stopMachineLearningEnabled);
-
         DataStore dataStore = new DataStore(this);
 
         /* TextViews for UI */
-        geofenceStatusView = (TextView) findViewById(R.id.geofenceStatus);
-        locationView = (TextView) findViewById(R.id.location);
-        lockScanningView = (TextView) findViewById(R.id.lock);
-        accelerometerView = (TextView) findViewById(R.id.accelerometer);
-        addlockView = (TextView) findViewById(R.id.addlockView);
-
-//        trainingView = findViewById(R.id.feedbackControlsContainer);
-//        trainingBtleMacValue = (TextView) findViewById(R.id.btleMacValue);
-//        trainingBtleRssiValue = (TextView) findViewById(R.id.btleRssiValue);
+        lockView = (TextView) findViewById(R.id.lockView);
 
         IntentFilter filter = new IntentFilter();
         filter.addAction("BTLE_CONN");
 
         if (!dataStore.getKnownLocks().isEmpty()) {
-            unlockDoor.setVisibility(View.VISIBLE);
-            lockDoor.setVisibility(View.VISIBLE);
             addLock.setVisibility(View.GONE);
+            lockView.setText("WAIT FOR LOCK");
         }
 
         receiver = new BroadcastReceiver() {
@@ -260,183 +141,6 @@ public class MainActivity extends AppCompatActivity {
 //        }
 //    }
 
-    void setStartAccelerometer() {
-        startAccelerometerEnabled = false;
-        startAccelerometer.setEnabled(startAccelerometerEnabled);
-        stopAccelerometerEnabled = true;
-        stopAccelerometer.setEnabled(stopAccelerometerEnabled);
-    }
-
-    /** Called when adapter button is clicked (the button in the layout file attaches to
-     * this method with the android:onClick attribute) */
-    public void onButtonClickAccel(View v) {
-        if (bound) {
-            coreService.startAccelerometerService();
-            setStartAccelerometer();
-
-            startAllEnabled = false;
-            startAll.setEnabled(startAllEnabled);
-            stopAllEnabled = true;
-            stopAll.setEnabled(stopAllEnabled);
-            allButton += 1;
-        }
-    }
-
-    void setStopAccelerometer() {
-        startAccelerometerEnabled = true;
-        startAccelerometer.setEnabled(startAccelerometerEnabled);
-        stopAccelerometerEnabled = false;
-        stopAccelerometer.setEnabled(stopAccelerometerEnabled);
-    }
-
-    public void onButtonClickAccelStop(View v) {
-        if (bound) {
-            coreService.stopAccelerometerService();
-            setStopAccelerometer();
-
-            if (allButton == 1) {
-                startAllEnabled = true;
-                startAll.setEnabled(startAllEnabled);
-                stopAllEnabled = false;
-                stopAll.setEnabled(stopAllEnabled);
-                allButton -= 1;
-            } else {
-                allButton -= 1;
-            }
-        }
-    }
-
-    public void onButtonClickBarometer(View v) {
-        if (bound) {
-            coreService.startBarometerService();
-            setStartBarometer();
-
-            startAllEnabled = false;
-            startAll.setEnabled(startAllEnabled);
-            stopAllEnabled = true;
-            stopAll.setEnabled(stopAllEnabled);
-            allButton += 1;
-        }
-    }
-
-    public void onButtonClickBarometerStop(View v) {
-        if (bound) {
-            coreService.stopBarometerService();
-            setStopBarometer();
-
-            if (allButton == 1) {
-                startAllEnabled = true;
-                startAll.setEnabled(startAllEnabled);
-                stopAllEnabled = false;
-                stopAll.setEnabled(stopAllEnabled);
-                allButton -= 1;
-            } else {
-                allButton -= 1;
-            }
-        }
-    }
-
-    void setStartBarometer() {
-        startBarometerEnabled = false;
-        startBarometer.setEnabled(startBarometerEnabled);
-        stopBarometerEnabled = true;
-        stopBarometer.setEnabled(stopBarometerEnabled);
-    }
-
-    void setStopBarometer() {
-        startBarometerEnabled = true;
-        startBarometer.setEnabled(startBarometerEnabled);
-        stopBarometerEnabled = false;
-        stopBarometer.setEnabled(stopBarometerEnabled);
-    }
-
-    public void onButtonClickMachineLearning(View v) {
-        if (bound) {
-            coreService.startMachineLearningService();
-            setStartMachineLearning();
-
-            startAllEnabled = false;
-            startAll.setEnabled(startAllEnabled);
-            stopAllEnabled = true;
-            stopAll.setEnabled(stopAllEnabled);
-            allButton += 1;
-        }
-    }
-
-    public void onButtonClickMachineLearningStop(View v) {
-        if (bound) {
-            coreService.stopMachineLearningService();
-            setStopMachineLearning();
-
-            if (allButton == 1) {
-                startAllEnabled = true;
-                startAll.setEnabled(startAllEnabled);
-                stopAllEnabled = false;
-                stopAll.setEnabled(stopAllEnabled);
-                allButton -= 1;
-            } else {
-                allButton -= 1;
-            }
-        }
-    }
-
-    void setStartMachineLearning() {
-        startMachineLearningEnabled = false;
-        startMachineLearning.setEnabled(startMachineLearningEnabled);
-        stopMachineLearningEnabled = true;
-        stopMachineLearning.setEnabled(stopMachineLearningEnabled);
-    }
-
-    void setStopMachineLearning() {
-        startMachineLearningEnabled = true;
-        startMachineLearning.setEnabled(startMachineLearningEnabled);
-        stopMachineLearningEnabled = false;
-        stopMachineLearning.setEnabled(stopMachineLearningEnabled);
-    }
-
-    void setStartLocation() {
-        startLocationEnabled = false;
-        startLocation.setEnabled(startLocationEnabled);
-        stopLocationEnabled = true;
-        stopLocation.setEnabled(stopLocationEnabled);
-    }
-
-    public void onButtonClickLocation(View v) {
-        if (bound) {
-            coreService.startLocationService();
-            setStartLocation();
-
-            startAllEnabled = false;
-            startAll.setEnabled(startAllEnabled);
-            stopAllEnabled = true;
-            stopAll.setEnabled(stopAllEnabled);
-            allButton += 1;
-        }
-    }
-
-    void setStopLocation() {
-        startLocationEnabled = true;
-        startLocation.setEnabled(startLocationEnabled);
-        stopLocationEnabled = false;
-        stopLocation.setEnabled(stopLocationEnabled);
-    }
-
-    public void onButtonClickLocationStop(View v) {
-        if (bound) {
-            coreService.stopLocationService();
-            setStopLocation();
-
-            if (allButton == 1) {
-                startAllEnabled = true;
-                startAll.setEnabled(startAllEnabled);
-                stopAllEnabled = false;
-                stopAll.setEnabled(stopAllEnabled);
-                allButton -= 1;
-            } else {
-                allButton -= 1;
-            }
-        }
-    }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
@@ -456,256 +160,19 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    void setStartWifi() {
-        startWifiEnabled = false;
-        startWifi.setEnabled(startWifiEnabled);
-        stopWifiEnabled = true;
-        stopWifi.setEnabled(stopWifiEnabled);
-    }
-
-    public void onButtonClickWifi(View v) {
-        if (bound) {
-            coreService.startWifiService();
-            setStartWifi();
-
-            startAllEnabled = false;
-            startAll.setEnabled(startAllEnabled);
-            stopAllEnabled = true;
-            stopAll.setEnabled(stopAllEnabled);
-            allButton += 1;
-        }
-    }
-
-    void setStopWifi() {
-        startWifiEnabled = true;
-        startWifi.setEnabled(startWifiEnabled);
-        stopWifiEnabled = false;
-        stopWifi.setEnabled(stopWifiEnabled);
-    }
-
-    public void onButtonClickWifiStop(View v) {
-        if (bound) {
-            coreService.stopWifiService();
-            setStopWifi();
-
-            if (allButton == 1) {
-                startAllEnabled = true;
-                startAll.setEnabled(startAllEnabled);
-                stopAllEnabled = false;
-                stopAll.setEnabled(stopAllEnabled);
-                allButton -= 1;
-            } else {
-                allButton -= 1;
-            }
-        }
-    }
-
-    void setStartBluetooth() {
-        startBluetoothEnabled = false;
-        startBluetooth.setEnabled(startBluetoothEnabled);
-        stopBluetoothEnabled = true;
-        stopBluetooth.setEnabled(stopBluetoothEnabled);
-    }
-
-    public void onButtonClickBluetooth(View v) {
-        if (bound) {
-            coreService.startBluetoothService();
-            setStartBluetooth();
-
-            startAllEnabled = false;
-            startAll.setEnabled(startAllEnabled);
-            stopAllEnabled = true;
-            stopAll.setEnabled(stopAllEnabled);
-            allButton += 1;
-        }
-    }
-
-    void setStopBluetooth() {
-        startBluetoothEnabled = true;
-        startBluetooth.setEnabled(startBluetoothEnabled);
-        stopBluetoothEnabled = false;
-        stopBluetooth.setEnabled(stopBluetoothEnabled);
-    }
-
-    public void onButtonClickBluetoothStop(View v) {
-        if (bound) {
-            coreService.stopBluetoothService();
-            setStopBluetooth();
-
-            if (allButton == 1) {
-                startAllEnabled = true;
-                startAll.setEnabled(startAllEnabled);
-                stopAllEnabled = false;
-                stopAll.setEnabled(stopAllEnabled);
-                allButton -= 1;
-            } else {
-                allButton -= 1;
-            }
-        }
-    }
-
-    void setStartAll() {
-        setStartBuffer();
-        setStartAccelerometer();
-        setStartBluetooth();
-        setStartLocation();
-        setStartWifi();
-
-        startAllEnabled = false;
-        startAll.setEnabled(startAllEnabled);
-        stopAllEnabled = true;
-        stopAll.setEnabled(stopAllEnabled);
-    }
-
-    public void onButtonClickAllStart(View v) {
-        if (bound) {
-            coreService.startDataBuffer();
-            coreService.startRingBuffer();
-            coreService.startAccelerometerService();
-            coreService.startLocationService();
-            coreService.startWifiService();
-            coreService.startBluetoothService();
-
-            setStartAll();
-
-            allButton = 5;
-        }
-    }
-
-    void setStopAll() {
-        setStopBuffer();
-        setStopAccelerometer();
-        setStopBluetooth();
-        setStopLocation();
-        setStopWifi();
-
-        startAllEnabled = true;
-        startAll.setEnabled(startAllEnabled);
-        stopAllEnabled = false;
-        stopAll.setEnabled(stopAllEnabled);
-    }
-
-    public void onButtonClickAllStop(View v) {
-        if (bound) {
-            coreService.StopAllServices();
-            setStopAll();
-
-            allButton = 0;
-        }
-    }
-
-    void setStartBuffer() {
-        startBufferEnabled = false;
-        startBuffer.setEnabled(startBufferEnabled);
-        stopBufferEnabled = true;
-        stopBuffer.setEnabled(stopBufferEnabled);
-    }
-
-    public void onButtonClickDataBuffer(View v) {
-        if (bound) {
-            coreService.startDataBuffer();
-            setStartBuffer();
-
-            startAllEnabled = false;
-            startAll.setEnabled(startAllEnabled);
-            stopAllEnabled = true;
-            stopAll.setEnabled(stopAllEnabled);
-            allButton += 1;
-        }
-    }
-
-    void setStopBuffer() {
-        startBufferEnabled = true;
-        startBuffer.setEnabled(startBufferEnabled);
-        stopBufferEnabled = false;
-        stopBuffer.setEnabled(stopBufferEnabled);
-    }
-
-    public void onButtonClickDataBufferStop(View v) {
-        if (bound) {
-            coreService.stopDataBuffer();
-            setStopBuffer();
-
-            if (allButton == 1) {
-                startAllEnabled = true;
-                startAll.setEnabled(startAllEnabled);
-                stopAllEnabled = false;
-                stopAll.setEnabled(stopAllEnabled);
-                allButton -= 1;
-            } else {
-                allButton -= 1;
-            }
-        }
-    }
-
-    public void onButtonClickAddGeofence(View v) {
-        if (bound) {
-            coreService.addGeofences();
-            if (!geofencAdded) {
-                registerGeofenceEnabled = true;
-                registerGeofence.setEnabled(registerGeofenceEnabled);
-            }
-        }
-    }
-
-    public void onButtonClickRegisterGeofence(View v) {
-        if (bound) {
-            coreService.registerGeofences();
-            registerGeofenceEnabled = false;
-            registerGeofence.setEnabled(registerGeofenceEnabled);
-            unregisterGeofenceEnabled = true;
-            unregisterGeofence.setEnabled(unregisterGeofenceEnabled);
-        }
-    }
-
-    public void onButtonClickUnregisterGeofence(View v) {
-        if (bound) {
-            coreService.unregisterGeofences();
-            registerGeofenceEnabled = true;
-            registerGeofence.setEnabled(registerGeofenceEnabled);
-            unregisterGeofenceEnabled = false;
-            unregisterGeofence.setEnabled(unregisterGeofenceEnabled);
-        }
-    }
-
-    public void onButtonClickToggleSensorContainer(View v) {
-        if (bound) {
-            if(((ToggleButton) v).isChecked()) {
-                sensorContainer.setVisibility(View.VISIBLE);
-            } else {
-                sensorContainer.setVisibility(View.GONE);
-            }
-        }
-    }
-
     public void onButtonClickExportDatastore(View v) {
         coreService.exportDB();
 //        Export.Windows(RingBuffer.getSnapshot());
     }
 
-
-//    public void onButtonClickSaveDb(View v) {
-//        if (bound) {
-//            coreService.saveLock(BluetoothService.ANDERS_BEKEY);
-//            //Toast.makeText(this, "Lock found and saved", Toast.LENGTH_SHORT).show();
-//        }
-//    }
-
-//    public void onButtonClickManuelUnlock(View v) {
-//        if (bound) {
-//            coreService.onButtonClickManualUnlock();
-//        }
-//    }
-
     // TODO ABC
-
     public void onButtonClickAddLock(View v) {
         if (bound) {
             coreService.onButtonClickAddLock();
             addLock.setVisibility(View.GONE);
-            addlockView.setVisibility(View.GONE);
-            unlockDoor.setVisibility(View.VISIBLE);
-            lockDoor.setVisibility(View.VISIBLE);
+            lockView.setText("SCANNING FOR LOCK");
+//            unlockDoor.setVisibility(View.VISIBLE);
+//            lockDoor.setVisibility(View.VISIBLE);
         }
     }
 
@@ -719,13 +186,6 @@ public class MainActivity extends AppCompatActivity {
     public void onButtonClickLock(View v) {
         if (bound) {
             coreService.onButtonClickLock();
-        }
-    }
-
-
-    public void onButtonClickDeleteAccelerometerData(View v) {
-        if (bound) {
-            coreService.deleteAccelerometerData();
         }
     }
 
@@ -745,19 +205,4 @@ public class MainActivity extends AppCompatActivity {
             bound = false;
         }
     };
-
-    public void onButtonClickGoToCalibration(View v) throws InterruptedException, FileFormatException, IOException {
-
-        //TrainHMM r = new TrainHMM();
-        //RecogniseSession r = new RecogniseSession();
-
-        if (bound) {
-            coreService.startAccelerometerService();
-            setStartAccelerometer();
-
-            Intent intent = new Intent(this, CalibrationActivity.class);
-            startActivity(intent);
-        }
-    }
-
 }

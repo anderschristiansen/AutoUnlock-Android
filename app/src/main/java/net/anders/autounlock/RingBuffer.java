@@ -4,7 +4,7 @@ package net.anders.autounlock;
  * Created by Anders on 08-03-2017.
  */
 
-import net.anders.autounlock.ML.DataSegmentation.WindowData;
+import net.anders.autounlock.MachineLearning.WindowData;
 
 import java.util.concurrent.atomic.AtomicLong;
 import java.lang.reflect.Array;

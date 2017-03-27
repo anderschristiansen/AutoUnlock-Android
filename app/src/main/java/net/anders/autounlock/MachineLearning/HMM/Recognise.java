@@ -1,9 +1,7 @@
-package net.anders.autounlock.ML.HMM;
+package net.anders.autounlock.MachineLearning.HMM;
 
-import android.util.Log;
-
-import net.anders.autounlock.ML.DataSegmentation.SessionData;
-import net.anders.autounlock.ML.DataSegmentation.WindowData;
+import net.anders.autounlock.MachineLearning.SessionData;
+import net.anders.autounlock.MachineLearning.WindowData;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -18,7 +16,6 @@ import java.io.LineNumberReader;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 
 import be.ac.ulg.montefiore.run.jahmm.ForwardBackwardCalculator;
@@ -33,9 +30,9 @@ import be.ac.ulg.montefiore.run.jahmm.io.OpdfIntegerReader;
  * Created by Anders on 06-03-2017.
  */
 
-public class RecogniseSession {
+public class Recognise {
 
-    private static String TAG = "RecogniseSession";
+    private static String TAG = "Recognise";
 
     private final static byte MSG_RUN_CONTINUOUS = 104;
     private final static int PORT_NUMBER = 5000;
@@ -76,7 +73,7 @@ public class RecogniseSession {
 
     File inputDirectory = new File("/sdcard/AutoUnlock/HMM/");
 
-    public void recognise(SessionData session) {
+    public void recognise(WindowData[] session) {
 
         try {
             countSessions();
@@ -103,7 +100,7 @@ public class RecogniseSession {
                 readHmm(i);
             }
 
-            createData(session.getWindows());
+            createData(session);
 
             for (int i = 1; i <sessionName.length;i++){
                 evaluate(sequencesInstanceOri, sequencesInstanceVelo, i);
@@ -125,7 +122,7 @@ public class RecogniseSession {
         }
     }
 
-    public void createData(List<WindowData> windows){
+    public void createData(WindowData[] windows){
         for (WindowData window : windows) {
             sequencesInstanceOri.add(new ObservationInteger((int)window.getOrientation()));
             sequencesInstanceVelo.add(new ObservationInteger((int)window.getVelocity()));
