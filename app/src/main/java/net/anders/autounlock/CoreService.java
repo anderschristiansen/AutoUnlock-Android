@@ -308,7 +308,7 @@ public class CoreService extends Service implements
                             startAccelerometerService();
                             startBluetoothService();
                             startWifiService();
-//                            scanForLocks();
+                            scanForLocks();
                         }
                     } else if (geofence.contains("outer")) {
                         Logging.GeofenceEntered("Outer");
