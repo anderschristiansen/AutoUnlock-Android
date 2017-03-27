@@ -13,13 +13,13 @@ import net.anders.autounlock.RingProcessorService;
  * Created by Anders on 22-02-2017.
  */
 
-public class RecognitionService extends Service {
+public class MachineLearningService extends Service {
     private volatile boolean running = true;
 
     private Recognition recognition;
     private Thread activityCollector;
 
-    private static String TAG = "RecognitionService";
+    private static String TAG = "MachineLearningService";
 
     @Override
     public void onCreate() {
@@ -44,21 +44,11 @@ public class RecognitionService extends Service {
         @Override
         public void run() {
 
-            // Numbers of times needed for manual unlocking before enough data is collected
-//            CoreService.manualUnLockCalibration = 5;
-            CoreService.windowBufferSize = 10;
-            CoreService.windowSize = 30;
-            // Last % of current window will be overlapping toused in the next window
-            CoreService.windowPercentageOverlap = 0;
-            CoreService.windowOverlap =  CoreService.windowSize - ((int)(CoreService.windowSize *  CoreService.windowPercentageOverlap));
-            CoreService.reqCaliSessions = 10;
-            CoreService.orientationThreshold = 50;
-            CoreService.velocityThreshold = 50;
-
             Intent startRecognition = new Intent("START_RECOGNITION");
             sendBroadcast(startRecognition);
 
             while (running) {
+
 
 
             }

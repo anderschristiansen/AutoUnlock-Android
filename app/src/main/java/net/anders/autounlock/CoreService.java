@@ -23,7 +23,7 @@ import com.google.android.gms.location.LocationServices;
 import net.anders.autounlock.ML.DataPreprocessing.WindowProcessor;
 import net.anders.autounlock.ML.DataSegmentation.SessionData;
 import net.anders.autounlock.ML.LearningProcessor;
-import net.anders.autounlock.ML.RecognitionService;
+import net.anders.autounlock.ML.MachineLearningService;
 import net.anders.autounlock.ML.DataSegmentation.CoordinateData;
 import net.anders.autounlock.ML.DataSegmentation.WindowData;
 
@@ -51,7 +51,7 @@ public class CoreService extends Service implements
     private Intent dataProcessorIntent;
     private Intent ringProcessorIntent;
     private Intent scannerIntent;
-    private Intent recognitionIntent;
+    private Intent machineLearningIntent;
     private Intent barometerIntent;
 
     private GoogleApiClient mGoogleApiClient;
@@ -93,11 +93,13 @@ public class CoreService extends Service implements
     public static double windowPercentageOverlap;
     public static int windowOverlap;
     public static boolean doSnapshot = false;
-//    public static int manualUnLockCalibration;
+    //    public static int manualUnLockCalibration;
     public static int reqCaliSessions;
     public static int orientationThreshold;
     public static int velocityThreshold;
     public static boolean unlockDoor;
+//    public static boolean isTraining = true;
+
 
     // Used to know if one is needed to be added
     static boolean isLockSaved = false;
@@ -175,7 +177,7 @@ public class CoreService extends Service implements
         dataProcessorIntent = new Intent(this, DataProcessorService.class);
         ringProcessorIntent = new Intent(this, RingProcessorService.class);
         scannerIntent = new Intent(this, ScannerService.class);
-        recognitionIntent = new Intent(this, RecognitionService.class);
+        machineLearningIntent = new Intent(this, MachineLearningService.class);
         barometerIntent = new Intent(this, BarometerService.class);
 
 
@@ -195,14 +197,25 @@ public class CoreService extends Service implements
         heuristicsTunerFilter.addAction("ADD_ORIENTATION");
         heuristicsTunerFilter.addAction("STOP_SCAN");
         heuristicsTunerFilter.addAction("START_SCAN");
-        registerReceiver(startRecognitionReceiver, heuristicsTunerFilter);
+        registerReceiver(startMachineLearningReceiver, heuristicsTunerFilter);
 
-        IntentFilter startRecognitionFilter = new IntentFilter();
-        startRecognitionFilter.addAction("START_RECOGNITION");
-        registerReceiver(startRecognitionReceiver, startRecognitionFilter);
+        IntentFilter startMachineLearningFilter = new IntentFilter();
+        startMachineLearningFilter.addAction("START_MACHINELEARNING");
+        registerReceiver(startMachineLearningReceiver, startMachineLearningFilter);
 
-        //TODO ABC
-        startRecognitionService();
+
+
+        // Numbers of times needed for manual unlocking before enough data is collected
+        // CoreService.manualUnLockCalibration = 5;
+        CoreService.windowBufferSize = 10;
+        CoreService.windowSize = 30;
+        // Last % of current window will be overlapping toused in the next window
+        CoreService.windowPercentageOverlap = 0;
+        CoreService.windowOverlap =  CoreService.windowSize - ((int)(CoreService.windowSize *  CoreService.windowPercentageOverlap));
+        CoreService.reqCaliSessions = 10;
+        CoreService.orientationThreshold = 50;
+        CoreService.velocityThreshold = 50;
+
 
         Log.v("CoreService", "Service created");
     }
@@ -283,49 +296,57 @@ public class CoreService extends Service implements
 
             Log.i(TAG, "onReceive: " + extras.getStringArrayList("Geofences"));
 
-//            if ("GEOFENCES_ENTERED".equals(action)) {
-//                for (String geofence : triggeringGeofencesList) {
-//                    if (geofence.contains("inner")) {
-//                        Logging.GeofenceEntered("Inner");
-//                        activeInnerGeofences.add(geofence.substring(5));
-//                        if (!isDetailedDataCollectionStarted) {
-//                            Log.i(TAG, "onReceive: starting detailed data collection");
-//                            isDetailedDataCollectionStarted = true;
-//                            isScanningForLocks = true;
-//                            startAccelerometerService();
-//                            startBluetoothService();
-//                            startWifiService();
+            if ("GEOFENCES_ENTERED".equals(action)) {
+                for (String geofence : triggeringGeofencesList) {
+                    if (geofence.contains("inner")) {
+                        Logging.GeofenceEntered("Inner");
+                        activeInnerGeofences.add(geofence.substring(5));
+                        if (!isDetailedDataCollectionStarted) {
+                            Log.i(TAG, "onReceive: starting detailed data collection");
+                            isDetailedDataCollectionStarted = true;
+                            isScanningForLocks = true;
+                            startAccelerometerService();
+                            startBluetoothService();
+                            startWifiService();
 //                            scanForLocks();
-//                        }
-//                    } else if (geofence.contains("outer")) {
-//                        Logging.GeofenceEntered("Outer");
-//                        activeOuterGeofences.add(geofence.substring(5));
-//                        if (!isLocationDataCollectionStarted) {
-//                            isLocationDataCollectionStarted = true;
-//                            startLocationService();
-//                        }
-//                    }
-//                }
-//            } else if ("GEOFENCES_EXITED".equals(action)) {
-//                for (String geofence : triggeringGeofencesList) {
-//                    if (geofence.contains("inner")) {
-//                        Logging.GeofenceExited("Inner");
-//                        if (isDetailedDataCollectionStarted && activeInnerGeofences.isEmpty()) {
-//                            isDetailedDataCollectionStarted = false;
-//                            isScanningForLocks = false;
-//                            stopAccelerometerService();
-//                            stopBluetoothService();
-//                            stopWifiService();
-//                        }
-//                    } else if (geofence.contains("outer")) {
-//                        Logging.GeofenceExited("Outer");
-//                        if (isLocationDataCollectionStarted && activeOuterGeofences.isEmpty()) {
-//                            isLocationDataCollectionStarted = false;
-//                            stopLocationService();
-//                        }
-//                    }
-//                }
-//            }
+                        }
+                    } else if (geofence.contains("outer")) {
+                        Logging.GeofenceEntered("Outer");
+                        activeOuterGeofences.add(geofence.substring(5));
+
+                        // TODO ABC
+//                        startMachineLearningService();
+                        startRingBuffer();
+                        if (!isLocationDataCollectionStarted) {
+                            isLocationDataCollectionStarted = true;
+                            startLocationService();
+                        }
+                    }
+                }
+            } else if ("GEOFENCES_EXITED".equals(action)) {
+                for (String geofence : triggeringGeofencesList) {
+                    if (geofence.contains("inner")) {
+                        Logging.GeofenceExited("Inner");
+                        if (isDetailedDataCollectionStarted && activeInnerGeofences.isEmpty()) {
+                            isDetailedDataCollectionStarted = false;
+                            isScanningForLocks = false;
+                            stopAccelerometerService();
+                            stopBluetoothService();
+                            stopWifiService();
+                        }
+                    } else if (geofence.contains("outer")) {
+                        Logging.GeofenceExited("Outer");
+
+                        // TODO ABC
+                        stopMachineLearningService();
+
+                        if (isLocationDataCollectionStarted && activeOuterGeofences.isEmpty()) {
+                            isLocationDataCollectionStarted = false;
+                            stopLocationService();
+                        }
+                    }
+                }
+            }
         }
     };
 
@@ -396,22 +417,21 @@ public class CoreService extends Service implements
     };
 
     // TODO ABC
-    private BroadcastReceiver startRecognitionReceiver = new BroadcastReceiver() {
+    private BroadcastReceiver startMachineLearningReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
 
-            Log.e(TAG, "StartRecognition");
+            Log.e(TAG, "StartMachineLearning");
 
-            if ("START_RECOGNITION".equals(action)) {
-                startAccelerometerService();
-                startRingBuffer();
+            if ("START_MACHINELEARNING".equals(action)) {
+//                startAccelerometerService();
+//                startRingBuffer();
             }
         }
     };
 
     void startAccelerometerService() {
-        //startActivityRecognitionService();
         //export = new ArrayList<>();
         Log.v(TAG, "Starting AccelerometerService");
         Thread accelerometerServiceThread = new Thread() {
@@ -583,10 +603,6 @@ public class CoreService extends Service implements
         geofence.unregisterGeofences(this, mGoogleApiClient);
     }
 
-//    void newDatastore() {
-//        dataStore.deleteDatastore();
-//    }
-
     void newTruePositive() { long time = System.currentTimeMillis(); dataStore.insertDecision(1, time); }
 
     void newFalsePositive() { long time = System.currentTimeMillis(); dataStore.insertDecision(0, time); }
@@ -597,7 +613,6 @@ public class CoreService extends Service implements
                 boolean success = true;
                 String passphrase = "";
 
-//                startAccelerometerService();
                 startBluetoothService();
                 startWifiService();
                 startLocationService();
@@ -608,7 +623,6 @@ public class CoreService extends Service implements
                     e.printStackTrace();
                 }
 
-//                stopAccelerometerService();
                 stopBluetoothService();
                 stopWifiService();
                 stopLocationService();
@@ -727,21 +741,24 @@ public class CoreService extends Service implements
 //    }
 
     //TODO ABC
-    void onButtonClickUnlock() {
+    void onButtonClickAddLock() {
+        saveLock(BluetoothService.ANDERS_BEKEY);
+        Toast.makeText(getApplicationContext(), "BeKey unlocked", Toast.LENGTH_SHORT).show();
+    }
 
-        // TODO ABC Om lås er gemt skal hentes fra db
+    //TODO ABC
+    void onButtonClickUnlock() {
         if (dataStore.getKnownLocks().isEmpty()) {
             saveLock(BluetoothService.ANDERS_BEKEY);
+            Toast.makeText(getApplicationContext(), "BeKey unlocked", Toast.LENGTH_SHORT).show();
+        } else {
+            unlockDoor = true;
+            handleDoorSession(unlockDoor);
         }
-
-        unlockDoor = true;
-        handleDoorSession(unlockDoor);
-
     }
 
     // TODO ABC
     void onButtonClickLock() {
-        // TODO ABC Om lås er gemt skal hentes fra db
         if (dataStore.getKnownLocks().isEmpty()) {
             saveLock(BluetoothService.ANDERS_BEKEY);
         }
@@ -751,7 +768,7 @@ public class CoreService extends Service implements
     }
 
     void handleDoorSession(boolean unlockDoor) {
-        WindowData[] snapshot = RingProcessorService.getSnapshot();
+        WindowData[] snapshot = RingBuffer.getSnapshot();
         dataStore.insertSession(snapshot, unlockDoor);
 
         Log.i(TAG, "Snapshot length: " + String.valueOf(snapshot.length));
@@ -798,7 +815,7 @@ public class CoreService extends Service implements
     }
 
     public static void windowReady(WindowData window) {
-        RingProcessorService.addWindow(window);
+        RingBuffer.addWindow(window);
     }
 
         /*try {
@@ -868,22 +885,22 @@ public class CoreService extends Service implements
 //    }
 
 
-    void startRecognitionService() {
-        Log.v(TAG, "Starting RecognitionService");
-        Thread recognitionServiceThread = new Thread() {
+    void startMachineLearningService() {
+        Log.v(TAG, "Starting MachineLearningService");
+        Thread machineLearningServiceThread = new Thread() {
             public void run() {
-                startService(recognitionIntent);
+                startService(machineLearningIntent);
             }
         };
-        recognitionServiceThread.start();
+        machineLearningServiceThread.start();
     }
 
-    void stopRecognitionService() {
+    void stopMachineLearningService() {
         stopAccelerometerService();
         stopRingBuffer();
         WindowProcessor.prevWindow = null;
-        Log.d("CoreService", "Trying to stop recognitionService");
-        stopService(recognitionIntent);
+        Log.d("CoreService", "Trying to stop MachineLearningService");
+        stopService(machineLearningIntent);
     }
 
 }

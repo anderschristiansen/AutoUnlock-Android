@@ -42,6 +42,10 @@ public class MainActivity extends AppCompatActivity {
     static TextView accelerometerView;
     static RelativeLayout sensorContainer;
 
+    private static Button addLock;
+    private static Button unlockDoor;
+    private static Button lockDoor;
+
     /*Togglebutton to show/hide sensor container*/
     private static ToggleButton sensorToggle;
 
@@ -85,10 +89,10 @@ public class MainActivity extends AppCompatActivity {
     private static boolean startBarometerEnabled = true;
     private static boolean stopBarometerEnabled = false;
 
-    private static Button startRecognition;
-    private static Button stopRecognition;
-    private static boolean startRecognitionEnabled = true;
-    private static boolean stopRecognitionEnabled = false;
+    private static Button startMachineLearning;
+    private static Button stopMachineLearning;
+    private static boolean startMachineLearningEnabled = true;
+    private static boolean stopMachineLearningEnabled = false;
 
     private BroadcastReceiver receiver;
 
@@ -102,6 +106,10 @@ public class MainActivity extends AppCompatActivity {
         sensorToggle = (ToggleButton) findViewById(R.id.sensorToggle);
         sensorContainer = (RelativeLayout) findViewById(R.id.sensorContainer);
         sensorContainer.setVisibility(View.GONE);
+
+        addLock = (Button) findViewById(R.id.addlock);
+        unlockDoor = (Button) findViewById(R.id.unlock);
+        lockDoor = (Button) findViewById(R.id.lock);
 
         startAccelerometer = (Button) findViewById(R.id.accstart);
         stopAccelerometer = (Button) findViewById(R.id.accstop);
@@ -143,10 +151,10 @@ public class MainActivity extends AppCompatActivity {
         startBarometer.setEnabled(startBarometerEnabled);
         stopBarometer.setEnabled(stopBarometerEnabled);
 
-        startRecognition = (Button) findViewById(R.id.recognitionstart);
-        stopRecognition = (Button) findViewById(R.id.recognitionstop);
-        startRecognition.setEnabled(startRecognitionEnabled);
-        stopRecognition.setEnabled(stopRecognitionEnabled);
+        startMachineLearning = (Button) findViewById(R.id.machinelearningstart);
+        stopMachineLearning = (Button) findViewById(R.id.machinelearningstop);
+        startMachineLearning.setEnabled(startMachineLearningEnabled);
+        stopMachineLearning.setEnabled(stopMachineLearningEnabled);
 
         DataStore dataStore = new DataStore(this);
 
@@ -162,6 +170,12 @@ public class MainActivity extends AppCompatActivity {
 
         IntentFilter filter = new IntentFilter();
         filter.addAction("BTLE_CONN");
+
+        if (!dataStore.getKnownLocks().isEmpty()) {
+            unlockDoor.setVisibility(View.VISIBLE);
+            lockDoor.setVisibility(View.VISIBLE);
+            addLock.setVisibility(View.GONE);
+        }
 
         receiver = new BroadcastReceiver() {
             @Override
@@ -333,10 +347,10 @@ public class MainActivity extends AppCompatActivity {
         stopBarometer.setEnabled(stopBarometerEnabled);
     }
 
-    public void onButtonClickRecognition(View v) {
+    public void onButtonClickMachineLearning(View v) {
         if (bound) {
-            coreService.startRecognitionService();
-            setStartRecognition();
+            coreService.startMachineLearningService();
+            setStartMachineLearning();
 
             startAllEnabled = false;
             startAll.setEnabled(startAllEnabled);
@@ -346,10 +360,10 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public void onButtonClickRecognitionStop(View v) {
+    public void onButtonClickMachineLearningStop(View v) {
         if (bound) {
-            coreService.stopRecognitionService();
-            setStopRecognition();
+            coreService.stopMachineLearningService();
+            setStopMachineLearning();
 
             if (allButton == 1) {
                 startAllEnabled = true;
@@ -363,18 +377,18 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    void setStartRecognition() {
-        startRecognitionEnabled = false;
-        startRecognition.setEnabled(startRecognitionEnabled);
-        stopRecognitionEnabled = true;
-        stopRecognition.setEnabled(stopRecognitionEnabled);
+    void setStartMachineLearning() {
+        startMachineLearningEnabled = false;
+        startMachineLearning.setEnabled(startMachineLearningEnabled);
+        stopMachineLearningEnabled = true;
+        stopMachineLearning.setEnabled(stopMachineLearningEnabled);
     }
 
-    void setStopRecognition() {
-        startRecognitionEnabled = true;
-        startRecognition.setEnabled(startRecognitionEnabled);
-        stopRecognitionEnabled = false;
-        stopRecognition.setEnabled(stopRecognitionEnabled);
+    void setStopMachineLearning() {
+        startMachineLearningEnabled = true;
+        startMachineLearning.setEnabled(startMachineLearningEnabled);
+        stopMachineLearningEnabled = false;
+        stopMachineLearning.setEnabled(stopMachineLearningEnabled);
     }
 
     void setStartLocation() {
@@ -663,7 +677,7 @@ public class MainActivity extends AppCompatActivity {
 
     public void onButtonClickExportDatastore(View v) {
         Export.Database();
-        Export.Windows(RingProcessorService.getSnapshot());
+//        Export.Windows(RingBuffer.getSnapshot());
     }
 
 
@@ -681,6 +695,16 @@ public class MainActivity extends AppCompatActivity {
 //    }
 
     // TODO ABC
+
+    public void onButtonClickAddLock(View v) {
+        if (bound) {
+            coreService.onButtonClickAddLock();
+            addLock.setVisibility(View.GONE);
+            unlockDoor.setVisibility(View.VISIBLE);
+            lockDoor.setVisibility(View.VISIBLE);
+        }
+    }
+
     public void onButtonClickUnlock(View v) {
         if (bound) {
             coreService.onButtonClickUnlock();

@@ -4,6 +4,8 @@ package net.anders.autounlock;
  * Created by Anders on 08-03-2017.
  */
 
+import net.anders.autounlock.ML.DataSegmentation.WindowData;
+
 import java.util.concurrent.atomic.AtomicLong;
 import java.lang.reflect.Array;
 
@@ -19,6 +21,8 @@ import java.lang.reflect.Array;
  * capturing objects.  It copies the objects to a snapshot array which may be
  * worked with.  The size of the snapshot array will vary based on the
  * stability of the array during the copy operation.</p>
+ *
+ *
  *
  * <p>Adding buffer to the buffer is <em>O(1)</em>, and lockless.  Taking a
  * stable copy of the sample is <em>O(n)</em>.</p>
@@ -171,6 +175,17 @@ public class RingBuffer<T> {
         }
 
         return snapshot;
+    }
+
+    public static WindowData[] getSnapshot() {
+        // Perform a snapshot of the current circular buffer, to avoid race conditions
+        WindowData[] snapshot = CoreService.windowBuffer.snapshot();
+
+        return snapshot;
+    }
+
+    public static void addWindow(WindowData window) {
+        CoreService.windowBuffer.add(window);
     }
 
     /**

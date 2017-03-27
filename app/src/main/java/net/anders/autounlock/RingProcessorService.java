@@ -102,14 +102,14 @@ public class RingProcessorService extends Service {
         }
     }
 
-    public static WindowData[] getSnapshot() {
-        // Perform a snapshot of the current circular buffer, to avoid race conditions
-        WindowData[] snapshot = CoreService.windowBuffer.snapshot();
+//    public static WindowData[] getSnapshot() {
+//        // Perform a snapshot of the current circular buffer, to avoid race conditions
+//        WindowData[] snapshot = CoreService.windowBuffer.snapshot();
+//
+//        return snapshot;
+//    }
 
-        return snapshot;
-    }
-
-    public static void addWindow(WindowData window) {
-        CoreService.windowBuffer.add(window);
-    }
+//    public static void addWindow(WindowData window) {
+//        CoreService.windowBuffer.add(window);
+//    }
 }

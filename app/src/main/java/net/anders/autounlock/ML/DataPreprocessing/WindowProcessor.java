@@ -54,8 +54,6 @@ public class WindowProcessor {
     public static List<AccelerometerData> currentAccelerometerList = new ArrayList<>();
     public static List<AccelerometerData> nextAccelerometerList = new ArrayList<>();
     public static WindowData prevWindow;
-
-    
     
     public static void insertAccelerometerEventIntoWindow(AccelerometerData anAccelerometerEvent) {
 
@@ -69,7 +67,7 @@ public class WindowProcessor {
             nextAccelerometerList.add(anAccelerometerEvent);
         }
 
-        // Convert current accelerometerdata's into a window
+        // Convert current accelerometerdata segments into a window
         if (currentAccelerometerList.size() == CoreService.windowSize) {
             processWindow(currentAccelerometerList);
             currentAccelerometerList.addAll(nextAccelerometerList);
@@ -84,7 +82,6 @@ public class WindowProcessor {
         // Put new window into the circular buffer
 //        CoreService.windowBuffer.add(window);
         CoreService.windowReady(window);
-
 
         prevWindow = window;
 
