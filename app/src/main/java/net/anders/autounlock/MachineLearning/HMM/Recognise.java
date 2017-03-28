@@ -244,7 +244,7 @@ public class Recognise {
                 break;
         }
 
-        //System.out.println("HMM " +hmmNo + " = X: " + probabilityX +" Y: " + probabilityY  +" Z: "+ probabilityZ);
+        System.out.println("HMM " +hmmNo + " = ORI: " + probabilityOri +" VELO: " + probabilityVelo);
 
         if ((probabilityOri + probabilityVelo) !=0 &&
                 (probabilityOri + probabilityVelo) > bestMatchProb)

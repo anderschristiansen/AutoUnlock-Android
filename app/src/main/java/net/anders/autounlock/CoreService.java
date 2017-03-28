@@ -189,13 +189,13 @@ public class CoreService extends Service implements
 
         // Numbers of times needed for manual unlocking before enough data is collected
         // CoreService.manualUnLockCalibration = 5;
-        CoreService.windowBufferSize = 50;
-        CoreService.windowSize = 30;
+        CoreService.windowBufferSize = 20;
+        CoreService.windowSize = 10;
 
         // Last % of current window will be overlapping toused in the next window
         CoreService.windowPercentageOverlap = 0;
         CoreService.windowOverlap =  CoreService.windowSize - ((int)(CoreService.windowSize *  CoreService.windowPercentageOverlap));
-        CoreService.reqTrainingSessions = 20;
+        CoreService.reqTrainingSessions = 5;
         CoreService.orientationThreshold = 50;
         CoreService.velocityThreshold = 50;
         CoreService.activityThreshold = 0;
@@ -579,9 +579,10 @@ public class CoreService extends Service implements
         geofence.unregisterGeofences(this, mGoogleApiClient);
     }
 
-    void newTruePositive() { long time = System.currentTimeMillis(); dataStore.insertDecision(1, time); }
-
-    void newFalsePositive() { long time = System.currentTimeMillis(); dataStore.insertDecision(0, time); }
+    void newTruePositive(boolean unlockDoor) { long time = System.currentTimeMillis(); dataStore.insertDecision(0, unlockDoor, time); }
+    void newFalseNegative(boolean unlockDoor) { long time = System.currentTimeMillis(); dataStore.insertDecision(1, unlockDoor, time); }
+    void newFalsePositive(boolean unlockDoor) { long time = System.currentTimeMillis(); dataStore.insertDecision(2, unlockDoor, time); }
+    void newTrueNegative(boolean unlockDoor) { long time = System.currentTimeMillis(); dataStore.insertDecision(3, unlockDoor, time); }
 
     void saveLock(final String lockMAC) {
         new Thread(new Runnable() {
@@ -721,6 +722,13 @@ public class CoreService extends Service implements
         int cntSession = dataStore.getSessionCount(unlockDoor);
 
         if (cntSession >= reqTrainingSessions && unlockDoor) {
+
+            // False negative condition as the door did not catch the unlock
+            if (cntSession != reqTrainingSessions) {
+                Log.v(TAG, "Inserting FN for unlocking");
+                newFalseNegative(unlockDoor);
+            }
+
             Toast.makeText(getApplicationContext(), "BeKey unlocked! The app will now calibrate unlock sessions", Toast.LENGTH_SHORT).show();
 
             // Fetch every UNLOCK sessions
@@ -730,6 +738,13 @@ public class CoreService extends Service implements
             LearningProcess.Start(unlock_sessions, unlockDoor);
         }
         else if (cntSession >= reqTrainingSessions && !unlockDoor) {
+
+            // False negative condition as the door did not catch the unlock
+            if (cntSession != reqTrainingSessions) {
+                Log.v(TAG, "Inserting FN for locking");
+                newFalseNegative(!unlockDoor);
+            }
+
             Toast.makeText(getApplicationContext(), "BeKey locked! The app will now calibrate lock sessions", Toast.LENGTH_SHORT).show();
 
             // Fetch every LOCK sessions

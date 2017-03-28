@@ -16,7 +16,6 @@ class DataStore {
     private static final String DATABASE_NAME = "datastore.db";
     private static final int DATABASE_VERSION = 1;
 
-    private static final String ID = "ID";
     private static final String TIMESTAMP = "TIMESTAMP";
 
     private static final String LOCK_TABLE = "lock";
@@ -40,15 +39,6 @@ class DataStore {
     private static final String WIFI_RSSI = "RSSI";
     private static final String WIFI_NEARBY_LOCK = "nearby_lock";
 
-    private static final String ACCELEROMETER_TABLE = "accelerometer";
-    private static final String ACCELERATION_X = "acceleration_x";
-    private static final String ACCELERATION_Y = "acceleration_y";
-    private static final String ACCELERATION_Z = "acceleration_z";
-    private static final String SPEED_X = "speed_x";
-    private static final String SPEED_Y = "speed_y";
-    private static final String SPEED_Z = "speed_z";
-    private static final String ACCELEROMETER_DATETIME = "datetime";
-
     private static final String LOCATION_TABLE = "location";
     private static final String LOCATION_PROVIDER = "provider";
     private static final String LOCATION_LATITUDE = "latitude";
@@ -56,13 +46,11 @@ class DataStore {
     private static final String LOCATION_ACCURACY = "accuracy";
     private static final String LOCATION_DATETIME = "datetime";
 
-    //TODO ABC session
     private static final String SESSION_TABLE = "session";
     private static final String SESSION_ID = "id";
     private static final String SESSION_DOOR_UNLOCK = "door_unlock";
     private static final String SESSION_CLUSTER = "cluster";
 
-    // TODO ABC window data
     private static final String WINDOW_TABLE = "window";
     private static final String WINDOW_SESSION_ID = "session_id";
     private static final String WINDOW_ORIENTATION = "orientation";
@@ -73,29 +61,15 @@ class DataStore {
     private static final String WINDOW_SPEED_Y = "speed_y";
     private static final String WINDOW_ACCELERATION_MAG = "acceleration_mag";
 
-    // TODO ABC
     private static final String DECISION_TABLE = "decision";
     private static final String DECISION_DECISION = "decision";
-
-    private static final String BUFFER_TABLE = "buffer";
-    private static final String DATA = "data";
+    private static final String DECISION_DOOR_UNLOCK = "door_unlock";
 
     private SQLiteDatabase database;
     private DatabaseHelper databaseHelper;
 
     DataStore(Context context) {
         databaseHelper = new DatabaseHelper(context);
-    }
-
-    void deleteAccelerometerData() {
-        database = databaseHelper.getWritableDatabase();
-//        database.delete(BLUETOOTH_TABLE, null, null);
-//        database.delete(WIFI_TABLE, null, null);
-        database.delete(ACCELEROMETER_TABLE, null, null);
-//        database.delete(LOCATION_TABLE, null, null);
-//        database.delete(DECISION_TABLE, null, null);
-//        database.delete(BUFFER_TABLE, null, null);
-        database.close();
     }
 
     void insertLockDetails(
@@ -291,28 +265,6 @@ class DataStore {
         }
     }
 
-    void insertAccelerometer(float accelerometerX, float accelerometerY, float accelerometerZ,
-                             float speedX, float speedY, float speedZ, String datetime, long timestamp) {
-        ContentValues contentValues = new ContentValues();
-        contentValues.put(ACCELERATION_X, accelerometerX);
-        contentValues.put(ACCELERATION_Y, accelerometerY);
-        contentValues.put(ACCELERATION_Z, accelerometerZ);
-        contentValues.put(SPEED_X, speedX);
-        contentValues.put(SPEED_Y, speedY);
-        contentValues.put(SPEED_Z, speedZ);
-        contentValues.put(ACCELEROMETER_DATETIME, datetime);
-        contentValues.put(TIMESTAMP, timestamp);
-
-        try {
-            database = databaseHelper.getWritableDatabase();
-            database.beginTransaction();
-            database.replace(ACCELEROMETER_TABLE, null, contentValues);
-            database.setTransactionSuccessful();
-        } finally {
-            database.endTransaction();
-        }
-    }
-
     void insertLocation(String provider, double latitude, double longitude, float accuracy, String datetime, long timestamp) {
         ContentValues contentValues = new ContentValues();
         contentValues.put(LOCATION_PROVIDER, provider);
@@ -332,30 +284,16 @@ class DataStore {
         }
     }
 
-    void insertDecision(int decision, long timestamp) {
+    void insertDecision(int decision, boolean unlockDoor, long timestamp) {
         ContentValues contentValues = new ContentValues();
         contentValues.put(DECISION_DECISION, decision);
+        contentValues.put(DECISION_DOOR_UNLOCK, unlockDoor);
         contentValues.put(TIMESTAMP, timestamp);
 
         try {
             database = databaseHelper.getWritableDatabase();
             database.beginTransaction();
             database.replace(DECISION_TABLE, null, contentValues);
-            database.setTransactionSuccessful();
-        } finally {
-            database.endTransaction();
-        }
-    }
-
-    void insertBuffer(long timestamp, String data) {
-        ContentValues contentValues = new ContentValues();
-        contentValues.put(TIMESTAMP, timestamp);
-        contentValues.put(DATA, data);
-
-        try {
-            database = databaseHelper.getWritableDatabase();
-            database.beginTransaction();
-            database.replace(BUFFER_TABLE, null, contentValues);
             database.setTransactionSuccessful();
         } finally {
             database.endTransaction();
@@ -484,13 +422,10 @@ class DataStore {
         int cur_id = 0;
         int prev_id = 0;
 
-//        int cntSession = getSessionCount(unlockDoor);
-
         try {
             database = databaseHelper.getReadableDatabase();
             database.beginTransaction();
 
-//            for (int i = 1; i < cntSession+1; i++) {
                 ArrayList<WindowData> session = new ArrayList<>();
 
                 String sessionQuery;
@@ -677,17 +612,6 @@ class DataStore {
                     + TIMESTAMP + " LONG, "
                     + "PRIMARY KEY (" + WIFI_MAC + ", " + WIFI_NEARBY_LOCK + "))");
 
-            database.execSQL("CREATE TABLE " + ACCELEROMETER_TABLE + " ("
-                    + ID + " INTEGER PRIMARY KEY AUTOINCREMENT, "
-                    + ACCELERATION_X + " FLOAT, "
-                    + ACCELERATION_Y + " FLOAT, "
-                    + ACCELERATION_Z + " FLOAT, "
-                    + SPEED_X + " FLOAT, "
-                    + SPEED_Y + " FLOAT, "
-                    + SPEED_Z + " FLOAT, "
-                    + ACCELEROMETER_DATETIME + " TEXT, "
-                    + TIMESTAMP + " LONG)");
-
             database.execSQL("CREATE TABLE " + LOCATION_TABLE + " ("
                     + LOCATION_PROVIDER + " TEXT, "
                     + LOCATION_LATITUDE + " TEXT, "
@@ -700,10 +624,8 @@ class DataStore {
                     + SESSION_ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
                     + SESSION_DOOR_UNLOCK + " BOOLEAN, "
                     + SESSION_CLUSTER + " INTEGER DEFAULT 0)");
-//                    + SESSION_NAME + " TEXT)");
 
             database.execSQL("CREATE TABLE " + WINDOW_TABLE + " ("
-//                    + WINDOW_ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
                     + WINDOW_SESSION_ID + " INTEGER,"
                     + WINDOW_ACCELERATION_X + " DOUBLE, "
                     + WINDOW_ACCELERATION_Y + " DOUBLE, "
@@ -714,6 +636,11 @@ class DataStore {
                     + WINDOW_ACCELERATION_MAG + " DOUBLE, "
                     + TIMESTAMP + " LONG, "
                     + "FOREIGN KEY(" + WINDOW_SESSION_ID + ") REFERENCES " + SESSION_TABLE + "(" + SESSION_ID + "));");
+
+            database.execSQL("CREATE TABLE " + DECISION_TABLE + " ("
+                    + DECISION_DECISION + " INTEGER, "
+                    + DECISION_DOOR_UNLOCK + " BOOLEAN, "
+                    + TIMESTAMP + " LONG)");
         }
 
 
@@ -721,10 +648,8 @@ class DataStore {
             database.execSQL("DROP TABLE IF EXISTS " + LOCK_TABLE);
             database.execSQL("DROP TABLE IF EXISTS " + BLUETOOTH_TABLE);
             database.execSQL("DROP TABLE IF EXISTS " + WIFI_TABLE);
-            database.execSQL("DROP TABLE IF EXISTS " + ACCELEROMETER_TABLE);
             database.execSQL("DROP TABLE IF EXISTS " + LOCATION_TABLE);
             database.execSQL("DROP TABLE IF EXISTS " + DECISION_TABLE);
-            database.execSQL("DROP TABLE IF EXISTS " + BUFFER_TABLE);
             database.execSQL("DROP TABLE IF EXISTS " + WINDOW_TABLE);
             database.execSQL("DROP TABLE IF EXISTS " + SESSION_TABLE);
         }
