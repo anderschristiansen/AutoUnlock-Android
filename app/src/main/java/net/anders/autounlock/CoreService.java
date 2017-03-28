@@ -34,6 +34,10 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
+import be.ac.ulg.montefiore.run.jahmm.Hmm;
+import be.ac.ulg.montefiore.run.jahmm.ObservationReal;
+import be.ac.ulg.montefiore.run.jahmm.ObservationVector;
+
 public class CoreService extends Service implements
         GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener,
@@ -85,6 +89,9 @@ public class CoreService extends Service implements
     public static boolean isTraining = false;
     public static boolean isMoving = false;
 
+    public static List<Hmm<ObservationReal>> hmmOriList = new ArrayList<>();
+    public static List<Hmm<ObservationReal>> hmmVeloList = new ArrayList<>();
+    public static List<Hmm<ObservationVector>> hmmVecList = new ArrayList<>();
 
     // Used to know if one is needed to be added
     static boolean isLockSaved = false;
@@ -188,16 +195,18 @@ public class CoreService extends Service implements
 
 
 
-        CoreService.windowBufferSize = 20;
-        CoreService.windowSize = 10;
+        CoreService.windowBufferSize = 50;
+        CoreService.windowSize = 20;
 
         // Last % of current window will be overlapping toused in the next window
-        CoreService.windowPercentageOverlap = 0;
+        CoreService.windowPercentageOverlap = .2;
         CoreService.windowOverlap =  CoreService.windowSize - ((int)(CoreService.windowSize *  CoreService.windowPercentageOverlap));
         CoreService.reqUnlockTraining = 5;
         CoreService.orientationThreshold = 50;
         CoreService.velocityThreshold = 50;
         CoreService.activityThreshold = 0;
+
+        trainHMM();
 
         Log.v("CoreService", "Service created");
     }
@@ -719,6 +728,8 @@ public class CoreService extends Service implements
         if (cntUnlock >= reqUnlockTraining) {
 
             Log.v(TAG, "START TRAINING");
+            hmmOriList = new ArrayList<>();
+            hmmVeloList = new ArrayList<>();
 
             // False negative condition as the door did not catch the unlock
             if (cntUnlock != reqUnlockTraining) {
@@ -728,11 +739,8 @@ public class CoreService extends Service implements
 
             Toast.makeText(getApplicationContext(), "The app will now calibrate unlock sessions", Toast.LENGTH_SHORT).show();
 
-            // Fetch every UNLOCK sessions
-            ArrayList<UnlockData> unlock_sessions =  dataStore.getUnlocks();
-
             // Start learning procedure
-            LearningProcess.Start(unlock_sessions);
+            trainHMM();
 
             try {
                 Thread.sleep(50000);
@@ -744,6 +752,13 @@ public class CoreService extends Service implements
             isTraining = false;
         }
         unlockNow();
+    }
+
+    public void trainHMM(){
+        if (!dataStore.getUnlocks().isEmpty()) {
+            MainActivity.lockView.setText("Updating intelligence \n please be patient");
+            LearningProcess.Start(dataStore.getUnlocks());
+        }
     }
 
     public static boolean isClustered(int id) {
@@ -782,5 +797,9 @@ public class CoreService extends Service implements
     void exportDB() {
         Export.Database();
         Toast.makeText(getApplicationContext(), "Database exported", Toast.LENGTH_SHORT).show();
+    }
+
+    public static ArrayList<UnlockData> getUnlocks() {
+        return dataStore.getUnlocks();
     }
 }

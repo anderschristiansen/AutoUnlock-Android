@@ -1,6 +1,6 @@
 package net.anders.autounlock.MachineLearning;
 
-import net.anders.autounlock.MachineLearning.HMM.Record;
+import net.anders.autounlock.MachineLearning.HMM.TrainingModel;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -41,7 +41,7 @@ public class LearningProcess {
         DeleteRecursive(outputDirectory);
 
         for (Map.Entry<Integer, ArrayList<UnlockData>> entry : map.entrySet()) {
-            Record model = new Record();
+            TrainingModel model = new TrainingModel();
 
             ArrayList<UnlockData> temp = new ArrayList<>();
 
@@ -51,7 +51,7 @@ public class LearningProcess {
 
             // Skip cluster id with 0, as they have not been assignt yet
             if (temp.get(0).cluster_id != 0) {
-                model.record(temp);
+                model.train(temp);
             }
         }
     }

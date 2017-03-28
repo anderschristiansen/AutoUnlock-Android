@@ -35,8 +35,6 @@ public class MainActivity extends AppCompatActivity {
     static Button unlockDoor;
     static Button lockDoor;
 
-    private BroadcastReceiver receiver;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -60,28 +58,10 @@ public class MainActivity extends AppCompatActivity {
             addLock.setVisibility(View.GONE);
             lockView.setText("WAIT FOR LOCK");
         }
-
-        receiver = new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context context, Intent intent) {
-                Bundle extras = intent.getExtras();
-                String extraMac = extras.getString("mac");
-                int extraRSSI = extras.getInt("rssi");
-//                trainingBtleMacValue.setText(extraMac);
-//                trainingBtleRssiValue.setText(Integer.toString(extraRSSI));
-//                trainingView.setVisibility(View.VISIBLE);
-                Logging.TrainLog(extraMac, extraRSSI);
-            }
-        };
-        registerReceiver(receiver, filter);
     }
 
     @Override
     protected void onDestroy() {
-        if (receiver != null) {
-            unregisterReceiver(receiver);
-            receiver = null;
-        }
         super.onDestroy();
     }
 

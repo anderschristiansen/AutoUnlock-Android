@@ -58,7 +58,10 @@ public class ScannerService extends Service {
                         decisionLocks.add(foundLock);
                     }
                     if (!decisionLocks.isEmpty()) {
-                        if (!CoreService.isPatternRecognitionRunning && !CoreService.isTraining) {
+                        if (!CoreService.isPatternRecognitionRunning &&
+                                !CoreService.isTraining &&
+                                !CoreService.hmmVecList.isEmpty()) {
+
                             if (CoreService.dataStore.getUnlockCount() >= CoreService.reqUnlockTraining) {
                                 Intent startDecision = new Intent("START_PATTERNRECOGNITION");
                                 sendBroadcast(startDecision);

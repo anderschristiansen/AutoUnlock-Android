@@ -42,13 +42,13 @@ public class Clustering {
                             // else continue to investigate if unlocks should be clustered
                             if (!similarity(currentWindow, nextWindow)) {
                                 cluster = false;
-                                Log.i(TAG, "CLUSTER NOT EXISTING: Record unlock " + String.valueOf(i) + " and " + String.valueOf(i+1));
+                                Log.i(TAG, "CLUSTER NOT EXISTING: TrainingModel unlock " + String.valueOf(i) + " and " + String.valueOf(i+1));
                                 break;
                             }
                         }
                         if (cluster) {
                             // Update the two train unlocks to be clustered together
-                            Log.i(TAG, "CLUSTER FOUND: Record unlock " + String.valueOf(i) + " and " + String.valueOf(i+1));
+                            Log.i(TAG, "CLUSTER FOUND: TrainingModel unlock " + String.valueOf(i) + " and " + String.valueOf(i+1));
                             CoreService.updateCluster(i+1, j+1); // Current train
                             break;
                         }

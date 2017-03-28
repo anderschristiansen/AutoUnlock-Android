@@ -15,6 +15,7 @@
         android:layout_height="wrap_content"
         android:layout_alignParentRight="true">
         <TextView
+            android:visibility="gone"
             android:id="@+id/exportTv"
             android:layout_margin="5dp"
             android:layout_width="wrap_content"
@@ -22,9 +23,10 @@
             android:text="EXPORT"/>
         <Button
             android:id="@+id/exportDb"
-            android:layout_height="50dp"
-            android:layout_width="50dp"
+            android:layout_height="30dp"
+            android:layout_width="30dp"
             android:text=""
+            android:layout_margin="10dp"
             android:onClick="onButtonClickExportDatastore"
             android:layout_below="@+id/exportTv"
             android:layout_centerHorizontal="true"
