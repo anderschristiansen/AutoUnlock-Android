@@ -1,6 +1,7 @@
 package net.anders.autounlock.MachineLearning;
 
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
@@ -58,7 +59,7 @@ public class PatternRecognitionService extends Service {
                     if (CoreService.isMoving) {
 
                         try {
-                            Thread.sleep(5000);
+                            Thread.sleep(3000);
                         } catch (InterruptedException e) {
                             e.printStackTrace();
                         }
@@ -69,7 +70,17 @@ public class PatternRecognitionService extends Service {
                             Log.i(TAG, " ");
                             Log.i(TAG, "INITIATE RECOGNITION");
                             WindowData[] snapshot = RingBuffer.getSnapshot();
-                            recognise.recognise(snapshot);
+
+                            if (recognise.recognise(getApplicationContext(), snapshot)) {
+                                Intent startDecision = new Intent("STOP_PATTERNRECOGNITION");
+                                sendBroadcast(startDecision);
+                            }
+                        }
+
+                        try {
+                            Thread.sleep(3000);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
                         }
                     }
                 }

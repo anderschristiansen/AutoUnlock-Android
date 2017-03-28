@@ -53,7 +53,7 @@ public class ScannerService extends Service {
                         foundLocks.add(bluetoothData.getSource());
                     }
                 }
-                if (!foundLocks.isEmpty() && !CoreService.recordedLocation.isEmpty() && System.currentTimeMillis() - CoreService.lastSignificantMovement > 2000) {
+                if (!foundLocks.isEmpty() && !CoreService.recordedLocation.isEmpty()) {
                     for (String foundLock : foundLocks) {
                         decisionLocks.add(foundLock);
                     }
@@ -62,7 +62,9 @@ public class ScannerService extends Service {
                                 !CoreService.isTraining &&
                                 !CoreService.hmmVecList.isEmpty()) {
 
-                            if (CoreService.dataStore.getUnlockCount() >= CoreService.reqUnlockTraining) {
+                            boolean approved = CoreService.enviromentalScore(decisionLocks.get(0).toString());
+
+                            if (CoreService.dataStore.getUnlockCount() >= CoreService.reqUnlockTraining && approved) {
                                 Intent startDecision = new Intent("START_PATTERNRECOGNITION");
                                 sendBroadcast(startDecision);
                             }

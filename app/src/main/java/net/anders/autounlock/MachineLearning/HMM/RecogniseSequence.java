@@ -1,7 +1,11 @@
 package net.anders.autounlock.MachineLearning.HMM;
 
+import android.content.Context;
+
 import net.anders.autounlock.CoreService;
+import net.anders.autounlock.MachineLearning.PatternRecognitionService;
 import net.anders.autounlock.MachineLearning.WindowData;
+import net.anders.autounlock.NotificationUtility;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -40,54 +44,50 @@ public class RecogniseSequence {
 //    public List<ObservationVector> sequencesInstanceVelo = new ArrayList<>();
 
     public double probabilityVec = 0;
-//    public double probabilityVelo = 0;
+    //    public double probabilityVelo = 0;
     public double bestMatchProb = 0.00000000000000000000000001;
     public int bestMatchNo = -1;
+    public int currentMatchNo = -1;
 
-    public void recognise(WindowData[] unlock) {
-
+    public boolean recognise(Context context, WindowData[] unlock) {
         createData(unlock);
-
         evaluate(sequencesInstanceVec);
 
-        if (bestMatchNo <= 0){
+        if (bestMatchNo < 0){
             System.out.println("*Unable to recognise gesture!*");
             System.out.println("Try again.");
         }
-        else if (bestMatchNo > 0){
-            System.out.println("Best match is: "+ " with probabilty " + bestMatchProb);
+        else {
+            System.out.println("Best match is HMM: " + bestMatchNo +  " with probabilty " + bestMatchProb);
+
+            NotificationUtility notification = new NotificationUtility();
+            notification.displayUnlockNotification(context);
+
             bestMatchNo = -1;
             bestMatchProb = 0.00000000000000000000000001;
+            return true;
         }
+        return false;
     }
 
     public void createData(WindowData[] windows){
         for (WindowData window : windows) {
-//            sequencesInstanceVec.add(new ObservationVector(window.getOrientation()));
-//            sequencesInstanceVelo.add(new ObservationReal(window.getVelocity()));
-              sequencesInstanceVec.add(new ObservationVector(new double[]{window.getOrientation(), window.getVelocity()}));
+            sequencesInstanceVec.add(new ObservationVector(new double[]{window.getOrientation(), window.getVelocity()}));
         }
     }
 
     public void evaluate(List<ObservationVector> vec){
 
         for (int i = 0; CoreService.hmmVecList.size() > i; i++) {
-
             probabilityVec = getProbability("HMM: " + i + ": vec", vec, CoreService.hmmVecList.get(i), probabilityVec);
-//            probabilityVelo = getProbability("HMM: " + i + ": velo", velo, CoreService.hmmVeloList.get(i), probabilityVelo);
+            currentMatchNo = i;
 
+            if (true) {
+//            if (probabilityVec !=0 && probabilityVec > bestMatchProb) {
+                bestMatchProb = probabilityVec;
+                bestMatchNo = currentMatchNo;
+            }
         }
-
-
-
-//        System.out.println("HMM - ORI: " + probabilityOri +" VELO: " + probabilityVelo);
-//
-//        if ((probabilityOri + probabilityVelo) !=0 &&
-//                (probabilityOri + probabilityVelo) > bestMatchProb)
-//        {
-//            bestMatchProb = probabilityOri + probabilityVelo;
-//            bestMatchNo = 1;
-//        }
     }
 
     /* Evaluation problem - Forward-Backward Calculator */

@@ -1,6 +1,6 @@
 package net.anders.autounlock.MachineLearning;
 
-import net.anders.autounlock.MachineLearning.HMM.TrainingModel;
+import net.anders.autounlock.MachineLearning.HMM.TrainModel;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -41,7 +41,7 @@ public class LearningProcess {
         DeleteRecursive(outputDirectory);
 
         for (Map.Entry<Integer, ArrayList<UnlockData>> entry : map.entrySet()) {
-            TrainingModel model = new TrainingModel();
+            TrainModel model = new TrainModel();
 
             ArrayList<UnlockData> temp = new ArrayList<>();
 

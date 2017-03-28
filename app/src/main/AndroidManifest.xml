@@ -54,9 +54,6 @@
             android:name=".GeofenceService"
             android:enabled="true" />
         <service
-            android:name=".DataProcessorService"
-            android:enabled="true" />
-        <service
             android:name=".ScannerService"
             android:enabled="true" />
         <service

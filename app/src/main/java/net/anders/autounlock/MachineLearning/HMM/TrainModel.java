@@ -37,9 +37,9 @@ import be.ac.ulg.montefiore.run.jahmm.learn.KMeansLearner;
  * Created by Anders on 06-03-2017.
  */
 
-public class TrainingModel {
+public class TrainModel {
 
-    private static final String TAG = "TrainingModel";
+    private static final String TAG = "TrainModel";
 
     // Lists of lists of values from multiple iterations (observations), used to create HMMs
 //    List<List<ObservationVector>> toHmmOri;

@@ -4,6 +4,7 @@ import android.Manifest;
 import android.app.ActivityManager;
 import android.content.*;
 import android.content.pm.PackageManager;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.v4.app.ActivityCompat;
@@ -34,6 +35,7 @@ public class MainActivity extends AppCompatActivity {
     static Button addLock;
     static Button unlockDoor;
     static Button lockDoor;
+    static Button export;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,6 +47,7 @@ public class MainActivity extends AppCompatActivity {
         addLock = (Button) findViewById(R.id.addlock);
         unlockDoor = (Button) findViewById(R.id.unlock);
         lockDoor = (Button) findViewById(R.id.lock);
+        export = (Button) findViewById(R.id.exportDb);
 
         DataStore dataStore = new DataStore(this);
 
@@ -56,7 +59,44 @@ public class MainActivity extends AppCompatActivity {
 
         if (!dataStore.getKnownLocks().isEmpty()) {
             addLock.setVisibility(View.GONE);
-            lockView.setText("WAIT FOR LOCK");
+            lockView.setText("SCANNING FOR LOCK");
+        }
+    }
+
+    class unlockTask extends AsyncTask<Void, String, Void>{
+        @Override
+        protected void onPreExecute() {
+            if (CoreService.getUnlocks().size() >= CoreService.reqUnlockTraining) {
+                lockView.setText("Updating intelligence \n please be patient");
+                lockView.setVisibility(View.VISIBLE);
+                lockDoor.setVisibility(View.GONE);
+                unlockDoor.setVisibility(View.GONE);
+            }
+            unlockDoor.setEnabled(false);
+            lockDoor.setEnabled(false);
+            export.setEnabled(false);
+
+            super.onPreExecute();
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            Toast.makeText(getApplicationContext(), "BeKey unlocked", Toast.LENGTH_SHORT).show();
+            lockView.setVisibility(View.GONE);
+            unlockDoor.setVisibility(View.VISIBLE);
+            lockDoor.setVisibility(View.VISIBLE);
+
+            unlockDoor.setEnabled(true);
+            lockDoor.setEnabled(true);
+            export.setEnabled(true);
+
+            super.onPostExecute(aVoid);
+        }
+
+        @Override
+        protected Void doInBackground(Void... voids) {
+            coreService.onButtonClickUnlock();
+            return null;
         }
     }
 
@@ -107,21 +147,6 @@ public class MainActivity extends AppCompatActivity {
         return false;
     }
 
-//    public void onButtonClickTruePositive(View v) {
-//        if (bound) {
-//            coreService.newTruePositive();
-//            Log.d("Manual Decision", "True Positive");
-//        }
-//    }
-//
-//    public void onButtonClickFalsePositive(View v) {
-//        if (bound) {
-//            coreService.newFalsePositive();
-//            Log.d("Manual Decision", "False Positive");
-//        }
-//    }
-
-
     @Override
     public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
         switch (requestCode) {
@@ -156,7 +181,7 @@ public class MainActivity extends AppCompatActivity {
 
     public void onButtonClickUnlock(View v) {
         if (bound) {
-            coreService.onButtonClickUnlock();
+            new unlockTask().execute();
         }
     }
 

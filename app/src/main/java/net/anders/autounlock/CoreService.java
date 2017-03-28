@@ -52,7 +52,6 @@ public class CoreService extends Service implements
     private Intent bluetoothIntent;
     private Intent wifiIntent;
     private Intent locationIntent;
-    private Intent dataProcessorIntent;
     private Intent ringProcessorIntent;
     private Intent scannerIntent;
     private Intent patternRecognitionIntent;
@@ -63,7 +62,6 @@ public class CoreService extends Service implements
     static List<BluetoothData> recordedBluetooth = new ArrayList<BluetoothData>();
     static List<WifiData> recordedWifi = new ArrayList<WifiData>();
     static List<LocationData> recordedLocation = new ArrayList<LocationData>();
-    public static List<AccelerometerData> recordedAccelerometer = new ArrayList<AccelerometerData>();
     static volatile ArrayList<String> activeInnerGeofences = new ArrayList<>();
     static ArrayList<String> activeOuterGeofences = new ArrayList<>();
 
@@ -89,8 +87,6 @@ public class CoreService extends Service implements
     public static boolean isTraining = false;
     public static boolean isMoving = false;
 
-    public static List<Hmm<ObservationReal>> hmmOriList = new ArrayList<>();
-    public static List<Hmm<ObservationReal>> hmmVeloList = new ArrayList<>();
     public static List<Hmm<ObservationVector>> hmmVecList = new ArrayList<>();
 
     // Used to know if one is needed to be added
@@ -160,13 +156,12 @@ public class CoreService extends Service implements
 
         dataStore = new DataStore(this);
         geofence = new Geofence();
-        //heuristics = new Heuristics();
+        //heuristics = new Enviroment();
 
         accelerometerIntent = new Intent(this, AccelerometerService.class);
         locationIntent = new Intent(this, LocationService.class);
         wifiIntent = new Intent(this, WifiService.class);
         bluetoothIntent = new Intent(this, BluetoothService.class);
-        dataProcessorIntent = new Intent(this, DataProcessorService.class);
         ringProcessorIntent = new Intent(this, RingProcessorService.class);
         scannerIntent = new Intent(this, ScannerService.class);
         patternRecognitionIntent = new Intent(this, PatternRecognitionService.class);
@@ -178,22 +173,10 @@ public class CoreService extends Service implements
         geofencesFilter.addAction("GEOFENCES_EXITED");
         registerReceiver(geofencesReceiver, geofencesFilter);
 
-        IntentFilter startDecisionFilter = new IntentFilter();
-        startDecisionFilter.addAction("START_DECISION");
-        registerReceiver(startDecisionReceiver, startDecisionFilter);
-
-        IntentFilter heuristicsTunerFilter = new IntentFilter();
-        heuristicsTunerFilter.addAction("HEURISTICS_TUNER");
-        heuristicsTunerFilter.addAction("ADD_ORIENTATION");
-        heuristicsTunerFilter.addAction("STOP_SCAN");
-        heuristicsTunerFilter.addAction("START_SCAN");
-        registerReceiver(heuristicsReceiver, heuristicsTunerFilter);
-
         IntentFilter startPatternRecognitionFilter = new IntentFilter();
         startPatternRecognitionFilter.addAction("START_PATTERNRECOGNITION");
+        startPatternRecognitionFilter.addAction("STOP_PATTERNRECOGNITION");
         registerReceiver(startPatternRecognitionReceiver, startPatternRecognitionFilter);
-
-
 
         CoreService.windowBufferSize = 50;
         CoreService.windowSize = 20;
@@ -205,8 +188,6 @@ public class CoreService extends Service implements
         CoreService.orientationThreshold = 50;
         CoreService.velocityThreshold = 50;
         CoreService.activityThreshold = 0;
-
-        trainHMM();
 
         Log.v("CoreService", "Service created");
     }
@@ -281,6 +262,12 @@ public class CoreService extends Service implements
     private BroadcastReceiver geofencesReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
+
+            if (!dataStore.getUnlocks().isEmpty()) {
+                MainActivity.lockView.setText("Updating intelligence \n please be patient");
+                trainHMM();
+            }
+
             String action = intent.getAction();
             Bundle extras = intent.getExtras();
             List<String> triggeringGeofencesList = extras.getStringArrayList("Geofences");
@@ -304,9 +291,6 @@ public class CoreService extends Service implements
                     } else if (geofence.contains("outer")) {
                         Logging.GeofenceEntered("Outer");
                         activeOuterGeofences.add(geofence.substring(5));
-
-                        // TODO ABC
-//                        startPatternRecognitionService();
                         startRingBuffer();
                         if (!isLocationDataCollectionStarted) {
                             isLocationDataCollectionStarted = true;
@@ -345,73 +329,6 @@ public class CoreService extends Service implements
         }
     };
 
-    private BroadcastReceiver startDecisionReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            String action = intent.getAction();
-            Bundle extras = intent.getExtras();
-            Log.e(TAG, "StartDecision");
-
-            if ("START_DECISION".equals(action)) {
-                Log.i(TAG, "onReceive: arraylist " + extras.getStringArrayList("Locks"));
-                if (!startHeuristicsDecision(extras.getStringArrayList("Locks"))) {
-                    isLocationDataCollectionStarted = true;
-                    isDetailedDataCollectionStarted = true;
-                    isScanningForLocks = true;
-                    startLocationService();
-                    startAccelerometerService();
-                    startBluetoothService();
-                    startWifiService();
-                    scanForLocks();
-                }
-            }
-        }
-    };
-
-    private BroadcastReceiver heuristicsReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            Log.i(TAG, "onReceive: tuning heuristics");
-            String action = intent.getAction();
-            Bundle extras = intent.getExtras();
-            if ("ADD_ORIENTATION".equals(action)) {
-                Log.w(TAG, "onReceive: add orientation, lock: " + intent.getExtras().getString("lock") + " orientation: " + intent.getExtras().getFloat("orientation"));
-                dataStore.updateLockOrientation(
-                        intent.getExtras().getString("lock"),
-                        intent.getExtras().getFloat("orientation"));
-                if (isDetailedDataCollectionStarted && !isScanningForLocks) {
-                    isScanningForLocks = true;
-                    scanForLocks();
-                }
-            } else if ("STOP_SCAN".equals(action)) {
-                stopAccelerometerService();
-                stopBluetoothService();
-                stopWifiService();
-                stopLocationService();
-                isScanningForLocks = false;
-                isDetailedDataCollectionStarted = false;
-                isLocationDataCollectionStarted = false;
-            } else if ("START_SCAN".equals(action)) {
-                scanForLocks();
-            } else if ("HEURISTICS_TUNER".equals(action)) {
-                switch (extras.getInt("Position")) {
-                    case 0: updateGeofenceSize(extras.getString("Lock"), "Inner", "Smaller");
-                        break;
-                    case 1: updateGeofenceSize(extras.getString("Lock"), "Inner", "Larger");
-                        break;
-                    case 2: updateGeofenceSize(extras.getString("Lock"), "Outer", "Smaller");
-                        break;
-                    case 3: updateGeofenceSize(extras.getString("Lock"), "Outer", "Larger");
-                        break;
-                    case 4: redoDataCollection(extras.getString("Lock"));
-                        break;
-                    case 5: redoOrientation(extras.getString("Lock"));
-                }
-            }
-        }
-    };
-
-    // TODO ABC
     private BroadcastReceiver startPatternRecognitionReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -422,7 +339,18 @@ public class CoreService extends Service implements
             if ("START_PATTERNRECOGNITION".equals(action)) {
                 isPatternRecognitionRunning = true;
                 startPatternRecognitionService();
+            } else if ("STOP_PATTERNRECOGNITION".equals(action)) {
+                isTraining = true;
+                stopAccelerometerService();
+                stopBluetoothService();
+                stopWifiService();
+                stopLocationService();
+                stopPatternRecognitionService();
+                isScanningForLocks = false;
+                isDetailedDataCollectionStarted = false;
+                isLocationDataCollectionStarted = false;
             }
+
         }
     };
 
@@ -483,67 +411,6 @@ public class CoreService extends Service implements
         stopService(bluetoothIntent);
     }
 
-    boolean startHeuristicsDecision(ArrayList<String> foundLocks) {
-        Log.d(TAG, foundLocks.toString());
-        Toast.makeText(this, "BeKey found", Toast.LENGTH_SHORT).show();
-
-        Heuristics heuristics = new Heuristics();
-        heuristics.setRecentBluetoothList(recordedBluetooth);
-        heuristics.setRecentWifiList(recordedWifi);
-        heuristics.setRecentLocationList(recordedLocation);
-        return heuristics.makeDecision(this, foundLocks);
-    }
-
-    void updateGeofenceSize(String lock, String type, String direction) {
-        if (type.equals("Inner")) {
-            if (direction.equals("Larger")) {
-                LockData lockData = dataStore.getLockDetails(lock);
-                String size = String.valueOf(lockData.getInnerGeofence() * 1.25);
-                dataStore.updateGeofence(lock, "inner_geofence", size);
-            } else if (direction.equals("Smaller")) {
-                LockData lockData = dataStore.getLockDetails(lock);
-                String size = String.valueOf(lockData.getInnerGeofence() * 0.75);
-                dataStore.updateGeofence(lock, "inner_geofence", size);
-            }
-        } else if (type.equals("Outer")) {
-            if (direction.equals("Larger")) {
-                LockData lockData = dataStore.getLockDetails(lock);
-                String size = String.valueOf(lockData.getOuterGeofence() * 1.25);
-                dataStore.updateGeofence(lock, "outer_geofence", size);
-            } else if (direction.equals("Smaller")) {
-                LockData lockData = dataStore.getLockDetails(lock);
-                String size = String.valueOf(lockData.getOuterGeofence() * 0.75);
-                dataStore.updateGeofence(lock, "outer_geofence", size);
-            }
-        }
-    }
-
-
-    void redoDataCollection(String lock) {
-        dataStore.deleteLockData(lock);
-        saveLock(lock);
-    }
-
-    void redoOrientation(String lock) {
-        dataStore.updateLockOrientation(lock, -1f);
-    }
-
-    void startDataBuffer() {
-        Log.d(TAG, "Starting data processing");
-        //ringBuffer = new RingBuffer<List>(1000);
-        Thread dataProcessorThread = new Thread() {
-            public void run() {
-                startService(dataProcessorIntent);
-            }
-        };
-        dataProcessorThread.start();
-    }
-
-    void stopDataBuffer() {
-        Log.d("CoreService", "Trying to stop dataProcessor");
-        stopService(dataProcessorIntent);
-    }
-
     // TODO ABC
     void startRingBuffer() {
         Log.d(TAG, "Starting data processing");
@@ -576,10 +443,10 @@ public class CoreService extends Service implements
         geofence.unregisterGeofences(this, mGoogleApiClient);
     }
 
-    void newTruePositive() { long time = System.currentTimeMillis(); dataStore.insertDecision(0, time); }
-    void newFalseNegative() { long time = System.currentTimeMillis(); dataStore.insertDecision(1, time); }
-    void newFalsePositive() { long time = System.currentTimeMillis(); dataStore.insertDecision(2, time); }
-    void newTrueNegative() { long time = System.currentTimeMillis(); dataStore.insertDecision(3, time); }
+    static void newTruePositive() { long time = System.currentTimeMillis(); dataStore.insertDecision(0, time); }
+    static void newFalseNegative() { long time = System.currentTimeMillis(); dataStore.insertDecision(1, time); }
+    static void newFalsePositive() { long time = System.currentTimeMillis(); dataStore.insertDecision(2, time); }
+    static void newTrueNegative() { long time = System.currentTimeMillis(); dataStore.insertDecision(3, time); }
 
     void saveLock(final String lockMAC) {
         new Thread(new Runnable() {
@@ -692,7 +559,6 @@ public class CoreService extends Service implements
     void onButtonClickUnlock() {
         if (dataStore.getKnownLocks().isEmpty()) {
             saveLock(BluetoothService.ANDERS_BEKEY);
-            unlockNow();
         } else {
             if (isPatternRecognitionRunning) {
                 stopPatternRecognitionService();
@@ -728,8 +594,7 @@ public class CoreService extends Service implements
         if (cntUnlock >= reqUnlockTraining) {
 
             Log.v(TAG, "START TRAINING");
-            hmmOriList = new ArrayList<>();
-            hmmVeloList = new ArrayList<>();
+            hmmVecList = new ArrayList<>();
 
             // False negative condition as the door did not catch the unlock
             if (cntUnlock != reqUnlockTraining) {
@@ -737,26 +602,16 @@ public class CoreService extends Service implements
                 newFalseNegative();
             }
 
-            Toast.makeText(getApplicationContext(), "The app will now calibrate unlock sessions", Toast.LENGTH_SHORT).show();
-
             // Start learning procedure
             trainHMM();
-
-            try {
-                Thread.sleep(50000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
 
             Log.v(TAG, "TRAINING FINISHED");
             isTraining = false;
         }
-        unlockNow();
     }
 
     public void trainHMM(){
         if (!dataStore.getUnlocks().isEmpty()) {
-            MainActivity.lockView.setText("Updating intelligence \n please be patient");
             LearningProcess.Start(dataStore.getUnlocks());
         }
     }
@@ -801,5 +656,11 @@ public class CoreService extends Service implements
 
     public static ArrayList<UnlockData> getUnlocks() {
         return dataStore.getUnlocks();
+    }
+
+
+    static boolean enviromentalScore(String foundLock) {
+        return Enviroment.makeDecision(foundLock);
+
     }
 }
