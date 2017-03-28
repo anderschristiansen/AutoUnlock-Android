@@ -87,9 +87,10 @@ public class WindowProcessor {
         // Put new window into the circular buffer
         RingBuffer.addWindow(window);
 
-//        Log.i(TAG, "MAG: " + window.getAccelerationMag());
         if (window.getAccelerationMag() > CoreService.activityThreshold) {
-            CoreService.startRecognizingPattern = true;
+            CoreService.isMoving = true;
+        } else {
+            CoreService.isMoving = false;
         }
 
         prevWindow = window;

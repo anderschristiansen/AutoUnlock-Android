@@ -54,15 +54,24 @@ public class PatternRecognitionService extends Service {
 
             while (running) {
 
-                if (CoreService.startRecognizingPattern) {
-                    Log.i(TAG, "INITIATE RECOGNITION");
-                    WindowData[] snapshot = RingBuffer.getSnapshot();
-                    //recognise.recognise(snapshot);
-                }
-                try {
-                    Thread.sleep(5000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
+                if (CoreService.isPatternRecognitionRunning) {
+                    Log.i(TAG, "IS RUNNING");
+                    if (CoreService.isMoving) {
+
+                        try {
+                            Thread.sleep(5000);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+
+                        if (CoreService.isTraining) {
+                            stopSelf();
+                        } else {
+                            Log.i(TAG, "INITIATE RECOGNITION");
+                            WindowData[] snapshot = RingBuffer.getSnapshot();
+                            recognise.recognise(snapshot);
+                        }
+                    }
                 }
             }
         }

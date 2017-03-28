@@ -6,12 +6,12 @@ import java.util.ArrayList;
  * Created by Anders on 14-03-2017.
  */
 
-public class SessionData {
+public class UnlockData {
     int id;
     int cluster_id;
     ArrayList<WindowData> windows;
 
-    public SessionData(int id, int cluster_id, ArrayList<WindowData> windows) {
+    public UnlockData(int id, int cluster_id, ArrayList<WindowData> windows) {
         this.id = id;
         this.cluster_id = cluster_id;
         this.windows = windows;

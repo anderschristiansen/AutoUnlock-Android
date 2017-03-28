@@ -7,7 +7,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
-import net.anders.autounlock.MachineLearning.SessionData;
+import net.anders.autounlock.MachineLearning.UnlockData;
 import net.anders.autounlock.MachineLearning.WindowData;
 
 import java.util.ArrayList;
@@ -46,13 +46,12 @@ class DataStore {
     private static final String LOCATION_ACCURACY = "accuracy";
     private static final String LOCATION_DATETIME = "datetime";
 
-    private static final String SESSION_TABLE = "session";
-    private static final String SESSION_ID = "id";
-    private static final String SESSION_DOOR_UNLOCK = "door_unlock";
-    private static final String SESSION_CLUSTER = "cluster";
+    private static final String UNLOCK_TABLE = "unlock";
+    private static final String UNLOCK_ID = "id";
+    private static final String UNLOCK_CLUSTER = "cluster";
 
     private static final String WINDOW_TABLE = "window";
-    private static final String WINDOW_SESSION_ID = "session_id";
+    private static final String WINDOW_UNLOCK_ID = "unlock_id";
     private static final String WINDOW_ORIENTATION = "orientation";
     private static final String WINDOW_VELOCITY = "velocity";
     private static final String WINDOW_ACCELERATION_X = "acceleration_x";
@@ -63,7 +62,6 @@ class DataStore {
 
     private static final String DECISION_TABLE = "decision";
     private static final String DECISION_DECISION = "decision";
-    private static final String DECISION_DOOR_UNLOCK = "door_unlock";
 
     private SQLiteDatabase database;
     private DatabaseHelper databaseHelper;
@@ -284,10 +282,9 @@ class DataStore {
         }
     }
 
-    void insertDecision(int decision, boolean unlockDoor, long timestamp) {
+    void insertDecision(int decision, long timestamp) {
         ContentValues contentValues = new ContentValues();
         contentValues.put(DECISION_DECISION, decision);
-        contentValues.put(DECISION_DOOR_UNLOCK, unlockDoor);
         contentValues.put(TIMESTAMP, timestamp);
 
         try {
@@ -350,15 +347,15 @@ class DataStore {
     }
 
     // TODO ABC
-    void insertSession(WindowData[] snapshot, boolean unlockDoor) {
+    void insertUnlock(WindowData[] snapshot) {
         ContentValues contentValues = new ContentValues();
 
-        contentValues.put(SESSION_DOOR_UNLOCK, unlockDoor);
+        contentValues.put(UNLOCK_CLUSTER, 0);
 
         try {
             database = databaseHelper.getWritableDatabase();
             database.beginTransaction();
-            database.replace(SESSION_TABLE, null, contentValues);
+            database.replace(UNLOCK_TABLE, null, contentValues);
             database.setTransactionSuccessful();
         } finally {
             database.endTransaction();
@@ -373,7 +370,7 @@ class DataStore {
 
     void insertWindows(WindowData[] snapshot, int id) {
         ContentValues contentValues = new ContentValues();
-        contentValues.put(WINDOW_SESSION_ID, id);
+        contentValues.put(WINDOW_UNLOCK_ID, id);
 
         for (WindowData window: snapshot) {
             contentValues.put(WINDOW_ACCELERATION_X, window.getAccelerationX());
@@ -396,17 +393,13 @@ class DataStore {
         }
     }
 
-    int getSessionCount(boolean unlockDoor) {
+    int getUnlockCount() {
         int cnt;
         try {
             database = databaseHelper.getReadableDatabase();
             database.beginTransaction();
             String countQuery;
-            if (unlockDoor) {
-                countQuery = "SELECT * FROM " + SESSION_TABLE + " WHERE " + SESSION_DOOR_UNLOCK + ";";
-            } else {
-                countQuery = "SELECT * FROM " + SESSION_TABLE + " WHERE NOT(" + SESSION_DOOR_UNLOCK + ");";
-            }
+            countQuery = "SELECT * FROM " + UNLOCK_TABLE;
             Cursor cursor = database.rawQuery(countQuery, null);
             cnt = cursor.getCount();
             cursor.close();
@@ -416,9 +409,9 @@ class DataStore {
         return cnt;
     }
 
-    ArrayList<SessionData> getSessions(boolean unlockDoor) {
+    ArrayList<UnlockData> getUnlocks() {
 
-        ArrayList<SessionData> clusters = new ArrayList<>();
+        ArrayList<UnlockData> clusters = new ArrayList<>();
         int cur_id = 0;
         int prev_id = 0;
 
@@ -426,49 +419,42 @@ class DataStore {
             database = databaseHelper.getReadableDatabase();
             database.beginTransaction();
 
-                ArrayList<WindowData> session = new ArrayList<>();
+            ArrayList<WindowData> unlock = new ArrayList<>();
 
-                String sessionQuery;
-                if (unlockDoor) {
-                    sessionQuery = "SELECT * FROM " + WINDOW_TABLE
-                            + " INNER JOIN " + SESSION_TABLE
-                            + " ON " + WINDOW_SESSION_ID + "=" + SESSION_ID
-                            + " WHERE " + SESSION_DOOR_UNLOCK + ";";
-                } else {
-                    sessionQuery = "SELECT * FROM " + WINDOW_TABLE
-                            + " INNER JOIN " + SESSION_TABLE
-                            + " ON " + WINDOW_SESSION_ID + "=" + SESSION_ID
-                            + " WHERE NOT(" + SESSION_DOOR_UNLOCK + ");";
-                }
+            String unlockQuery;
+            unlockQuery = "SELECT * FROM " + WINDOW_TABLE
+                    + " INNER JOIN " + UNLOCK_TABLE
+                    + " ON " + WINDOW_UNLOCK_ID + "=" + UNLOCK_ID + ";";
 
-                Cursor sessionCursor = database.rawQuery(sessionQuery, null);
 
-                if (sessionCursor.moveToFirst()) {
-                    do {
-                        cur_id = sessionCursor.getInt(sessionCursor.getColumnIndex(WINDOW_SESSION_ID));
-                        double accelerationX = sessionCursor.getDouble(sessionCursor.getColumnIndex(WINDOW_ACCELERATION_X));
-                        double accelerationY = sessionCursor.getDouble(sessionCursor.getColumnIndex(WINDOW_ACCELERATION_Y));
-                        double speedX = sessionCursor.getDouble(sessionCursor.getColumnIndex(WINDOW_SPEED_X));
-                        double speedY = sessionCursor.getDouble(sessionCursor.getColumnIndex(WINDOW_SPEED_Y));
-                        double orientation = sessionCursor.getDouble(sessionCursor.getColumnIndex(WINDOW_ORIENTATION));
-                        double velocity = sessionCursor.getDouble(sessionCursor.getColumnIndex(WINDOW_VELOCITY));
-                        double accelerationMag = sessionCursor.getDouble(sessionCursor.getColumnIndex(WINDOW_ACCELERATION_MAG));
-                        double time = sessionCursor.getDouble(sessionCursor.getColumnIndex(TIMESTAMP));
+            Cursor unlockCursor = database.rawQuery(unlockQuery, null);
 
-                        if (cur_id != prev_id && prev_id != 0) {
-                            SessionData cluster = new SessionData(prev_id, 0, session);
-                            clusters.add(cluster);
-                            session = new ArrayList<>();
-                        }
-                        session.add(new WindowData(accelerationX, accelerationY, speedX, speedY, orientation, velocity, accelerationMag, time));
-                        prev_id = cur_id;
-                    } while (sessionCursor.moveToNext());
+            if (unlockCursor.moveToFirst()) {
+                do {
+                    cur_id = unlockCursor.getInt(unlockCursor.getColumnIndex(WINDOW_UNLOCK_ID));
+                    double accelerationX = unlockCursor.getDouble(unlockCursor.getColumnIndex(WINDOW_ACCELERATION_X));
+                    double accelerationY = unlockCursor.getDouble(unlockCursor.getColumnIndex(WINDOW_ACCELERATION_Y));
+                    double speedX = unlockCursor.getDouble(unlockCursor.getColumnIndex(WINDOW_SPEED_X));
+                    double speedY = unlockCursor.getDouble(unlockCursor.getColumnIndex(WINDOW_SPEED_Y));
+                    double orientation = unlockCursor.getDouble(unlockCursor.getColumnIndex(WINDOW_ORIENTATION));
+                    double velocity = unlockCursor.getDouble(unlockCursor.getColumnIndex(WINDOW_VELOCITY));
+                    double accelerationMag = unlockCursor.getDouble(unlockCursor.getColumnIndex(WINDOW_ACCELERATION_MAG));
+                    double time = unlockCursor.getDouble(unlockCursor.getColumnIndex(TIMESTAMP));
 
-                    // Add current session to cluster when queue is at its end
-                    SessionData c = new SessionData(cur_id, 0, session);
-                    clusters.add(c);
-                }
-                sessionCursor.close();
+                    if (cur_id != prev_id && prev_id != 0) {
+                        UnlockData cluster = new UnlockData(prev_id, 0, unlock);
+                        clusters.add(cluster);
+                        unlock = new ArrayList<>();
+                    }
+                    unlock.add(new WindowData(accelerationX, accelerationY, speedX, speedY, orientation, velocity, accelerationMag, time));
+                    prev_id = cur_id;
+                } while (unlockCursor.moveToNext());
+
+                // Add current unlock to cluster when queue is at its end
+                UnlockData c = new UnlockData(cur_id, 0, unlock);
+                clusters.add(c);
+            }
+            unlockCursor.close();
 //            }
         } finally {
             database.endTransaction();
@@ -482,7 +468,7 @@ class DataStore {
             database = databaseHelper.getReadableDatabase();
             database.beginTransaction();
 
-            String countQuery = "SELECT " + SESSION_CLUSTER + " FROM " + SESSION_TABLE + " WHERE " + SESSION_ID + "=" + id + ";";
+            String countQuery = "SELECT " + UNLOCK_CLUSTER + " FROM " + UNLOCK_TABLE + " WHERE " + UNLOCK_ID + "=" + id + ";";
             Cursor cursor = database.rawQuery(countQuery, null);
 
             if(cursor.moveToFirst()){
@@ -503,7 +489,7 @@ class DataStore {
             database = databaseHelper.getReadableDatabase();
             database.beginTransaction();
 
-            String countQuery = "SELECT " + SESSION_CLUSTER + " FROM " + SESSION_TABLE + " WHERE " + SESSION_ID + "=" + id + ";";
+            String countQuery = "SELECT " + UNLOCK_CLUSTER + " FROM " + UNLOCK_TABLE + " WHERE " + UNLOCK_ID + "=" + id + ";";
             Cursor cursor = database.rawQuery(countQuery, null);
 
             if(cursor.moveToFirst()){
@@ -524,7 +510,7 @@ class DataStore {
             database = databaseHelper.getReadableDatabase();
             database.beginTransaction();
 
-            String countQuery = "SELECT MAX(" + SESSION_CLUSTER + ") FROM " + SESSION_TABLE + ";";
+            String countQuery = "SELECT MAX(" + UNLOCK_CLUSTER + ") FROM " + UNLOCK_TABLE + ";";
             Cursor cursor = database.rawQuery(countQuery, null);
             cursor.moveToFirst();
             cnt = cursor.getInt(0);
@@ -548,14 +534,14 @@ class DataStore {
         }
 
         ContentValues args = new ContentValues();
-        args.put(SESSION_ID, cur_id);
-        args.put(SESSION_CLUSTER, clusterValue);
-        database.update(SESSION_TABLE, args, SESSION_ID + "=" + cur_id, null);
+        args.put(UNLOCK_ID, cur_id);
+        args.put(UNLOCK_CLUSTER, clusterValue);
+        database.update(UNLOCK_TABLE, args, UNLOCK_ID + "=" + cur_id, null);
 
         ContentValues args2 = new ContentValues();
-        args2.put(SESSION_ID, next_id);
-        args2.put(SESSION_CLUSTER, clusterValue);
-        database.update(SESSION_TABLE, args2, SESSION_ID + "=" + next_id, null);
+        args2.put(UNLOCK_ID, next_id);
+        args2.put(UNLOCK_CLUSTER, clusterValue);
+        database.update(UNLOCK_TABLE, args2, UNLOCK_ID + "=" + next_id, null);
 
     }
 
@@ -620,13 +606,12 @@ class DataStore {
                     + LOCATION_DATETIME + " TEXT, "
                     + TIMESTAMP + " LONG)");
 
-            database.execSQL("CREATE TABLE " + SESSION_TABLE + " ("
-                    + SESSION_ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
-                    + SESSION_DOOR_UNLOCK + " BOOLEAN, "
-                    + SESSION_CLUSTER + " INTEGER DEFAULT 0)");
+            database.execSQL("CREATE TABLE " + UNLOCK_TABLE + " ("
+                    + UNLOCK_ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
+                    + UNLOCK_CLUSTER + " INTEGER DEFAULT 0)");
 
             database.execSQL("CREATE TABLE " + WINDOW_TABLE + " ("
-                    + WINDOW_SESSION_ID + " INTEGER,"
+                    + WINDOW_UNLOCK_ID + " INTEGER,"
                     + WINDOW_ACCELERATION_X + " DOUBLE, "
                     + WINDOW_ACCELERATION_Y + " DOUBLE, "
                     + WINDOW_SPEED_X + " DOUBLE, "
@@ -635,11 +620,10 @@ class DataStore {
                     + WINDOW_VELOCITY + " DOUBLE, "
                     + WINDOW_ACCELERATION_MAG + " DOUBLE, "
                     + TIMESTAMP + " LONG, "
-                    + "FOREIGN KEY(" + WINDOW_SESSION_ID + ") REFERENCES " + SESSION_TABLE + "(" + SESSION_ID + "));");
+                    + "FOREIGN KEY(" + WINDOW_UNLOCK_ID + ") REFERENCES " + UNLOCK_TABLE + "(" + UNLOCK_ID + "));");
 
             database.execSQL("CREATE TABLE " + DECISION_TABLE + " ("
                     + DECISION_DECISION + " INTEGER, "
-                    + DECISION_DOOR_UNLOCK + " BOOLEAN, "
                     + TIMESTAMP + " LONG)");
         }
 
@@ -651,7 +635,7 @@ class DataStore {
             database.execSQL("DROP TABLE IF EXISTS " + LOCATION_TABLE);
             database.execSQL("DROP TABLE IF EXISTS " + DECISION_TABLE);
             database.execSQL("DROP TABLE IF EXISTS " + WINDOW_TABLE);
-            database.execSQL("DROP TABLE IF EXISTS " + SESSION_TABLE);
+            database.execSQL("DROP TABLE IF EXISTS " + UNLOCK_TABLE);
         }
     }
 }

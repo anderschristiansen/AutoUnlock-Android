@@ -150,7 +150,6 @@ public class AccelerometerService extends Service implements SensorEventListener
         //Log.i(TAG, "rotateAccelerationToWorldCoordinates: " + rotatedLinearAcceleration[0] + " " + rotatedLinearAcceleration[1] + " " + rotatedLinearAcceleration[2]);
         //calculateVelocity(rotatedLinearAcceleration, timestamp);
 
-        //TODO ABC
         AccelerometerData anAccelerometerEvent = new AccelerometerData (
                 linearAcceleration[0],
                 linearAcceleration[1],

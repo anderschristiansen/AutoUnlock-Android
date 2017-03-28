@@ -48,34 +48,24 @@ public class ScannerService extends Service {
             long startTime = System.currentTimeMillis();
 
             while (running) {
-//                Log.i(TAG, "run: Scanning for locks " + CoreService.activeInnerGeofences.toString());
                 for (BluetoothData bluetoothData : CoreService.recordedBluetooth) {
-//                    Log.e(TAG, "run: activeInnerGeofences " + bluetoothData.getSource() + CoreService.activeInnerGeofences.toString());
                     if (CoreService.activeInnerGeofences.contains(bluetoothData.getSource())) {
                         foundLocks.add(bluetoothData.getSource());
                     }
                 }
-//                Log.i(TAG, "run: " + "Current Orientation=" + CoreService.currentOrientation + " Last Significant Movement=" + CoreService.lastSignificantMovement);
                 if (!foundLocks.isEmpty() && !CoreService.recordedLocation.isEmpty() && System.currentTimeMillis() - CoreService.lastSignificantMovement > 2000) {
                     for (String foundLock : foundLocks) {
-//                        LockData foundLockWithDetails = CoreService.dataStore.getLockDetails(foundLock);
                         decisionLocks.add(foundLock);
                     }
-
                     if (!decisionLocks.isEmpty()) {
-//                        Log.i(TAG, "FOUND LOCK");
-
-//                        Intent startDecision = new Intent("START_DECISION");
-//                        startDecision.putStringArrayListExtra("Locks", decisionLocks);
-//                        sendBroadcast(startDecision);
-//
-//                        sendBroadcast(stopScan);
-//                        running = false;
-//                        CoreService.isScanningForLocks = false;
-//                        stopSelf();
+                        if (!CoreService.isPatternRecognitionRunning && !CoreService.isTraining) {
+                            if (CoreService.dataStore.getUnlockCount() >= CoreService.reqUnlockTraining) {
+                                Intent startDecision = new Intent("START_PATTERNRECOGNITION");
+                                sendBroadcast(startDecision);
+                            }
+                        }
                     }
                 }
-
                 try {
                     Thread.sleep(300);
                 } catch (InterruptedException e) {

@@ -23,8 +23,8 @@ import com.google.android.gms.location.LocationServices;
 
 import net.anders.autounlock.Export.Export;
 import net.anders.autounlock.MachineLearning.PatternRecognitionService;
+import net.anders.autounlock.MachineLearning.UnlockData;
 import net.anders.autounlock.MachineLearning.WindowProcessor;
-import net.anders.autounlock.MachineLearning.SessionData;
 import net.anders.autounlock.MachineLearning.LearningProcess;
 import net.anders.autounlock.MachineLearning.WindowData;
 
@@ -77,12 +77,13 @@ public class CoreService extends Service implements
     public static int windowSize;
     public static double windowPercentageOverlap;
     public static int windowOverlap;
-    public static int reqTrainingSessions;
+    public static int reqUnlockTraining;
     public static int orientationThreshold;
     public static int velocityThreshold;
-    public static boolean unlockDoor;
     public static double activityThreshold;
-    public static boolean startRecognizingPattern = false;
+    public static boolean isPatternRecognitionRunning = false;
+    public static boolean isTraining = false;
+    public static boolean isMoving = false;
 
 
     // Used to know if one is needed to be added
@@ -187,15 +188,13 @@ public class CoreService extends Service implements
 
 
 
-        // Numbers of times needed for manual unlocking before enough data is collected
-        // CoreService.manualUnLockCalibration = 5;
         CoreService.windowBufferSize = 20;
         CoreService.windowSize = 10;
 
         // Last % of current window will be overlapping toused in the next window
         CoreService.windowPercentageOverlap = 0;
         CoreService.windowOverlap =  CoreService.windowSize - ((int)(CoreService.windowSize *  CoreService.windowPercentageOverlap));
-        CoreService.reqTrainingSessions = 5;
+        CoreService.reqUnlockTraining = 5;
         CoreService.orientationThreshold = 50;
         CoreService.velocityThreshold = 50;
         CoreService.activityThreshold = 0;
@@ -292,11 +291,6 @@ public class CoreService extends Service implements
                             startBluetoothService();
                             startWifiService();
                             scanForLocks();
-
-                            if (dataStore.getSessionCount(true) > reqTrainingSessions ||
-                                    dataStore.getSessionCount(false) > reqTrainingSessions) {
-                                startPatternRecognitionService();
-                            }
                         }
                     } else if (geofence.contains("outer")) {
                         Logging.GeofenceEntered("Outer");
@@ -417,7 +411,7 @@ public class CoreService extends Service implements
             Log.e(TAG, "StartPatternRecognition");
 
             if ("START_PATTERNRECOGNITION".equals(action)) {
-                startRecognizingPattern = true;
+                isPatternRecognitionRunning = true;
                 startPatternRecognitionService();
             }
         }
@@ -555,12 +549,6 @@ public class CoreService extends Service implements
         ringProcessorThread.start();
     }
 
-    // TODO ABC
-    void stopRingBuffer() {
-        Log.d("CoreService", "Trying to stop ringProcessor");
-        stopService(ringProcessorIntent);
-    }
-
     void addGeofences() {
         ArrayList<LockData> lockDataArrayList = dataStore.getKnownLocks();
         if (!lockDataArrayList.isEmpty()) {
@@ -579,10 +567,10 @@ public class CoreService extends Service implements
         geofence.unregisterGeofences(this, mGoogleApiClient);
     }
 
-    void newTruePositive(boolean unlockDoor) { long time = System.currentTimeMillis(); dataStore.insertDecision(0, unlockDoor, time); }
-    void newFalseNegative(boolean unlockDoor) { long time = System.currentTimeMillis(); dataStore.insertDecision(1, unlockDoor, time); }
-    void newFalsePositive(boolean unlockDoor) { long time = System.currentTimeMillis(); dataStore.insertDecision(2, unlockDoor, time); }
-    void newTrueNegative(boolean unlockDoor) { long time = System.currentTimeMillis(); dataStore.insertDecision(3, unlockDoor, time); }
+    void newTruePositive() { long time = System.currentTimeMillis(); dataStore.insertDecision(0, time); }
+    void newFalseNegative() { long time = System.currentTimeMillis(); dataStore.insertDecision(1, time); }
+    void newFalsePositive() { long time = System.currentTimeMillis(); dataStore.insertDecision(2, time); }
+    void newTrueNegative() { long time = System.currentTimeMillis(); dataStore.insertDecision(3, time); }
 
     void saveLock(final String lockMAC) {
         new Thread(new Runnable() {
@@ -687,78 +675,75 @@ public class CoreService extends Service implements
         return dateFormat.format(date);
     }
 
-    //TODO ABC
     void onButtonClickAddLock() {
         saveLock(BluetoothService.ANDERS_BEKEY);
-        Toast.makeText(getApplicationContext(), "BeKey unlocked", Toast.LENGTH_SHORT).show();
+        unlockNow();
     }
 
-    //TODO ABC
     void onButtonClickUnlock() {
         if (dataStore.getKnownLocks().isEmpty()) {
             saveLock(BluetoothService.ANDERS_BEKEY);
-            Toast.makeText(getApplicationContext(), "BeKey unlocked", Toast.LENGTH_SHORT).show();
+            unlockNow();
         } else {
-            unlockDoor = true;
-            handleDoorSession(unlockDoor);
+            if (isPatternRecognitionRunning) {
+                stopPatternRecognitionService();
+                isTraining = true;
+            }
+            handleUnlock();
         }
     }
 
-    // TODO ABC
     void onButtonClickLock() {
         if (dataStore.getKnownLocks().isEmpty()) {
             saveLock(BluetoothService.ANDERS_BEKEY);
         }
-        unlockDoor = false;
-        handleDoorSession(unlockDoor);
+        lockNow();
     }
 
-    void handleDoorSession(boolean unlockDoor) {
+    void lockNow(){
+        Toast.makeText(getApplicationContext(), "BeKey locked", Toast.LENGTH_SHORT).show();
+    }
+
+    void unlockNow() {
+        Toast.makeText(getApplicationContext(), "BeKey unlocked", Toast.LENGTH_SHORT).show();
+    }
+
+    void handleUnlock() {
         WindowData[] snapshot = RingBuffer.getSnapshot();
-        dataStore.insertSession(snapshot, unlockDoor);
+        dataStore.insertUnlock(snapshot);
 
         Log.i(TAG, "Snapshot length: " + String.valueOf(snapshot.length));
 
-        int cntSession = dataStore.getSessionCount(unlockDoor);
+        int cntUnlock = dataStore.getUnlockCount();
 
-        if (cntSession >= reqTrainingSessions && unlockDoor) {
+        if (cntUnlock >= reqUnlockTraining) {
+
+            Log.v(TAG, "START TRAINING");
 
             // False negative condition as the door did not catch the unlock
-            if (cntSession != reqTrainingSessions) {
+            if (cntUnlock != reqUnlockTraining) {
                 Log.v(TAG, "Inserting FN for unlocking");
-                newFalseNegative(unlockDoor);
+                newFalseNegative();
             }
 
-            Toast.makeText(getApplicationContext(), "BeKey unlocked! The app will now calibrate unlock sessions", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getApplicationContext(), "The app will now calibrate unlock sessions", Toast.LENGTH_SHORT).show();
 
             // Fetch every UNLOCK sessions
-            ArrayList<SessionData> unlock_sessions =  dataStore.getSessions(unlockDoor);
+            ArrayList<UnlockData> unlock_sessions =  dataStore.getUnlocks();
 
             // Start learning procedure
-            LearningProcess.Start(unlock_sessions, unlockDoor);
-        }
-        else if (cntSession >= reqTrainingSessions && !unlockDoor) {
+            LearningProcess.Start(unlock_sessions);
 
-            // False negative condition as the door did not catch the unlock
-            if (cntSession != reqTrainingSessions) {
-                Log.v(TAG, "Inserting FN for locking");
-                newFalseNegative(!unlockDoor);
+            try {
+                Thread.sleep(50000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
 
-            Toast.makeText(getApplicationContext(), "BeKey locked! The app will now calibrate lock sessions", Toast.LENGTH_SHORT).show();
-
-            // Fetch every LOCK sessions
-            ArrayList<SessionData> lock_sessions =  dataStore.getSessions(unlockDoor);
-
-            // Start learning procedure
-            LearningProcess.Start(lock_sessions, unlockDoor);
+            Log.v(TAG, "TRAINING FINISHED");
+            isTraining = false;
         }
-        if (unlockDoor) {
-            Toast.makeText(getApplicationContext(), "BeKey unlocked", Toast.LENGTH_SHORT).show();
-        } else {
-            Toast.makeText(getApplicationContext(), "BeKey locked", Toast.LENGTH_SHORT).show();
-        }
-
+        unlockNow();
     }
 
     public static boolean isClustered(int id) {
@@ -788,7 +773,7 @@ public class CoreService extends Service implements
     }
 
     private void stopPatternRecognitionService() {
-        startRecognizingPattern = false;
+        isPatternRecognitionRunning = false;
         WindowProcessor.prevWindow = null;
         Log.d("CoreService", "Trying to stop PatternRecognitionService");
         stopService(patternRecognitionIntent);

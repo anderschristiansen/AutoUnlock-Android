@@ -1,6 +1,5 @@
 package net.anders.autounlock.MachineLearning.HMM;
 
-import net.anders.autounlock.MachineLearning.SessionData;
 import net.anders.autounlock.MachineLearning.WindowData;
 
 import java.io.BufferedReader;
@@ -13,8 +12,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.LineNumberReader;
-import java.net.DatagramSocket;
-import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -40,7 +37,7 @@ public class Recognise {
 
     // Variables
     public boolean firstElement = true;
-    public int noOfSessions;
+    public int noOfUnlocks;
     public FileReader fileReaderOri, fileReaderVelo;
     public FileWriter testWriterOri, testWriterVelo;
     public OpdfIntegerReader opdfReader;
@@ -63,35 +60,35 @@ public class Recognise {
 
     File inputDirectory = new File("/sdcard/AutoUnlock/HMM/");
 
-    public void recognise(WindowData[] session) {
+    public void recognise(WindowData[] unlock) {
         try {
-            countSessions();
+            countUnlocks();
 
-            String[] sessionName = new String[noOfSessions];
+            String[] unlockName = new String[noOfUnlocks];
 
             FileInputStream in = new FileInputStream(new File(inputDirectory, "Overview.txt"));
             BufferedReader br = new BufferedReader(new InputStreamReader(in));
 
-            for(int i = 1; i<sessionName.length;i++){
-                sessionName[i] = br.readLine();
+            for(int i = 1; i<unlockName.length;i++){
+                unlockName[i] = br.readLine();
             }
             in.close();
             br.close();
 
             System.out.println("");
-            System.out.println("Your saved sessions are:");
+            System.out.println("Your saved unlocks are:");
 
-            for (int i = 1; i<sessionName.length; i++){
-                System.out.println("Session #[" + i + "] = " + sessionName[i]);
+            for (int i = 1; i<unlockName.length; i++){
+                System.out.println("Session #[" + i + "] = " + unlockName[i]);
             }
 
-            for (int i=1; i<sessionName.length;i++){
+            for (int i=1; i<unlockName.length;i++){
                 readHmm(i);
             }
 
-            createData(session);
+            createData(unlock);
 
-            for (int i = 1; i <sessionName.length;i++){
+            for (int i = 1; i <unlockName.length;i++){
                 evaluate(sequencesInstanceOri, sequencesInstanceVelo, i);
             }
 
@@ -100,7 +97,7 @@ public class Recognise {
                 System.out.println("Try again.");
             }
             else if (bestMatchNo > 0){
-                System.out.println("Best match is: "+ sessionName[bestMatchNo] + " with probabilty " + bestMatchProb);
+                System.out.println("Best match is: "+ unlockName[bestMatchNo] + " with probabilty " + bestMatchProb);
                 bestMatchNo = -1;
                 bestMatchProb = 0.00000000000000000000000001;
             }
@@ -120,22 +117,22 @@ public class Recognise {
 
 
     //Counts the the number of saved gestures to give a correct length to the array
-    public int countSessions() throws IOException {
+    public int countUnlocks() throws IOException {
 
         inputDirectory = new File("/sdcard/AutoUnlock/HMM/");
         LineNumberReader lnr = new LineNumberReader(new FileReader(new File(inputDirectory, "Overview.txt")));
         lnr.skip(Long.MAX_VALUE);
-        noOfSessions = lnr.getLineNumber() + 1;
+        noOfUnlocks = lnr.getLineNumber() + 1;
         lnr.close();
 
-        return noOfSessions;
+        return noOfUnlocks;
     }
 
 
     //Reads each HMM from the saved text files
     public void readHmm(int hmmNo) throws FileFormatException, FileNotFoundException, IOException{
 
-        String[] fileName = new String[noOfSessions];
+        String[] fileName = new String[noOfUnlocks];
         FileInputStream in = new FileInputStream(new File(inputDirectory, "Overview.txt"));
         BufferedReader br = new BufferedReader(new InputStreamReader(in));
 

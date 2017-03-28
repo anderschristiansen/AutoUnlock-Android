@@ -78,16 +78,6 @@ class Heuristics {
                 Log.e(TAG, "makeDecision: distanceBetween " + results[0]);
                 lockScore += 100 - results[0];
             }
-
-
-            if (CoreService.activeInnerGeofences.contains(foundLock)
-                    && CoreService.activeOuterGeofences.contains(foundLock)) {
-                lockScore += 50;
-            } else {
-                lockScore -= 1000;
-            }
-            Log.i(TAG, "lockScore " + lockScore);
-            lockScores.put(foundLock, lockScore);
         }
 
         // Find lock with highest score, if multiple use first one found.

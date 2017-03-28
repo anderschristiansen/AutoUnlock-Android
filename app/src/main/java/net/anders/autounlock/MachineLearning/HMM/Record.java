@@ -1,6 +1,8 @@
 package net.anders.autounlock.MachineLearning.HMM;
 
-import net.anders.autounlock.MachineLearning.SessionData;
+import android.util.Log;
+
+import net.anders.autounlock.MachineLearning.UnlockData;
 import net.anders.autounlock.MachineLearning.WindowData;
 
 import java.io.File;
@@ -30,6 +32,8 @@ import be.ac.ulg.montefiore.run.jahmm.learn.KMeansLearner;
 
 public class Record {
 
+    private static final String TAG = "Record";
+
     // Lists of lists of values from multiple iterations (observations), used to create HMMs
     List<List<ObservationInteger>> toHmmOri;
     List<List<ObservationInteger>> toHmmVelo;
@@ -47,15 +51,12 @@ public class Record {
     public Hmm<ObservationInteger> hmmVelo;
     public KMeansLearner<ObservationInteger> kml;
 
-    // TODO ABC
-    boolean unlockDoor;
-    ArrayList<SessionData> clusters;
-    public int noOfSessions;
+    ArrayList<UnlockData> clusters;
+    public int noOfUnlocks;
 
     File outputDirectory = new File("/sdcard/AutoUnlock/HMM/");
 
-    public void record(ArrayList<SessionData> clusters, boolean unlockDoor) {
-        this.unlockDoor = unlockDoor;
+    public void record(ArrayList<UnlockData> clusters) {
         this.clusters = clusters;
 
         try {
@@ -65,9 +66,8 @@ public class Record {
             // Save the cluster name
             gWriter = new FileWriter(sdCardFile, true);
 
-            countSessions();
-            if (unlockDoor) { fileName = "unlock-cluster-" + noOfSessions; }
-            else { fileName = "lock-cluster-" + noOfSessions; }
+            countUnlocks();
+            fileName = "unlock-cluster-" + noOfUnlocks;
 
             // Writes the gesture name to a reference file
             gWriter.write(fileName + "\r\n");
@@ -83,14 +83,14 @@ public class Record {
     }
 
     //Counts the the number of saved gestures to give a correct length to the array
-    public int countSessions() throws IOException {
+    public int countUnlocks() throws IOException {
         File inputDirectory = new File("/sdcard/AutoUnlock/HMM/");
         LineNumberReader lnr = new LineNumberReader(new FileReader(new File(inputDirectory, "Overview.txt")));
         lnr.skip(Long.MAX_VALUE);
-        noOfSessions = lnr.getLineNumber() + 1;
+        noOfUnlocks = lnr.getLineNumber() + 1;
         lnr.close();
 
-        return noOfSessions;
+        return noOfUnlocks;
     }
 
     // Generate and save HMMs to text files
@@ -98,7 +98,7 @@ public class Record {
         toHmmOri = new LinkedList<List<ObservationInteger>>();
         toHmmVelo = new LinkedList<List<ObservationInteger>>();
 
-        for (SessionData session: clusters) {
+        for (UnlockData session: clusters) {
             createData(session.getWindows());
         }
 
@@ -121,6 +121,8 @@ public class Record {
         List<ObservationInteger> velo = new LinkedList<ObservationInteger>();
 
         for (WindowData window : windows) {
+//            Log.i(TAG, "ORI: " + (int)window.getOrientation());
+            Log.i(TAG, "VELO: " + window.getVelocity());
             ori.add(new ObservationInteger((int)window.getOrientation()));
             velo.add(new ObservationInteger((int)window.getVelocity()));
 

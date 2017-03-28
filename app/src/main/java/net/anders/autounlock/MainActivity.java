@@ -171,8 +171,6 @@ public class MainActivity extends AppCompatActivity {
             coreService.onButtonClickAddLock();
             addLock.setVisibility(View.GONE);
             lockView.setText("SCANNING FOR LOCK");
-//            unlockDoor.setVisibility(View.VISIBLE);
-//            lockDoor.setVisibility(View.VISIBLE);
         }
     }
 
@@ -182,7 +180,6 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    // TODO ABC
     public void onButtonClickLock(View v) {
         if (bound) {
             coreService.onButtonClickLock();
