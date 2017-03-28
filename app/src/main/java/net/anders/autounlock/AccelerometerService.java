@@ -24,8 +24,6 @@ public class AccelerometerService extends Service implements SensorEventListener
     private Sensor magneticFieldSensor;
     private Sensor linearAccelerationSensor;
     private Sensor rotationVectorSensor;
-    private Sensor gyroscopeSensor;
-    private Sensor barometerSensor;
 
     private float[] gravity = new float[3];
     private float[] magneticField = new float[3];
@@ -33,7 +31,6 @@ public class AccelerometerService extends Service implements SensorEventListener
     private float[] previousAcceleration = new float[3];
     private float[] accelerationFilter = new float[3];
     private float[] rotationVector = new float[5];
-    private float[] gyroscope = new float[3];
 
     PowerManager powerManager;
     PowerManager.WakeLock wakeLock;
@@ -60,11 +57,6 @@ public class AccelerometerService extends Service implements SensorEventListener
         } else if (event.sensor == rotationVectorSensor && linearAcceleration != null) {
             System.arraycopy(event.values, 0, rotationVector, 0, event.values.length);
             rotateAccelerationToWorldCoordinates(linearAcceleration, rotationVector, event.timestamp);
-        }
-        /*else if (event.sensor == gyroscopeSensor) {
-        }*/
-        else if (event.sensor == barometerSensor) {
-            System.currentTimeMillis();
         }
     }
 
@@ -169,36 +161,6 @@ public class AccelerometerService extends Service implements SensorEventListener
         CoreService.accelerometerEvent(anAccelerometerEvent);
     }
 
-    // Velocity is calculated by integrating the linear acceleration.
-//    private void calculateVelocity(float[] linearAcceleration, long timestamp) {
-//        if (previousTimestamp != 0) {
-//            dT = (timestamp - previousTimestamp) * NS2S;
-//            previousTimestamp = timestamp;
-//            float velocity[] = new float[3];
-//            velocity[0] = (dT * linearAcceleration[0]) + previousVelocity[0];
-//            velocity[1] = (dT * linearAcceleration[1]) + previousVelocity[1];
-//            velocity[2] = (dT * linearAcceleration[2]) + previousVelocity[2];
-//
-//            processSensorData(linearAcceleration, velocity);
-//
-//            previousVelocity = velocity;
-//        } else {
-//            previousTimestamp = timestamp;
-//        }
-//    }
-
-//    private void processSensorData (float[] linearAcceleration, float[] velocity) {
-//        long time = System.currentTimeMillis();
-//        String datetime = CoreService.getDateTime();
-//
-//        AccelerometerData anAccelerometerEvent = new AccelerometerData (
-//                linearAcceleration[0], linearAcceleration[1], linearAcceleration[2],
-//                velocity[0], velocity[1], velocity[2], datetime, time, CoreService.currentOrientation);
-//
-////        Log.i(TAG, String.valueOf(CoreService.currentOrientation));
-//        WindowProcessor.insertAccelerometerIntoWindow(anAccelerometerEvent);
-//    }
-
     @Override
     public void onCreate() {
         // The service is being created
@@ -211,15 +173,11 @@ public class AccelerometerService extends Service implements SensorEventListener
         magneticFieldSensor = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
         linearAccelerationSensor = sensorManager.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION);
         rotationVectorSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR);
-        gyroscopeSensor = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
-        barometerSensor = sensorManager.getDefaultSensor(Sensor.TYPE_PRESSURE);
 
         sensorManager.registerListener(this, gravitySensor, SensorManager.SENSOR_DELAY_FASTEST);
         sensorManager.registerListener(this, magneticFieldSensor, SensorManager.SENSOR_DELAY_FASTEST);
         sensorManager.registerListener(this, linearAccelerationSensor, SensorManager.SENSOR_DELAY_FASTEST);
         sensorManager.registerListener(this, rotationVectorSensor, SensorManager.SENSOR_DELAY_FASTEST);
-        sensorManager.registerListener(this, gyroscopeSensor, SensorManager.SENSOR_DELAY_FASTEST);
-        sensorManager.registerListener(this, barometerSensor, SensorManager.SENSOR_DELAY_FASTEST);
 
         startTime = System.currentTimeMillis();
     }
@@ -251,8 +209,6 @@ public class AccelerometerService extends Service implements SensorEventListener
         sensorManager.unregisterListener(this, magneticFieldSensor);
         sensorManager.unregisterListener(this, linearAccelerationSensor);
         sensorManager.unregisterListener(this, rotationVectorSensor);
-        sensorManager.unregisterListener(this, gyroscopeSensor);
-        sensorManager.unregisterListener(this, barometerSensor);
         wakeLock.release();
     }
 }

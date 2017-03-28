@@ -54,7 +54,6 @@ public class Record {
 
     File outputDirectory = new File("/sdcard/AutoUnlock/HMM/");
 
-
     public void record(ArrayList<SessionData> clusters, boolean unlockDoor) {
         this.unlockDoor = unlockDoor;
         this.clusters = clusters;
@@ -63,12 +62,12 @@ public class Record {
             outputDirectory.mkdirs();
 
             File sdCardFile = new File(outputDirectory, "Overview.txt");
-            // Save the gesture name
+            // Save the cluster name
             gWriter = new FileWriter(sdCardFile, true);
 
             countSessions();
-            if (unlockDoor) { fileName = "unlock" + noOfSessions; }
-            else { fileName = "lock" + noOfSessions; }
+            if (unlockDoor) { fileName = "unlock-cluster-" + noOfSessions; }
+            else { fileName = "lock-cluster-" + noOfSessions; }
 
             // Writes the gesture name to a reference file
             gWriter.write(fileName + "\r\n");
@@ -142,10 +141,8 @@ public class Record {
         // The Baum-Welch algorithm only finds the local minimum of its optimum function, so an initial approximation of the result is needed
         // Local maximum likelihood can be derived efficiently using the Baum–Welch algorithm
         BaumWelchLearner bwl = new BaumWelchLearner();
-        bwl.setNbIterations(10);
+        bwl.setNbIterations(20);
         bwl.learn(hmm, seq);
         return hmm;
     }
-
-
 }

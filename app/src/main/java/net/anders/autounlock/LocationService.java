@@ -42,7 +42,6 @@ public class LocationService extends Service {
                     && System.currentTimeMillis() - previousLocation.getTime() < 6000) {
                     Log.v(TAG, "Ignoring network location");
             } else {
-                Log.v("Timediff", String.valueOf(System.currentTimeMillis() - previousLocation.getTime()));
                 previousLocation = location;
                 insertLocationData(location);
             }
@@ -57,9 +56,6 @@ public class LocationService extends Service {
             aLocation = new LocationData(location.getProvider(), location.getLatitude(), location.getLongitude(), location.getAccuracy(), datetime, time);
             CoreService.recordedLocation.add(aLocation);
             CoreService.dataStore.insertLocation(location.getProvider(), location.getLatitude(), location.getLongitude(), location.getAccuracy(), datetime, time);
-
-            Log.v("LOCATION: ", location.toString());
-            Logging.Location(location.getLatitude(), location.getLongitude());
         }
 
         public void onStatusChanged(String provider, int status, Bundle extras) {

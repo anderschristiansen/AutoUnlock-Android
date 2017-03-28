@@ -45,7 +45,4 @@ public class Logging  extends Activity {
             Log.i(TAG, res + " geofence exited");
         }
     }
-
-    public static void Location(double latitude, double longitude) {
-    }
 }

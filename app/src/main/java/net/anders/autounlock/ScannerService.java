@@ -63,7 +63,7 @@ public class ScannerService extends Service {
                     }
 
                     if (!decisionLocks.isEmpty()) {
-                        Log.i(TAG, "FOUND LOCK");
+//                        Log.i(TAG, "FOUND LOCK");
 
 //                        Intent startDecision = new Intent("START_DECISION");
 //                        startDecision.putStringArrayListExtra("Locks", decisionLocks);

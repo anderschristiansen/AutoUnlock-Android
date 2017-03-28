@@ -34,19 +34,9 @@ public class Recognise {
 
     private static String TAG = "Recognise";
 
-    private final static byte MSG_RUN_CONTINUOUS = 104;
-    private final static int PORT_NUMBER = 5000;
-    private InetAddress address;
-    private DatagramSocket socket;
-    private	final static String IP_ADDRESS = "10.74.192.9";
-
     //Observation list from one gesture performance to be compared against a saved HMM
     public List<ObservationInteger> sequencesInstanceOri = new ArrayList<>();
     public List<ObservationInteger> sequencesInstanceVelo = new ArrayList<>();
-
-    // Current received value from sensor to add to list
-    public int receivedOri = 0;
-    public int receivedVelo = 0;
 
     // Variables
     public boolean firstElement = true;
@@ -74,7 +64,6 @@ public class Recognise {
     File inputDirectory = new File("/sdcard/AutoUnlock/HMM/");
 
     public void recognise(WindowData[] session) {
-
         try {
             countSessions();
 

@@ -2,6 +2,7 @@ package net.anders.autounlock.MachineLearning;
 
 import net.anders.autounlock.MachineLearning.HMM.Record;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -10,9 +11,9 @@ import java.util.Map;
  * Created by Anders on 09-03-2017.
  */
 
-public class LearningProcessor {
+public class LearningProcess {
 
-    private static final String TAG = "LearningProcessor";
+    private static final String TAG = "LearningProcess";
 
     public static void Start(ArrayList<SessionData> sessions, boolean unlockDoor) {
 
@@ -36,6 +37,9 @@ public class LearningProcessor {
             temp.add(session);
         }
 
+        File outputDirectory = new File("/sdcard/AutoUnlock/HMM/");
+        DeleteRecursive(outputDirectory);
+
         for (Map.Entry<Integer, ArrayList<SessionData>> entry : map.entrySet()) {
             Record model = new Record();
 
@@ -44,8 +48,23 @@ public class LearningProcessor {
             for (SessionData session : entry.getValue()) {
                 temp.add(session);
             }
-            model.record(temp, unlockDoor);
+
+            // Skip cluster id with 0, as they have not been assignt yet
+            if (temp.get(0).cluster_id != 0) {
+                model.record(temp, unlockDoor);
+            }
         }
+    }
+
+    private static void DeleteRecursive(File fileOrDirectory) {
+        if (fileOrDirectory.isDirectory())
+            for (File child : fileOrDirectory.listFiles())
+            {
+                child.delete();
+                DeleteRecursive(child);
+            }
+
+        fileOrDirectory.delete();
     }
 }
 //        Recognise reg = new Recognise();

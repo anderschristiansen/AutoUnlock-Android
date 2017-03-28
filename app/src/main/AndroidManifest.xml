@@ -66,9 +66,6 @@
             android:name=".MachineLearning.PatternRecognitionService"
             android:enabled="true" />
         <service
-            android:name=".BarometerService"
-            android:enabled="true" />
-        <service
             android:name=".RingProcessorService"
             android:enabled="true" />
 

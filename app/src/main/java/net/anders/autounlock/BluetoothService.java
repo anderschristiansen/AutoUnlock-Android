@@ -48,12 +48,6 @@ public class BluetoothService extends Service {
             long time = System.currentTimeMillis();
             ArrayList<BluetoothData> bluetoothDevicesToRemove = new ArrayList<>();
 
-            if (source.equals(ANDERS_BEKEY)) {
-                long timediff = time - prev;
-                prev = time;
-                CoreService.export.add(String.valueOf(timediff));
-            }
-
             // Bluetooth data for same lock and old data is deleted
             for (BluetoothData bluetooth : CoreService.recordedBluetooth) {
                 if (time - bluetooth.getTime() > 5000) {

@@ -25,8 +25,7 @@ import net.anders.autounlock.Export.Export;
 import net.anders.autounlock.MachineLearning.PatternRecognitionService;
 import net.anders.autounlock.MachineLearning.WindowProcessor;
 import net.anders.autounlock.MachineLearning.SessionData;
-import net.anders.autounlock.MachineLearning.LearningProcessor;
-import net.anders.autounlock.MachineLearning.CoordinateData;
+import net.anders.autounlock.MachineLearning.LearningProcess;
 import net.anders.autounlock.MachineLearning.WindowData;
 
 import java.text.SimpleDateFormat;
@@ -44,7 +43,6 @@ public class CoreService extends Service implements
 
     private Looper serviceLooper;
     private ServiceHandler serviceHandler;
-    private ScannerService lockScanner;
 
     private Intent accelerometerIntent;
     private Intent bluetoothIntent;
@@ -54,13 +52,10 @@ public class CoreService extends Service implements
     private Intent ringProcessorIntent;
     private Intent scannerIntent;
     private Intent patternRecognitionIntent;
-    private Intent barometerIntent;
 
     private GoogleApiClient mGoogleApiClient;
     private net.anders.autounlock.Geofence geofence;
 
-    static ArrayList<String> export = new ArrayList<>();
-    static ArrayList<String> velocity = new ArrayList<>();
     static List<BluetoothData> recordedBluetooth = new ArrayList<BluetoothData>();
     static List<WifiData> recordedWifi = new ArrayList<WifiData>();
     static List<LocationData> recordedLocation = new ArrayList<LocationData>();
@@ -77,29 +72,17 @@ public class CoreService extends Service implements
 
     static DataStore dataStore;
 
-
-    // ********** Sliding window lists ********
-    public static List<AccelerometerData> window = new ArrayList<>();
-    public static List<AccelerometerData> windows = new ArrayList<>();
-    public static RingBuffer<List> windowCircleBuffer;
-    public static List<Float> windowAvg = new ArrayList<>();
-    public static List<Double> windowRms = new ArrayList<>();
-    public static List<Double> windowStd = new ArrayList<>();
-    //public static List<AccelerometerData> windowAcc = new ArrayList<>();
-    public static List<CoordinateData> windowCoor = new ArrayList<>();
-
     public static RingBuffer<WindowData> windowBuffer;
     public static int windowBufferSize;
     public static int windowSize;
     public static double windowPercentageOverlap;
     public static int windowOverlap;
-    public static boolean doSnapshot = false;
-    //    public static int manualUnLockCalibration;
     public static int reqTrainingSessions;
     public static int orientationThreshold;
     public static int velocityThreshold;
     public static boolean unlockDoor;
-//    public static boolean isTraining = true;
+    public static double activityThreshold;
+    public static boolean startRecognizingPattern = false;
 
 
     // Used to know if one is needed to be added
@@ -179,8 +162,6 @@ public class CoreService extends Service implements
         ringProcessorIntent = new Intent(this, RingProcessorService.class);
         scannerIntent = new Intent(this, ScannerService.class);
         patternRecognitionIntent = new Intent(this, PatternRecognitionService.class);
-        barometerIntent = new Intent(this, BarometerService.class);
-
 
         buildGoogleApiClient();
 
@@ -208,16 +189,16 @@ public class CoreService extends Service implements
 
         // Numbers of times needed for manual unlocking before enough data is collected
         // CoreService.manualUnLockCalibration = 5;
-        CoreService.windowBufferSize = 10;
+        CoreService.windowBufferSize = 50;
         CoreService.windowSize = 30;
 
         // Last % of current window will be overlapping toused in the next window
         CoreService.windowPercentageOverlap = 0;
         CoreService.windowOverlap =  CoreService.windowSize - ((int)(CoreService.windowSize *  CoreService.windowPercentageOverlap));
-        CoreService.reqTrainingSessions = 5;
+        CoreService.reqTrainingSessions = 20;
         CoreService.orientationThreshold = 50;
         CoreService.velocityThreshold = 50;
-
+        CoreService.activityThreshold = 0;
 
         Log.v("CoreService", "Service created");
     }
@@ -311,6 +292,11 @@ public class CoreService extends Service implements
                             startBluetoothService();
                             startWifiService();
                             scanForLocks();
+
+                            if (dataStore.getSessionCount(true) > reqTrainingSessions ||
+                                    dataStore.getSessionCount(false) > reqTrainingSessions) {
+                                startPatternRecognitionService();
+                            }
                         }
                     } else if (geofence.contains("outer")) {
                         Logging.GeofenceEntered("Outer");
@@ -335,7 +321,7 @@ public class CoreService extends Service implements
                             stopAccelerometerService();
                             stopBluetoothService();
                             stopWifiService();
-
+                            stopPatternRecognitionService();
                             MainActivity.lockDoor.setVisibility(View.GONE);
                             MainActivity.unlockDoor.setVisibility(View.GONE);
                             MainActivity.lockView.setVisibility(View.VISIBLE);
@@ -431,14 +417,13 @@ public class CoreService extends Service implements
             Log.e(TAG, "StartPatternRecognition");
 
             if ("START_PATTERNRECOGNITION".equals(action)) {
-//                startAccelerometerService();
-//                startRingBuffer();
+                startRecognizingPattern = true;
+                startPatternRecognitionService();
             }
         }
     };
 
     void startAccelerometerService() {
-        //export = new ArrayList<>();
         Log.v(TAG, "Starting AccelerometerService");
         Thread accelerometerServiceThread = new Thread() {
             public void run() {
@@ -453,10 +438,6 @@ public class CoreService extends Service implements
         stopService(accelerometerIntent);
     }
 
-    void stopBarometerService() {
-        stopService(barometerIntent);
-    }
-
     void startLocationService() {
         Log.v(TAG, "Starting LocationService");
         Thread locationServiceThread = new Thread() {
@@ -465,17 +446,6 @@ public class CoreService extends Service implements
             }
         };
         locationServiceThread.start();
-    }
-
-    void startBarometerService() {
-        //startActivityRecognitionService();
-        Log.v(TAG, "Starting Barometer Service");
-        Thread barometerServiceThread = new Thread() {
-            public void run() {
-                startService(barometerIntent);
-            }
-        };
-        barometerServiceThread.start();
     }
 
     void stopLocationService() {
@@ -757,7 +727,7 @@ public class CoreService extends Service implements
             ArrayList<SessionData> unlock_sessions =  dataStore.getSessions(unlockDoor);
 
             // Start learning procedure
-            LearningProcessor.Start(unlock_sessions, unlockDoor);
+            LearningProcess.Start(unlock_sessions, unlockDoor);
         }
         else if (cntSession >= reqTrainingSessions && !unlockDoor) {
             Toast.makeText(getApplicationContext(), "BeKey locked! The app will now calibrate lock sessions", Toast.LENGTH_SHORT).show();
@@ -766,7 +736,7 @@ public class CoreService extends Service implements
             ArrayList<SessionData> lock_sessions =  dataStore.getSessions(unlockDoor);
 
             // Start learning procedure
-            LearningProcessor.Start(lock_sessions, unlockDoor);
+            LearningProcess.Start(lock_sessions, unlockDoor);
         }
         if (unlockDoor) {
             Toast.makeText(getApplicationContext(), "BeKey unlocked", Toast.LENGTH_SHORT).show();
@@ -792,21 +762,7 @@ public class CoreService extends Service implements
         WindowProcessor.insertAccelerometerEventIntoWindow(anAccelerometerEvent);
     }
 
-    public static void windowReady(WindowData window) {
-        RingBuffer.addWindow(window);
-        Log.i(TAG, "MAG: " + window.getAccelerationMag());
-    }
-
-    public void StopAllServices() {
-        stopAccelerometerService();
-        stopBluetoothService();
-        stopWifiService();
-        stopLocationService();
-        stopDataBuffer();
-        stopRingBuffer();
-    }
-
-    void startPatternRecognitionService() {
+    private void startPatternRecognitionService() {
         Log.v(TAG, "Starting PatternRecognitionService");
         Thread patternRecognitionServiceThread = new Thread() {
             public void run() {
@@ -816,9 +772,8 @@ public class CoreService extends Service implements
         patternRecognitionServiceThread.start();
     }
 
-    void stopPatternRecognitionService() {
-        stopAccelerometerService();
-        stopRingBuffer();
+    private void stopPatternRecognitionService() {
+        startRecognizingPattern = false;
         WindowProcessor.prevWindow = null;
         Log.d("CoreService", "Trying to stop PatternRecognitionService");
         stopService(patternRecognitionIntent);

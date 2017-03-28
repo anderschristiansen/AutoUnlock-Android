@@ -1,7 +1,11 @@
 package net.anders.autounlock.MachineLearning;
 
+import android.content.Context;
+import android.util.Log;
+
 import net.anders.autounlock.AccelerometerData;
 import net.anders.autounlock.CoreService;
+import net.anders.autounlock.RingBuffer;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -11,6 +15,8 @@ import java.util.List;
  */
 
 public class WindowProcessor {
+
+    private static final String TAG = "WindowProcessor";
 
      /*
     Ready-to-Use Activity Recognition for Smartphones
@@ -53,7 +59,7 @@ public class WindowProcessor {
     public static List<AccelerometerData> currentAccelerometerList = new ArrayList<>();
     public static List<AccelerometerData> nextAccelerometerList = new ArrayList<>();
     public static WindowData prevWindow;
-    
+
     public static void insertAccelerometerEventIntoWindow(AccelerometerData anAccelerometerEvent) {
 
         currentAccelerometerList.add(anAccelerometerEvent);
@@ -73,19 +79,20 @@ public class WindowProcessor {
             nextAccelerometerList.clear();
         }
     }
-    
+
     private static void processWindow(List<AccelerometerData> rawAccelerometerData) {
 
         WindowData window = WindowConstruction.buildWindow(rawAccelerometerData, prevWindow);
 
         // Put new window into the circular buffer
-//        CoreService.windowBuffer.add(window);
-        CoreService.windowReady(window);
+        RingBuffer.addWindow(window);
+
+//        Log.i(TAG, "MAG: " + window.getAccelerationMag());
+        if (window.getAccelerationMag() > CoreService.activityThreshold) {
+            CoreService.startRecognizingPattern = true;
+        }
 
         prevWindow = window;
-
-        // Tells RingProcessorService to perform a snapshot of the circular buffer
-        //CoreService.doSnapshot = true;
         currentAccelerometerList.clear();
     }
 }

@@ -4,7 +4,9 @@ import android.app.Service;
 import android.content.Intent;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
+import android.util.Log;
 
+import net.anders.autounlock.CoreService;
 import net.anders.autounlock.MachineLearning.HMM.Recognise;
 import net.anders.autounlock.RingBuffer;
 
@@ -16,13 +18,18 @@ public class PatternRecognitionService extends Service {
     private volatile boolean running = true;
 
     private PatternRecognition patternRecognition;
+    private Thread recognitionThread;
+
     private Recognise recognise;
 
-    private static String TAG = "PatternRecognitionService";
+    private static String TAG = "RecognitionService";
 
     @Override
     public void onCreate() {
         patternRecognition = new PatternRecognition();
+        recognitionThread = new Thread(patternRecognition);
+        recognitionThread.start();
+
         recognise = new Recognise();
     }
 
@@ -47,11 +54,13 @@ public class PatternRecognitionService extends Service {
 
             while (running) {
 
-                WindowData[] snapshot = RingBuffer.getSnapshot();
-                recognise.recognise(snapshot);
-
+                if (CoreService.startRecognizingPattern) {
+                    Log.i(TAG, "INITIATE RECOGNITION");
+                    WindowData[] snapshot = RingBuffer.getSnapshot();
+                    //recognise.recognise(snapshot);
+                }
                 try {
-                    Thread.sleep(4000);
+                    Thread.sleep(5000);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
