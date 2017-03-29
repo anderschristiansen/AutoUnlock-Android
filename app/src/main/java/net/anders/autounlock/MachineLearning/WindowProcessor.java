@@ -91,10 +91,8 @@ public class WindowProcessor {
             if (CoreService.trainingComplete) {
                 CoreService.isMoving = true;
             }
-        } {
-            CoreService.isMoving = false;
         }
-
+        CoreService.isMoving = false;
         prevWindow = window;
         currentAccelerometerList.clear();
     }
