@@ -60,11 +60,10 @@ public class ScannerService extends Service {
                     if (!decisionLocks.isEmpty()) {
                         if (!CoreService.isPatternRecognitionRunning &&
                                 !CoreService.isTraining &&
-                                !CoreService.hmmVecList.isEmpty()) {
+                                !CoreService.hmmVecList.isEmpty() &&
+                                CoreService.trainingComplete) {
 
-                            boolean approved = CoreService.enviromentalScore(decisionLocks.get(0).toString());
-
-                            if (CoreService.dataStore.getUnlockCount() >= CoreService.reqUnlockTraining && approved) {
+                            if (CoreService.enviromentalScore(decisionLocks.get(0).toString())) {
                                 Intent startDecision = new Intent("START_PATTERNRECOGNITION");
                                 sendBroadcast(startDecision);
                             }

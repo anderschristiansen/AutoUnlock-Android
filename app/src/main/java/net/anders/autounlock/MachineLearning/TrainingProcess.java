@@ -11,9 +11,9 @@ import java.util.Map;
  * Created by Anders on 09-03-2017.
  */
 
-public class LearningProcess {
+public class TrainingProcess {
 
-    private static final String TAG = "LearningProcess";
+    private static final String TAG = "TrainingProcess";
 
     public static void Start(ArrayList<UnlockData> unlocks) {
 

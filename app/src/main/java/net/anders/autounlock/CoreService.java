@@ -25,17 +25,13 @@ import net.anders.autounlock.Export.Export;
 import net.anders.autounlock.MachineLearning.PatternRecognitionService;
 import net.anders.autounlock.MachineLearning.UnlockData;
 import net.anders.autounlock.MachineLearning.WindowProcessor;
-import net.anders.autounlock.MachineLearning.LearningProcess;
+import net.anders.autounlock.MachineLearning.TrainingProcess;
 import net.anders.autounlock.MachineLearning.WindowData;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
-import java.util.Locale;
 
 import be.ac.ulg.montefiore.run.jahmm.Hmm;
-import be.ac.ulg.montefiore.run.jahmm.ObservationReal;
 import be.ac.ulg.montefiore.run.jahmm.ObservationVector;
 
 public class CoreService extends Service implements
@@ -78,6 +74,7 @@ public class CoreService extends Service implements
     public static double windowPercentageOverlap;
     public static int windowOverlap;
     public static int reqUnlockTraining;
+    public static boolean trainingComplete = false;
     public static int orientationThreshold;
     public static int velocityThreshold;
     public static double activityThreshold;
@@ -182,6 +179,8 @@ public class CoreService extends Service implements
         CoreService.orientationThreshold = 50;
         CoreService.velocityThreshold = 50;
         CoreService.activityThreshold = 0;
+
+        if (dataStore.getUnlockCount() >= reqUnlockTraining); { trainingComplete = true;}
 
         Log.v("CoreService", "Service created");
     }
@@ -337,6 +336,7 @@ public class CoreService extends Service implements
                 startPatternRecognitionService();
             } else if ("STOP_PATTERNRECOGNITION".equals(action)) {
                 isTraining = true;
+                isMoving = false;
                 stopAccelerometerService();
                 stopBluetoothService();
                 stopWifiService();
@@ -363,6 +363,8 @@ public class CoreService extends Service implements
                 isScanningForLocks = true;
                 isDetailedDataCollectionStarted = true;
                 isLocationDataCollectionStarted = true;
+
+                if (dataStore.getUnlockCount() < reqUnlockTraining) { trainingComplete = false; }
             }
         }
     };
@@ -585,7 +587,7 @@ public class CoreService extends Service implements
         int cntUnlock = dataStore.getUnlockCount();
 
         if (cntUnlock >= reqUnlockTraining) {
-
+            trainingComplete = true;
             Log.v(TAG, "START TRAINING");
             hmmVecList = new ArrayList<>();
 
@@ -605,7 +607,7 @@ public class CoreService extends Service implements
 
     public void trainHMM(){
         if (!dataStore.getUnlocks().isEmpty()) {
-            LearningProcess.Start(dataStore.getUnlocks());
+            TrainingProcess.Start(dataStore.getUnlocks());
         }
     }
 

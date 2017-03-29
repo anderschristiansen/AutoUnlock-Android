@@ -84,12 +84,14 @@ public class WindowProcessor {
 
         WindowData window = WindowConstruction.buildWindow(rawAccelerometerData, prevWindow);
 
-        // Put new window into the circular buffer
-        RingBuffer.addWindow(window);
-
         if (window.getAccelerationMag() > CoreService.activityThreshold) {
-            CoreService.isMoving = true;
-        } else {
+            // Put new window into the circular buffer
+            RingBuffer.addWindow(window);
+
+            if (CoreService.trainingComplete) {
+                CoreService.isMoving = true;
+            }
+        } {
             CoreService.isMoving = false;
         }
 
