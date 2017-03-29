@@ -61,7 +61,7 @@ public class RecogniseSequence {
             System.out.println("Best match is HMM: " + bestMatchNo +  " with probabilty " + bestMatchProb);
 
             NotificationUtility notification = new NotificationUtility();
-            notification.displayUnlockNotification(context);
+            notification.displayUnlockNotification(context, bestMatchNo+1);
 
             bestMatchNo = -1;
             bestMatchProb = 0.00000000000000000000000001;

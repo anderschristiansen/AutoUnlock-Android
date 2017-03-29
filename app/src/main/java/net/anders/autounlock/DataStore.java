@@ -329,24 +329,45 @@ class DataStore {
         }
     }
 
-    void deleteLockData(String lock) {
-        String lockQuery = "DELETE FROM " + LOCK_TABLE + " WHERE " + LOCK_MAC + "='" + lock + "';";
-        String bluetoothQuery = "DELETE FROM " + BLUETOOTH_TABLE + " WHERE " + BLUETOOTH_NEARBY_LOCK + "='" + lock + "';";
-        String wifiQuery = "DELETE FROM " + WIFI_TABLE + " WHERE " + WIFI_NEARBY_LOCK + "='" + lock + "';";
+    void deleteCluster(int delete) {
+
+        ArrayList<UnlockData> unlocks = getUnlocks();
+        for (UnlockData unlock : unlocks) {
+
+            int clusterId = getClusterId(unlock.getId());
+
+            if (clusterId == delete) {
+
+                deleteWindows(unlock.getId());
+
+                String unlockQuery = "DELETE FROM " + UNLOCK_TABLE + " WHERE " + UNLOCK_ID + "='" + unlock.getId() + "';";
+
+                try {
+                    database = databaseHelper.getWritableDatabase();
+                    database.beginTransaction();
+                    database.execSQL(unlockQuery);
+                    database.setTransactionSuccessful();
+                } finally {
+                    database.endTransaction();
+                }
+
+            }
+        }
+    }
+
+    void deleteWindows(int id){
+        String windowQuery = "DELETE FROM " + WINDOW_TABLE + " WHERE " + WINDOW_UNLOCK_ID + "='" + id + "';";
 
         try {
             database = databaseHelper.getWritableDatabase();
             database.beginTransaction();
-            database.execSQL(lockQuery);
-            database.execSQL(bluetoothQuery);
-            database.execSQL(wifiQuery);
+            database.execSQL(windowQuery);
             database.setTransactionSuccessful();
         } finally {
             database.endTransaction();
         }
     }
 
-    // TODO ABC
     void insertUnlock(WindowData[] snapshot) {
         ContentValues contentValues = new ContentValues();
 
@@ -451,11 +472,10 @@ class DataStore {
                 } while (unlockCursor.moveToNext());
 
                 // Add current unlock to cluster when queue is at its end
-                UnlockData c = new UnlockData(cur_id, 0, unlock);
-                clusters.add(c);
+                UnlockData u = new UnlockData(cur_id, 0, unlock);
+                clusters.add(u);
             }
             unlockCursor.close();
-//            }
         } finally {
             database.endTransaction();
         }

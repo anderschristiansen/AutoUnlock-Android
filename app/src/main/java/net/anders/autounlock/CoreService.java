@@ -176,6 +176,7 @@ public class CoreService extends Service implements
         IntentFilter startPatternRecognitionFilter = new IntentFilter();
         startPatternRecognitionFilter.addAction("START_PATTERNRECOGNITION");
         startPatternRecognitionFilter.addAction("STOP_PATTERNRECOGNITION");
+        startPatternRecognitionFilter.addAction("INCORRECT_UNLOCK");
         registerReceiver(startPatternRecognitionReceiver, startPatternRecognitionFilter);
 
         CoreService.windowBufferSize = 50;
@@ -333,11 +334,11 @@ public class CoreService extends Service implements
         @Override
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
+            Bundle extras = intent.getExtras();
 
             Log.e(TAG, "StartPatternRecognition");
 
             if ("START_PATTERNRECOGNITION".equals(action)) {
-                isPatternRecognitionRunning = true;
                 startPatternRecognitionService();
             } else if ("STOP_PATTERNRECOGNITION".equals(action)) {
                 isTraining = true;
@@ -349,10 +350,28 @@ public class CoreService extends Service implements
                 isScanningForLocks = false;
                 isDetailedDataCollectionStarted = false;
                 isLocationDataCollectionStarted = false;
-            }
+            } else if ("INCORRECT_UNLOCK".equals(action)) {
+                dataStore.deleteCluster(extras.getInt("Cluster"));
 
+                try {
+                    Thread.sleep(5000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+
+                isTraining = false;
+                startAccelerometerService();
+                startBluetoothService();
+                startWifiService();
+                startLocationService();
+                startPatternRecognitionService();
+                isScanningForLocks = true;
+                isDetailedDataCollectionStarted = true;
+                isLocationDataCollectionStarted = true;
+            }
         }
     };
+
 
     void startAccelerometerService() {
         Log.v(TAG, "Starting AccelerometerService");
@@ -633,6 +652,7 @@ public class CoreService extends Service implements
     }
 
     private void startPatternRecognitionService() {
+        isPatternRecognitionRunning = true;
         Log.v(TAG, "Starting PatternRecognitionService");
         Thread patternRecognitionServiceThread = new Thread() {
             public void run() {
