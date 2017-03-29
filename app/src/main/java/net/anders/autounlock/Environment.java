@@ -9,8 +9,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-class Enviroment {
-    private static final String TAG = "Enviroment";
+class Environment {
+    private static final String TAG = "Environment";
 
     static List<BluetoothData> recentBluetoothList;
     static List<WifiData> recentWifiList;

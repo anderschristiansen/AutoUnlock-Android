@@ -69,6 +69,7 @@ public class LocationService extends Service {
 
     @Override
     public void onCreate() {
+
         // The service is being created
         powerManager = (PowerManager) getApplicationContext().getSystemService(Context.POWER_SERVICE);
         wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "LocationService");

@@ -1,4 +1,4 @@
-package net.anders.autounlock.MachineLearning.HMM;
+package net.anders.autounlock.MachineLearning;
 
 import android.util.Log;
 
@@ -51,26 +51,15 @@ public class TrainModel {
 //    public Hmm<ObservationVector> hmmVelo;
     public Hmm<ObservationVector> hmmVec;
 
-    public void train(ArrayList<UnlockData> cluster) {
-
-        try {
-            learn(cluster);
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-    }
-
     // Generate and save HMMs to text files
-    public void learn(ArrayList<UnlockData> cluster) throws IOException, InterruptedException {
+    public void train(ArrayList<UnlockData> cluster) throws IOException, InterruptedException {
 
 //        toHmmOri = new LinkedList<>();
 //        toHmmVelo = new LinkedList<>();
         toHmmVec = new LinkedList<>();
 
         for (UnlockData unlock : cluster) {
-            createData(unlock.getWindows());
+            createSequenceData(unlock.getWindows());
         }
 
 //        hmmOri = createHmm(toHmmOri);
@@ -81,11 +70,7 @@ public class TrainModel {
 //        CoreService.hmmVeloList.add(hmmVelo);
     }
 
-    double roundUp(double num) {
-        return (Math.ceil(num / 5d) * 5);
-    }
-
-    public void createData(List<WindowData> windows){
+    public void createSequenceData(List<WindowData> windows){
 //        List<ObservationVector> ori = new LinkedList<>();
 //        List<ObservationVector> velo = new LinkedList<>();
         List<ObservationVector> seq = new LinkedList<>();
@@ -97,7 +82,6 @@ public class TrainModel {
             double newOri = window.getOrientation();
             double newVelo = window.getVelocity();
 
-//            newOri = roundUp(newOri);
 //            Log.i(TAG, "ORI: " + newOri);
 
             seq.add(new ObservationVector(new double[]{newOri, newVelo}));

@@ -1,14 +1,12 @@
 package net.anders.autounlock.MachineLearning;
 
 import android.app.Service;
-import android.content.Context;
 import android.content.Intent;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
 import net.anders.autounlock.CoreService;
-import net.anders.autounlock.MachineLearning.HMM.RecogniseSequence;
 import net.anders.autounlock.RingBuffer;
 
 /**

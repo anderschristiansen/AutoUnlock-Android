@@ -24,7 +24,7 @@ import com.google.android.gms.location.LocationServices;
 import net.anders.autounlock.Export.Export;
 import net.anders.autounlock.MachineLearning.PatternRecognitionService;
 import net.anders.autounlock.MachineLearning.UnlockData;
-import net.anders.autounlock.MachineLearning.WindowProcessor;
+import net.anders.autounlock.MachineLearning.WindowProcess;
 import net.anders.autounlock.MachineLearning.TrainingProcess;
 import net.anders.autounlock.MachineLearning.WindowData;
 
@@ -425,6 +425,24 @@ public class CoreService extends Service implements
         stopService(bluetoothIntent);
     }
 
+    void startPatternRecognitionService() {
+        isPatternRecognitionRunning = true;
+        Log.v(TAG, "Starting PatternRecognitionService");
+        Thread patternRecognitionServiceThread = new Thread() {
+            public void run() {
+                startService(patternRecognitionIntent);
+            }
+        };
+        patternRecognitionServiceThread.start();
+    }
+
+    void stopPatternRecognitionService() {
+        isPatternRecognitionRunning = false;
+        WindowProcess.prevWindow = null;
+        Log.d("CoreService", "Trying to stop PatternRecognitionService");
+        stopService(patternRecognitionIntent);
+    }
+
     void newRingBuffer() {
         Log.d(TAG, "Starting data processing");
         windowBuffer = new RingBuffer(WindowData.class, windowBufferSize);
@@ -605,7 +623,7 @@ public class CoreService extends Service implements
 
     public void trainHMM(){
         if (!dataStore.getUnlocks().isEmpty()) {
-            TrainingProcess.Start(dataStore.getUnlocks());
+            new TrainingProcess(dataStore.getUnlocks());
         }
     }
 
@@ -622,25 +640,7 @@ public class CoreService extends Service implements
     }
 
     public static void accelerometerEvent(AccelerometerData anAccelerometerEvent) {
-        WindowProcessor.insertAccelerometerEventIntoWindow(anAccelerometerEvent);
-    }
-
-    private void startPatternRecognitionService() {
-        isPatternRecognitionRunning = true;
-        Log.v(TAG, "Starting PatternRecognitionService");
-        Thread patternRecognitionServiceThread = new Thread() {
-            public void run() {
-                startService(patternRecognitionIntent);
-            }
-        };
-        patternRecognitionServiceThread.start();
-    }
-
-    private void stopPatternRecognitionService() {
-        isPatternRecognitionRunning = false;
-        WindowProcessor.prevWindow = null;
-        Log.d("CoreService", "Trying to stop PatternRecognitionService");
-        stopService(patternRecognitionIntent);
+        new WindowProcess(anAccelerometerEvent);
     }
 
     void exportDB() {
@@ -654,7 +654,7 @@ public class CoreService extends Service implements
 
 
     static boolean enviromentalScore(String foundLock) {
-        return Enviroment.makeDecision(foundLock);
+        return Environment.makeDecision(foundLock);
 
     }
 }

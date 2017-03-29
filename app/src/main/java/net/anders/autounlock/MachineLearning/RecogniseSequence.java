@@ -1,4 +1,4 @@
-package net.anders.autounlock.MachineLearning.HMM;
+package net.anders.autounlock.MachineLearning;
 
 import android.content.Context;
 
@@ -41,16 +41,13 @@ public class RecogniseSequence {
 
     //Observation list from one gesture performance to be compared against a saved HMM
     public List<ObservationVector> sequencesInstanceVec = new ArrayList<>();
-//    public List<ObservationVector> sequencesInstanceVelo = new ArrayList<>();
-
     public double probabilityVec = 0;
-    //    public double probabilityVelo = 0;
     public double bestMatchProb = 0.00000000000000000000000001;
     public int bestMatchNo = -1;
     public int currentMatchNo = -1;
 
     public boolean recognise(Context context, WindowData[] unlock) {
-        createData(unlock);
+        createSequenceData(unlock);
         evaluate(sequencesInstanceVec);
 
         if (bestMatchNo < 0){
@@ -70,7 +67,7 @@ public class RecogniseSequence {
         return false;
     }
 
-    public void createData(WindowData[] windows){
+    public void createSequenceData(WindowData[] windows){
         for (WindowData window : windows) {
             sequencesInstanceVec.add(new ObservationVector(new double[]{window.getOrientation(), window.getVelocity()}));
         }

@@ -143,7 +143,7 @@ public class MainActivity extends AppCompatActivity {
 
     public void onButtonClickUnlock(View v) {
         if (bound) {
-            new unlockTask().execute();
+            new UnlockTask().execute();
         }
     }
 
@@ -153,7 +153,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    class unlockTask extends AsyncTask<Void, String, Void>{
+    class UnlockTask extends AsyncTask<Void, String, Void>{
         @Override
         protected void onPreExecute() {
             if (CoreService.getUnlocks().size()+1 >= CoreService.reqUnlockTraining) {
