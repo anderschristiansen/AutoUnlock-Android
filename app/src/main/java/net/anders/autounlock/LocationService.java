@@ -54,7 +54,6 @@ public class LocationService extends Service {
             LocationData aLocation;
             aLocation = new LocationData(location.getProvider(), location.getLatitude(), location.getLongitude(), location.getAccuracy(), time);
             CoreService.recordedLocation.add(aLocation);
-            CoreService.dataStore.insertLocation(location.getProvider(), location.getLatitude(), location.getLongitude(), location.getAccuracy(), time);
         }
 
         public void onStatusChanged(String provider, int status, Bundle extras) {

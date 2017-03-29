@@ -39,12 +39,6 @@ class DataStore {
     private static final String WIFI_RSSI = "RSSI";
     private static final String WIFI_NEARBY_LOCK = "nearby_lock";
 
-    private static final String LOCATION_TABLE = "location";
-    private static final String LOCATION_PROVIDER = "provider";
-    private static final String LOCATION_LATITUDE = "latitude";
-    private static final String LOCATION_LONGITUDE = "longitude";
-    private static final String LOCATION_ACCURACY = "accuracy";
-
     private static final String UNLOCK_TABLE = "unlock";
     private static final String UNLOCK_ID = "id";
     private static final String UNLOCK_CLUSTER = "cluster";
@@ -256,24 +250,6 @@ class DataStore {
             database = databaseHelper.getWritableDatabase();
             database.beginTransaction();
             database.replace(WIFI_TABLE, null, contentValues);
-            database.setTransactionSuccessful();
-        } finally {
-            database.endTransaction();
-        }
-    }
-
-    void insertLocation(String provider, double latitude, double longitude, float accuracy, long timestamp) {
-        ContentValues contentValues = new ContentValues();
-        contentValues.put(LOCATION_PROVIDER, provider);
-        contentValues.put(LOCATION_LATITUDE, latitude);
-        contentValues.put(LOCATION_LONGITUDE, longitude);
-        contentValues.put(LOCATION_ACCURACY, accuracy);
-        contentValues.put(TIMESTAMP, timestamp);
-
-        try {
-            database = databaseHelper.getWritableDatabase();
-            database.beginTransaction();
-            database.replace(LOCATION_TABLE, null, contentValues);
             database.setTransactionSuccessful();
         } finally {
             database.endTransaction();
@@ -584,13 +560,6 @@ class DataStore {
                     + TIMESTAMP + " LONG, "
                     + "PRIMARY KEY (" + WIFI_MAC + ", " + WIFI_NEARBY_LOCK + "))");
 
-            database.execSQL("CREATE TABLE " + LOCATION_TABLE + " ("
-                    + LOCATION_PROVIDER + " TEXT, "
-                    + LOCATION_LATITUDE + " TEXT, "
-                    + LOCATION_LONGITUDE + " TEXT, "
-                    + LOCATION_ACCURACY + " TEXT, "
-                    + TIMESTAMP + " LONG)");
-
             database.execSQL("CREATE TABLE " + UNLOCK_TABLE + " ("
                     + UNLOCK_ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
                     + UNLOCK_CLUSTER + " INTEGER DEFAULT 0)");
@@ -617,7 +586,6 @@ class DataStore {
             database.execSQL("DROP TABLE IF EXISTS " + LOCK_TABLE);
             database.execSQL("DROP TABLE IF EXISTS " + BLUETOOTH_TABLE);
             database.execSQL("DROP TABLE IF EXISTS " + WIFI_TABLE);
-            database.execSQL("DROP TABLE IF EXISTS " + LOCATION_TABLE);
             database.execSQL("DROP TABLE IF EXISTS " + DECISION_TABLE);
             database.execSQL("DROP TABLE IF EXISTS " + WINDOW_TABLE);
             database.execSQL("DROP TABLE IF EXISTS " + UNLOCK_TABLE);
