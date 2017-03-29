@@ -288,7 +288,7 @@ public class CoreService extends Service implements
                     } else if (geofence.contains("outer")) {
                         Log.i(TAG, "Entered outer geofence");
                         activeOuterGeofences.add(geofence.substring(5));
-                        startRingBuffer();
+                        newRingBuffer();
                         if (!isLocationDataCollectionStarted) {
                             isLocationDataCollectionStarted = true;
                             startLocationService();
@@ -335,18 +335,20 @@ public class CoreService extends Service implements
             if ("START_PATTERNRECOGNITION".equals(action)) {
                 startPatternRecognitionService();
             } else if ("STOP_PATTERNRECOGNITION".equals(action)) {
-                isTraining = true;
                 isMoving = false;
-                stopAccelerometerService();
+                stopPatternRecognitionService();
                 stopBluetoothService();
                 stopWifiService();
                 stopLocationService();
-                stopPatternRecognitionService();
+                newRingBuffer();
                 isScanningForLocks = false;
                 isDetailedDataCollectionStarted = false;
                 isLocationDataCollectionStarted = false;
             } else if ("INCORRECT_UNLOCK".equals(action)) {
                 dataStore.deleteCluster(extras.getInt("Cluster"));
+                isScanningForLocks = true;
+                isDetailedDataCollectionStarted = true;
+                isLocationDataCollectionStarted = true;
 
                 try {
                     Thread.sleep(5000);
@@ -354,15 +356,11 @@ public class CoreService extends Service implements
                     e.printStackTrace();
                 }
 
-                isTraining = false;
                 startAccelerometerService();
                 startBluetoothService();
                 startWifiService();
                 startLocationService();
                 startPatternRecognitionService();
-                isScanningForLocks = true;
-                isDetailedDataCollectionStarted = true;
-                isLocationDataCollectionStarted = true;
 
                 if (dataStore.getUnlockCount() < reqUnlockTraining) { trainingComplete = false; }
             }
@@ -427,7 +425,7 @@ public class CoreService extends Service implements
         stopService(bluetoothIntent);
     }
 
-    void startRingBuffer() {
+    void newRingBuffer() {
         Log.d(TAG, "Starting data processing");
         windowBuffer = new RingBuffer(WindowData.class, windowBufferSize);
     }

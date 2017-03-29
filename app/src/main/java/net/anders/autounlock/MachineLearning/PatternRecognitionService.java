@@ -64,17 +64,13 @@ public class PatternRecognitionService extends Service {
                             e.printStackTrace();
                         }
 
-                        if (CoreService.isTraining) {
-                            stopSelf();
-                        } else {
-                            Log.i(TAG, " ");
-                            Log.i(TAG, "INITIATE RECOGNITION");
-                            WindowData[] snapshot = RingBuffer.getSnapshot();
+                        Log.i(TAG, " ");
+                        Log.i(TAG, "INITIATE RECOGNITION");
+                        WindowData[] snapshot = RingBuffer.getSnapshot();
 
-                            if (recognise.recognise(getApplicationContext(), snapshot)) {
-                                Intent startDecision = new Intent("STOP_PATTERNRECOGNITION");
-                                sendBroadcast(startDecision);
-                            }
+                        if (recognise.recognise(getApplicationContext(), snapshot)) {
+                            Intent startDecision = new Intent("STOP_PATTERNRECOGNITION");
+                            sendBroadcast(startDecision);
                         }
 
                         try {
@@ -83,6 +79,8 @@ public class PatternRecognitionService extends Service {
                             e.printStackTrace();
                         }
                     }
+                } else {
+                    stopSelf();
                 }
             }
         }
