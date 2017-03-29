@@ -50,12 +50,11 @@ public class LocationService extends Service {
         void insertLocationData(Location location) {
             // Called when adapter new location is found by the network location provider.
             long time = System.currentTimeMillis();
-            String datetime = CoreService.getDateTime();
 
             LocationData aLocation;
-            aLocation = new LocationData(location.getProvider(), location.getLatitude(), location.getLongitude(), location.getAccuracy(), datetime, time);
+            aLocation = new LocationData(location.getProvider(), location.getLatitude(), location.getLongitude(), location.getAccuracy(), time);
             CoreService.recordedLocation.add(aLocation);
-            CoreService.dataStore.insertLocation(location.getProvider(), location.getLatitude(), location.getLongitude(), location.getAccuracy(), datetime, time);
+            CoreService.dataStore.insertLocation(location.getProvider(), location.getLatitude(), location.getLongitude(), location.getAccuracy(), time);
         }
 
         public void onStatusChanged(String provider, int status, Bundle extras) {

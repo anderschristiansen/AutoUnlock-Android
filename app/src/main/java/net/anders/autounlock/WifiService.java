@@ -35,10 +35,6 @@ public class WifiService extends Service {
 
                 CoreService.recordedWifi = new ArrayList<>();
                 for (int i = 0; i < scanResults.size(); i++) {
-
-                    //Log wifi values
-                    Logging.WifiInfo(String.valueOf(scanResults.get(i)));
-
                     String SSID = scanResults.get(i).SSID;
                     String MAC = scanResults.get(i).BSSID;
                     int RSSI = scanResults.get(i).level;

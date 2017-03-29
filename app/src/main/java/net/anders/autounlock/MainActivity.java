@@ -41,15 +41,14 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
 
+        DataStore dataStore = new DataStore(this);
+
+        /* Buttons for UI */
         addLock = (Button) findViewById(R.id.addlock);
         unlockDoor = (Button) findViewById(R.id.unlock);
         lockDoor = (Button) findViewById(R.id.lock);
         export = (Button) findViewById(R.id.exportDb);
-
-        DataStore dataStore = new DataStore(this);
 
         /* TextViews for UI */
         lockView = (TextView) findViewById(R.id.lockView);
@@ -60,43 +59,6 @@ public class MainActivity extends AppCompatActivity {
         if (!dataStore.getKnownLocks().isEmpty()) {
             addLock.setVisibility(View.GONE);
             lockView.setText("SCANNING FOR LOCK");
-        }
-    }
-
-    class unlockTask extends AsyncTask<Void, String, Void>{
-        @Override
-        protected void onPreExecute() {
-            if (CoreService.getUnlocks().size() >= CoreService.reqUnlockTraining) {
-                lockView.setText("Updating intelligence \n please be patient");
-                lockView.setVisibility(View.VISIBLE);
-                lockDoor.setVisibility(View.GONE);
-                unlockDoor.setVisibility(View.GONE);
-            }
-            unlockDoor.setEnabled(false);
-            lockDoor.setEnabled(false);
-            export.setEnabled(false);
-
-            super.onPreExecute();
-        }
-
-        @Override
-        protected void onPostExecute(Void aVoid) {
-            Toast.makeText(getApplicationContext(), "BeKey unlocked", Toast.LENGTH_SHORT).show();
-            lockView.setVisibility(View.GONE);
-            unlockDoor.setVisibility(View.VISIBLE);
-            lockDoor.setVisibility(View.VISIBLE);
-
-            unlockDoor.setEnabled(true);
-            lockDoor.setEnabled(true);
-            export.setEnabled(true);
-
-            super.onPostExecute(aVoid);
-        }
-
-        @Override
-        protected Void doInBackground(Void... voids) {
-            coreService.onButtonClickUnlock();
-            return null;
         }
     }
 
@@ -188,6 +150,43 @@ public class MainActivity extends AppCompatActivity {
     public void onButtonClickLock(View v) {
         if (bound) {
             coreService.onButtonClickLock();
+        }
+    }
+
+    class unlockTask extends AsyncTask<Void, String, Void>{
+        @Override
+        protected void onPreExecute() {
+            if (CoreService.getUnlocks().size()+1 >= CoreService.reqUnlockTraining) {
+                lockView.setText("Updating intelligence \n please be patient");
+                lockView.setVisibility(View.VISIBLE);
+                lockDoor.setVisibility(View.GONE);
+                unlockDoor.setVisibility(View.GONE);
+            }
+            unlockDoor.setEnabled(false);
+            lockDoor.setEnabled(false);
+            export.setEnabled(false);
+
+            super.onPreExecute();
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            Toast.makeText(getApplicationContext(), "BeKey unlocked", Toast.LENGTH_SHORT).show();
+            lockView.setVisibility(View.GONE);
+            unlockDoor.setVisibility(View.VISIBLE);
+            lockDoor.setVisibility(View.VISIBLE);
+
+            unlockDoor.setEnabled(true);
+            lockDoor.setEnabled(true);
+            export.setEnabled(true);
+
+            super.onPostExecute(aVoid);
+        }
+
+        @Override
+        protected Void doInBackground(Void... voids) {
+            coreService.onButtonClickUnlock();
+            return null;
         }
     }
 

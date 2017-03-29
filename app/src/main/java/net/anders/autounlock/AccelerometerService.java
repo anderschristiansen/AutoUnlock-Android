@@ -52,7 +52,6 @@ public class AccelerometerService extends Service implements SensorEventListener
             recordCurrentOrientation(magneticField, gravity);
         } else if (event.sensor == linearAccelerationSensor) {
             System.arraycopy(event.values, 0, linearAcceleration, 0, event.values.length);
-            recordLastSignificantMovement(linearAcceleration);
             accelerometerFilter(linearAcceleration[0], linearAcceleration[1], linearAcceleration[2]);
         } else if (event.sensor == rotationVectorSensor && linearAcceleration != null) {
             System.arraycopy(event.values, 0, rotationVector, 0, event.values.length);
@@ -108,15 +107,6 @@ public class AccelerometerService extends Service implements SensorEventListener
         }
     }
 
-    // Last significant movement is recorded when no axis exceeds 0.5 m/s^2 acceleration in any direction.
-    private void recordLastSignificantMovement(float[] linearAcceleration) {
-        if (linearAcceleration[0] > 0.5 || linearAcceleration[0] < -0.5
-                || linearAcceleration[1] > 0.5 || linearAcceleration[1] < -0.5
-                || linearAcceleration[2] > 0.5 || linearAcceleration[2] < -0.5) {
-            CoreService.lastSignificantMovement = System.currentTimeMillis();
-        }
-    }
-
     // getOrientation() returns radians, we convert to degrees.
     private void recordCurrentOrientation(float[] magneticField, float[] gravity) {
         float[] R = new float[9];
@@ -147,8 +137,6 @@ public class AccelerometerService extends Service implements SensorEventListener
         // Multiply the linear acceleration onto the inverted rotation matrix to get linear acceleration in
         // earth coordinates.
         android.opengl.Matrix.multiplyMV(rotatedLinearAcceleration, 0, rotationMatrixInverted, 0, linearAcceleration, 0);
-        //Log.i(TAG, "rotateAccelerationToWorldCoordinates: " + rotatedLinearAcceleration[0] + " " + rotatedLinearAcceleration[1] + " " + rotatedLinearAcceleration[2]);
-        //calculateVelocity(rotatedLinearAcceleration, timestamp);
 
         AccelerometerData anAccelerometerEvent = new AccelerometerData (
                 linearAcceleration[0],

@@ -52,7 +52,6 @@ public class CoreService extends Service implements
     private Intent bluetoothIntent;
     private Intent wifiIntent;
     private Intent locationIntent;
-    private Intent ringProcessorIntent;
     private Intent scannerIntent;
     private Intent patternRecognitionIntent;
 
@@ -65,7 +64,6 @@ public class CoreService extends Service implements
     static volatile ArrayList<String> activeInnerGeofences = new ArrayList<>();
     static ArrayList<String> activeOuterGeofences = new ArrayList<>();
 
-    static long lastSignificantMovement = 0;
     static float currentOrientation = -1f;
 
     static boolean isLocationDataCollectionStarted = false;
@@ -88,9 +86,6 @@ public class CoreService extends Service implements
     public static boolean isMoving = false;
 
     public static List<Hmm<ObservationVector>> hmmVecList = new ArrayList<>();
-
-    // Used to know if one is needed to be added
-    static boolean isLockSaved = false;
 
     // Binder given to clients
     private final IBinder localBinder = new LocalBinder();
@@ -156,13 +151,11 @@ public class CoreService extends Service implements
 
         dataStore = new DataStore(this);
         geofence = new Geofence();
-        //heuristics = new Enviroment();
 
         accelerometerIntent = new Intent(this, AccelerometerService.class);
         locationIntent = new Intent(this, LocationService.class);
         wifiIntent = new Intent(this, WifiService.class);
         bluetoothIntent = new Intent(this, BluetoothService.class);
-        ringProcessorIntent = new Intent(this, RingProcessorService.class);
         scannerIntent = new Intent(this, ScannerService.class);
         patternRecognitionIntent = new Intent(this, PatternRecognitionService.class);
 
@@ -179,11 +172,11 @@ public class CoreService extends Service implements
         startPatternRecognitionFilter.addAction("INCORRECT_UNLOCK");
         registerReceiver(startPatternRecognitionReceiver, startPatternRecognitionFilter);
 
+
+        /*  MACHINE LEARNING STATS */
         CoreService.windowBufferSize = 50;
         CoreService.windowSize = 20;
-
-        // Last % of current window will be overlapping toused in the next window
-        CoreService.windowPercentageOverlap = .2;
+        CoreService.windowPercentageOverlap = .2; // Last % of current window will be overlapping toused in the next window
         CoreService.windowOverlap =  CoreService.windowSize - ((int)(CoreService.windowSize *  CoreService.windowPercentageOverlap));
         CoreService.reqUnlockTraining = 5;
         CoreService.orientationThreshold = 50;
@@ -278,7 +271,7 @@ public class CoreService extends Service implements
             if ("GEOFENCES_ENTERED".equals(action)) {
                 for (String geofence : triggeringGeofencesList) {
                     if (geofence.contains("inner")) {
-                        Logging.GeofenceEntered("Inner");
+                        Log.i(TAG, "Entered inner geofence");
                         activeInnerGeofences.add(geofence.substring(5));
                         if (!isDetailedDataCollectionStarted) {
                             Log.i(TAG, "onReceive: starting detailed data collection");
@@ -288,9 +281,13 @@ public class CoreService extends Service implements
                             startBluetoothService();
                             startWifiService();
                             scanForLocks();
+
+                            MainActivity.lockDoor.setVisibility(View.VISIBLE);
+                            MainActivity.unlockDoor.setVisibility(View.VISIBLE);
+                            MainActivity.lockView.setVisibility(View.GONE);
                         }
                     } else if (geofence.contains("outer")) {
-                        Logging.GeofenceEntered("Outer");
+                        Log.i(TAG, "Entered outer geofence");
                         activeOuterGeofences.add(geofence.substring(5));
                         startRingBuffer();
                         if (!isLocationDataCollectionStarted) {
@@ -302,7 +299,7 @@ public class CoreService extends Service implements
             } else if ("GEOFENCES_EXITED".equals(action)) {
                 for (String geofence : triggeringGeofencesList) {
                     if (geofence.contains("inner")) {
-                        Logging.GeofenceExited("Inner");
+                        Log.i(TAG, "Exited inner geofence");
                         if (isDetailedDataCollectionStarted && activeInnerGeofences.isEmpty()) {
                             isDetailedDataCollectionStarted = false;
                             isScanningForLocks = false;
@@ -310,15 +307,13 @@ public class CoreService extends Service implements
                             stopBluetoothService();
                             stopWifiService();
                             stopPatternRecognitionService();
+
                             MainActivity.lockDoor.setVisibility(View.GONE);
                             MainActivity.unlockDoor.setVisibility(View.GONE);
                             MainActivity.lockView.setVisibility(View.VISIBLE);
                         }
                     } else if (geofence.contains("outer")) {
-                        Logging.GeofenceExited("Outer");
-
-                        // TODO ABC
-                        stopPatternRecognitionService();
+                        Log.i(TAG, "Entered outer geofence");
 
                         if (isLocationDataCollectionStarted && activeOuterGeofences.isEmpty()) {
                             isLocationDataCollectionStarted = false;
@@ -430,18 +425,9 @@ public class CoreService extends Service implements
         stopService(bluetoothIntent);
     }
 
-    // TODO ABC
     void startRingBuffer() {
         Log.d(TAG, "Starting data processing");
-
         windowBuffer = new RingBuffer(WindowData.class, windowBufferSize);
-
-        Thread ringProcessorThread = new Thread() {
-            public void run() {
-                startService(ringProcessorIntent);
-            }
-        };
-        ringProcessorThread.start();
     }
 
     void addGeofences() {
@@ -502,7 +488,6 @@ public class CoreService extends Service implements
                     );
                     Log.d(TAG, lockData.toString());
                     newLock(lockData);
-                    isLockSaved = true;
                 } else {
                     Log.e(TAG, "No location found, cannot add lock");
                 }
@@ -550,10 +535,6 @@ public class CoreService extends Service implements
     }
 
     private void scanForLocks() {
-        MainActivity.lockDoor.setVisibility(View.VISIBLE);
-        MainActivity.unlockDoor.setVisibility(View.VISIBLE);
-        MainActivity.lockView.setVisibility(View.GONE);
-
         Log.e(TAG, "scanForLocks: " + activeInnerGeofences);
         Thread scannerServiceThread = new Thread() {
             public void run() {
@@ -561,13 +542,6 @@ public class CoreService extends Service implements
             }
         };
         scannerServiceThread.start();
-    }
-
-    static String getDateTime() {
-        SimpleDateFormat dateFormat = new SimpleDateFormat(
-                "yyyy-MM-dd HH:mm:ss", Locale.getDefault());
-        Date date = new Date();
-        return dateFormat.format(date);
     }
 
     void onButtonClickAddLock() {

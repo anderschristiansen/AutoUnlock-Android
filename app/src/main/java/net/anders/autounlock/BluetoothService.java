@@ -39,9 +39,6 @@ public class BluetoothService extends Service {
         public void onScanResult(int callbackType, ScanResult result) {
             super.onScanResult(callbackType, result);
 
-            // Log bluetooth name, address, rssi and timestamp
-            Logging.BluetoothDeviceInfo(result.getDevice().getName(), result.getDevice().getAddress(), result.getRssi(), result.getTimestampNanos());
-
             String name = result.getDevice().getName();
             String source = result.getDevice().getAddress();
             int RSSI = result.getRssi();

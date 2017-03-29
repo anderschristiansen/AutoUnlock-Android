@@ -27,13 +27,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity
-            android:name=".NotificationDecisionActivity"
-            android:excludeFromRecents="true"
-            android:label="@string/title_activity_decision"
-            android:launchMode="singleTask"
-            android:taskAffinity=""
-            android:theme="@style/AppTheme.NoActionBar"></activity>
 
         <service
             android:name=".CoreService"
@@ -61,9 +54,6 @@
             android:enabled="true"/>
         <service
             android:name=".MachineLearning.PatternRecognitionService"
-            android:enabled="true" />
-        <service
-            android:name=".RingProcessorService"
             android:enabled="true" />
 
     </application>

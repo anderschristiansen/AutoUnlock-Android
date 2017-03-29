@@ -7,7 +7,6 @@ public class LocationData implements Serializable {
     double latitude;
     double longitude;
     float accuracy;
-    String datetime;
     long time;
 
     public LocationData(double latitude, double longitude) {
@@ -15,12 +14,11 @@ public class LocationData implements Serializable {
         this.longitude = longitude;
     }
 
-    public LocationData(String provider, double latitude, double longitude, float accuracy, String datetime, long time) {
+    public LocationData(String provider, double latitude, double longitude, float accuracy, long time) {
         this.provider = provider;
         this.latitude = latitude;
         this.longitude = longitude;
         this.accuracy = accuracy;
-        this.datetime = datetime;
         this.time = time;
     }
 
@@ -71,7 +69,6 @@ public class LocationData implements Serializable {
                 ", latitude=" + latitude +
                 ", longitude=" + longitude +
                 ", accuracy=" + accuracy +
-                ", datetime=" + datetime +
                 ", time=" + time +
                 '}';
     }

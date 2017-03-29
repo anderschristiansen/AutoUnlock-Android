@@ -44,7 +44,6 @@ class DataStore {
     private static final String LOCATION_LATITUDE = "latitude";
     private static final String LOCATION_LONGITUDE = "longitude";
     private static final String LOCATION_ACCURACY = "accuracy";
-    private static final String LOCATION_DATETIME = "datetime";
 
     private static final String UNLOCK_TABLE = "unlock";
     private static final String UNLOCK_ID = "id";
@@ -263,13 +262,12 @@ class DataStore {
         }
     }
 
-    void insertLocation(String provider, double latitude, double longitude, float accuracy, String datetime, long timestamp) {
+    void insertLocation(String provider, double latitude, double longitude, float accuracy, long timestamp) {
         ContentValues contentValues = new ContentValues();
         contentValues.put(LOCATION_PROVIDER, provider);
         contentValues.put(LOCATION_LATITUDE, latitude);
         contentValues.put(LOCATION_LONGITUDE, longitude);
         contentValues.put(LOCATION_ACCURACY, accuracy);
-        contentValues.put(LOCATION_DATETIME, datetime);
         contentValues.put(TIMESTAMP, timestamp);
 
         try {
@@ -291,38 +289,6 @@ class DataStore {
             database = databaseHelper.getWritableDatabase();
             database.beginTransaction();
             database.replace(DECISION_TABLE, null, contentValues);
-            database.setTransactionSuccessful();
-        } finally {
-            database.endTransaction();
-        }
-    }
-
-    void updateLockOrientation(String lockMAC, float orientation) {
-        String updateQuery = "UPDATE " + LOCK_TABLE
-                + " SET " + LOCK_ORIENTATION + " = '" + orientation + "', "
-                + TIMESTAMP + " = '" + String.valueOf(System.currentTimeMillis()) + "' "
-                + "WHERE " + LOCK_MAC + " = '" + lockMAC + "';";
-
-        try {
-            database = databaseHelper.getWritableDatabase();
-            database.beginTransaction();
-            database.execSQL(updateQuery);
-            database.setTransactionSuccessful();
-        } finally {
-            database.endTransaction();
-        }
-    }
-
-    void updateGeofence(String lockMAC, String geofence, String size) {
-        String updateQuery = "UPDATE " + LOCK_TABLE
-                + " SET " + geofence + " = '" + size + "', "
-                + TIMESTAMP + " = '" + String.valueOf(System.currentTimeMillis()) + "' "
-                + "WHERE " + LOCK_MAC + " = '" + lockMAC + "';";
-
-        try {
-            database = databaseHelper.getWritableDatabase();
-            database.beginTransaction();
-            database.execSQL(updateQuery);
             database.setTransactionSuccessful();
         } finally {
             database.endTransaction();
@@ -623,7 +589,6 @@ class DataStore {
                     + LOCATION_LATITUDE + " TEXT, "
                     + LOCATION_LONGITUDE + " TEXT, "
                     + LOCATION_ACCURACY + " TEXT, "
-                    + LOCATION_DATETIME + " TEXT, "
                     + TIMESTAMP + " LONG)");
 
             database.execSQL("CREATE TABLE " + UNLOCK_TABLE + " ("
