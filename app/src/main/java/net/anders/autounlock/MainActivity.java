@@ -10,20 +10,11 @@ import android.os.IBinder;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.widget.ToggleButton;
-
-import net.anders.autounlock.Export.Export;
-
-import java.io.IOException;
-
-import be.ac.ulg.montefiore.run.jahmm.io.FileFormatException;
 
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
@@ -54,10 +45,7 @@ public class MainActivity extends AppCompatActivity {
         // TextViews for UI
         lockView = (TextView) findViewById(R.id.lockView);
 
-        IntentFilter filter = new IntentFilter();
-        filter.addAction("BTLE_CONN");
-
-        // Disables add lock and change text if lock as already stored
+        // Disables add lock and change text if lock is already stored
         if (!dataStore.getKnownLocks().isEmpty()) {
             addLock.setVisibility(View.GONE);
             lockView.setText("SCANNING FOR LOCK");
@@ -137,7 +125,7 @@ public class MainActivity extends AppCompatActivity {
     /* Add lock adapter button */
     public void onButtonClickAddLock(View v) {
         if (bound) {
-            coreService.onButtonClickAddLock();
+            coreService.addLock();
             addLock.setVisibility(View.GONE);
             lockView.setText("SCANNING FOR LOCK");
         }
@@ -153,7 +141,7 @@ public class MainActivity extends AppCompatActivity {
      /* Lock adapter button */
     public void onButtonClickLock(View v) {
         if (bound) {
-            coreService.onButtonClickLock();
+            coreService.lock();
         }
     }
 
@@ -190,7 +178,7 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         protected Void doInBackground(Void... voids) {
-            coreService.onButtonClickUnlock();
+            coreService.unlock();
             return null;
         }
     }

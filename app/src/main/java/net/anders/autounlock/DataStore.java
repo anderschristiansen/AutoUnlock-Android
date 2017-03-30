@@ -258,6 +258,7 @@ class DataStore {
         }
     }
 
+    // Method to insert decision into DECISION_TABLE
     void insertDecision(int decision, long timestamp) {
         ContentValues contentValues = new ContentValues();
         contentValues.put(DECISION_DECISION, decision);
@@ -273,17 +274,15 @@ class DataStore {
         }
     }
 
+    // Method to delete unlock and windows
     void deleteCluster(int delete) {
-
         ArrayList<UnlockData> unlocks = getUnlocks();
-        for (UnlockData unlock : unlocks) {
 
+        for (UnlockData unlock : unlocks) {
             int clusterId = getClusterId(unlock.getId());
 
             if (clusterId == delete) {
-
                 deleteWindows(unlock.getId());
-
                 String unlockQuery = "DELETE FROM " + UNLOCK_TABLE + " WHERE " + UNLOCK_ID + "='" + unlock.getId() + "';";
 
                 try {
@@ -312,6 +311,7 @@ class DataStore {
         }
     }
 
+    // Insert snapshot consisting of sliding windows into UNLOCK_TABLE
     void insertUnlock(WindowData[] snapshot) {
         ContentValues contentValues = new ContentValues();
 
@@ -358,6 +358,7 @@ class DataStore {
         }
     }
 
+    // Method to get the amount of unlock sessions stored
     int getUnlockCount() {
         int cnt;
         try {
@@ -374,8 +375,8 @@ class DataStore {
         return cnt;
     }
 
+    // Method to retreive unlock sessions
     ArrayList<UnlockData> getUnlocks() {
-
         ArrayList<UnlockData> clusters = new ArrayList<>();
         int cur_id = 0;
         int prev_id = 0;
@@ -390,7 +391,6 @@ class DataStore {
             unlockQuery = "SELECT * FROM " + WINDOW_TABLE
                     + " INNER JOIN " + UNLOCK_TABLE
                     + " ON " + WINDOW_UNLOCK_ID + "=" + UNLOCK_ID + ";";
-
 
             Cursor unlockCursor = database.rawQuery(unlockQuery, null);
 
@@ -426,6 +426,7 @@ class DataStore {
         return clusters;
     }
 
+    // Check if the unlock session is already clustered
     boolean isClustered(int id) {
         boolean clustered = false;
         try {
@@ -447,6 +448,7 @@ class DataStore {
         return clustered;
     }
 
+    // Get cluster id of the unlock session
     int getClusterId(int id) {
         int cluster_id = 0;
         try {
@@ -468,6 +470,7 @@ class DataStore {
         return cluster_id;
     }
 
+    // Get the amount of currently stored cluster
     int getClusterCount() {
         int cnt;
         try {
@@ -485,8 +488,8 @@ class DataStore {
         return cnt;
     }
 
+    // Update the cluster of two unlock sessions
     void updateCluster(int cur_id, int next_id) {
-
         int clusterValue;
 
         if (isClustered(next_id) && getClusterId(next_id) != 0)  {
@@ -584,7 +587,6 @@ class DataStore {
                     + DECISION_DECISION + " INTEGER, "
                     + TIMESTAMP + " LONG)");
         }
-
 
         private void dropDatastore() {
             database.execSQL("DROP TABLE IF EXISTS " + LOCK_TABLE);

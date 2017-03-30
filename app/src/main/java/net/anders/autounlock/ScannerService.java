@@ -45,7 +45,6 @@ public class ScannerService extends Service {
             CoreService.isScanningForLocks = true;
             List<String> foundLocks = new ArrayList<String>();
             ArrayList<String> decisionLocks = new ArrayList<String>();
-            long startTime = System.currentTimeMillis();
 
             while (running) {
                 for (BluetoothData bluetoothData : CoreService.recordedBluetooth) {
@@ -60,10 +59,9 @@ public class ScannerService extends Service {
                     if (!decisionLocks.isEmpty()) {
                         if (!CoreService.isPatternRecognitionRunning &&
                                 !CoreService.isTraining &&
-                                !CoreService.hmmVecList.isEmpty() &&
+                                !CoreService.HMM.isEmpty() &&
                                 CoreService.trainingComplete) {
-
-                            if (CoreService.enviromentalScore(decisionLocks.get(0).toString())) {
+                            if (CoreService.environmentApproved(decisionLocks.get(0).toString())) {
                                 Intent startDecision = new Intent("START_PATTERNRECOGNITION");
                                 sendBroadcast(startDecision);
                             }

@@ -69,29 +69,31 @@ public class CoreService extends Service implements
 
     static DataStore dataStore;
 
-    public static RingBuffer<WindowData> windowBuffer;
-    public static int windowBufferSize;
-    public static int windowSize;
-    public static double windowPercentageOverlap;
-    public static int windowOverlap;
-    public static int reqUnlockTraining;
-    public static boolean trainingComplete = false;
-    public static int orientationThreshold;
-    public static int velocityThreshold;
-    public static double activityThreshold;
-    public static boolean isPatternRecognitionRunning = false;
-    public static boolean isTraining = false;
-    public static boolean isMoving = false;
+    /* Values used for ML */
+    public static RingBuffer<WindowData> windowBuffer; // Ring buffer consisting of windows
+    public static int windowBufferSize; // Size of the ring buffer
+    public static int windowSize; // Size of each window, the number of accelerometer data inputs
+    public static double windowPercentageOverlap; // Overlap percentage of the windows
+    public static int windowOverlap; // Number of windows overlap, computed from overlap % and size of windows
+    public static int reqUnlockTraining; // Required numbers of unlock sessions
+    public static boolean trainingComplete = false; // Is training done
+    public static int orientationThreshold; // Threshold to orientation clustering
+    public static int velocityThreshold; // Threshold to velocity clustering
+    public static double activityThreshold; // Threshold to activity used in correlation with accMag
+    public static boolean isPatternRecognitionRunning = false; // Is service running
+    public static boolean isTraining = false; // Is app in training mode, stop pattern recog service
+    public static boolean isMoving = false; // Are we currently moving
 
-    public static List<Hmm<ObservationVector>> hmmVecList = new ArrayList<>();
+    // List of vector observations computed from orientation and velocity
+    public static List<Hmm<ObservationVector>> HMM = new ArrayList<>();
 
     // Binder given to clients
     private final IBinder localBinder = new LocalBinder();
 
-    /**
-     * Class used for the client Binder.  Because we know this service always
-     * runs in the same process as its clients, we don't need to deal with IPC.
-     */
+
+    // Class used for the client Binder.  Because we know this service always
+    // runs in the same process as its clients, we don't need to deal with IPC.
+
     class LocalBinder extends Binder {
         CoreService getService() {
             // Return this instance of LocalService so clients can call public methods
@@ -115,9 +117,6 @@ public class CoreService extends Service implements
                 // Restore interrupt status.
                 Thread.currentThread().interrupt();
             }
-            // Stop the service using the startId, so that we don't stop
-            // the service in the middle of handling another job
-            //stopSelf(msg.arg1);
         }
     }
 
@@ -170,18 +169,24 @@ public class CoreService extends Service implements
         startPatternRecognitionFilter.addAction("INCORRECT_UNLOCK");
         registerReceiver(startPatternRecognitionReceiver, startPatternRecognitionFilter);
 
-
-        /*  MACHINE LEARNING STATS */
+        /*  MACHINE LEARNING VALUES */
         CoreService.windowBufferSize = 50;
         CoreService.windowSize = 20;
-        CoreService.windowPercentageOverlap = .2; // Last % of current window will be overlapping toused in the next window
+        CoreService.windowPercentageOverlap = .2;
         CoreService.windowOverlap =  CoreService.windowSize - ((int)(CoreService.windowSize *  CoreService.windowPercentageOverlap));
         CoreService.reqUnlockTraining = 5;
         CoreService.orientationThreshold = 50;
         CoreService.velocityThreshold = 50;
         CoreService.activityThreshold = 0;
 
+        // If the app needs to be training at upstart, mark the training setting
         if (dataStore.getUnlockCount() >= reqUnlockTraining); { trainingComplete = true;}
+
+        // Train the models as the first thing, before application can be used
+        if (!dataStore.getUnlocks().isEmpty()) {
+            MainActivity.lockView.setText("Updating intelligence \n please be patient");
+            trainModel();
+        }
 
         Log.v("CoreService", "Service created");
     }
@@ -196,7 +201,6 @@ public class CoreService extends Service implements
 
         googleConnect();
 
-        // If we get killed, after returning from here, restart
         return START_STICKY;
     }
 
@@ -256,16 +260,9 @@ public class CoreService extends Service implements
     private BroadcastReceiver geofencesReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-
-            if (!dataStore.getUnlocks().isEmpty()) {
-                MainActivity.lockView.setText("Updating intelligence \n please be patient");
-                trainHMM();
-            }
-
             String action = intent.getAction();
             Bundle extras = intent.getExtras();
             List<String> triggeringGeofencesList = extras.getStringArrayList("Geofences");
-
             Log.i(TAG, "onReceive: " + extras.getStringArrayList("Geofences"));
 
             if ("GEOFENCES_ENTERED".equals(action)) {
@@ -277,6 +274,7 @@ public class CoreService extends Service implements
                             Log.i(TAG, "onReceive: starting detailed data collection");
                             isDetailedDataCollectionStarted = true;
                             isScanningForLocks = true;
+
                             startAccelerometerService();
                             startBluetoothService();
                             startWifiService();
@@ -303,6 +301,7 @@ public class CoreService extends Service implements
                         if (isDetailedDataCollectionStarted && activeInnerGeofences.isEmpty()) {
                             isDetailedDataCollectionStarted = false;
                             isScanningForLocks = false;
+
                             stopAccelerometerService();
                             stopBluetoothService();
                             stopWifiService();
@@ -338,16 +337,11 @@ public class CoreService extends Service implements
             } else if ("STOP_PATTERNRECOGNITION".equals(action)) {
                 isMoving = false;
                 stopPatternRecognitionService();
-                stopBluetoothService();
-                stopWifiService();
-                stopLocationService();
                 newRingBuffer();
-                isScanningForLocks = false;
                 isDetailedDataCollectionStarted = false;
                 isLocationDataCollectionStarted = false;
             } else if ("INCORRECT_UNLOCK".equals(action)) {
                 dataStore.deleteCluster(extras.getInt("Cluster"));
-                isScanningForLocks = true;
                 isDetailedDataCollectionStarted = true;
                 isLocationDataCollectionStarted = true;
 
@@ -357,12 +351,9 @@ public class CoreService extends Service implements
                     e.printStackTrace();
                 }
 
-                startAccelerometerService();
-                startBluetoothService();
-                startWifiService();
-                startLocationService();
                 startPatternRecognitionService();
 
+                // Check to see if training is needed after deleting incorrect clusters
                 if (dataStore.getUnlockCount() < reqUnlockTraining) { trainingComplete = false; }
             }
         }
@@ -445,7 +436,7 @@ public class CoreService extends Service implements
     }
 
     void newRingBuffer() {
-        Log.d(TAG, "Starting data processing");
+        // Initialize the new ring buffer
         windowBuffer = new RingBuffer(WindowData.class, windowBufferSize);
     }
 
@@ -467,11 +458,13 @@ public class CoreService extends Service implements
         geofence.unregisterGeofences(this, mGoogleApiClient);
     }
 
-    static void newTruePositive() { long time = System.currentTimeMillis(); dataStore.insertDecision(0, time); }
-    static void newFalseNegative() { long time = System.currentTimeMillis(); dataStore.insertDecision(1, time); }
-    static void newFalsePositive() { long time = System.currentTimeMillis(); dataStore.insertDecision(2, time); }
-    static void newTrueNegative() { long time = System.currentTimeMillis(); dataStore.insertDecision(3, time); }
+    // Store decision output values - used for confusion matrix
+    public static void newTruePositive() { long time = System.currentTimeMillis(); dataStore.insertDecision(0, time); }
+    public static void newFalseNegative() { long time = System.currentTimeMillis(); dataStore.insertDecision(1, time); }
+    public static void newFalsePositive() { long time = System.currentTimeMillis(); dataStore.insertDecision(2, time); }
+    public static void newTrueNegative() { long time = System.currentTimeMillis(); dataStore.insertDecision(3, time); }
 
+    // Collect environmental data before saving the lock
     void saveLock(final String lockMAC) {
         new Thread(new Runnable() {
             public void run() {
@@ -514,6 +507,7 @@ public class CoreService extends Service implements
         }).start();
     }
 
+    // Insert the new lock into the database
     private boolean newLock(LockData lockData) {
         Log.d(TAG, "Inserting lock into db");
         dataStore.insertLockDetails(
@@ -563,12 +557,12 @@ public class CoreService extends Service implements
         scannerServiceThread.start();
     }
 
-    void onButtonClickAddLock() {
+    void addLock() {
         saveLock(BluetoothService.ANDERS_BEKEY);
         unlockNow();
     }
 
-    void onButtonClickUnlock() {
+    void unlock() {
         if (dataStore.getKnownLocks().isEmpty()) {
             saveLock(BluetoothService.ANDERS_BEKEY);
         } else {
@@ -580,7 +574,7 @@ public class CoreService extends Service implements
         }
     }
 
-    void onButtonClickLock() {
+    void lock() {
         if (dataStore.getKnownLocks().isEmpty()) {
             saveLock(BluetoothService.ANDERS_BEKEY);
         }
@@ -595,18 +589,21 @@ public class CoreService extends Service implements
         Toast.makeText(getApplicationContext(), "BeKey unlocked", Toast.LENGTH_SHORT).show();
     }
 
+    // Method to insert unlock session and evaluate if calibration is complete
     void handleUnlock() {
+        // Take snapshot of the currently sequential data
         WindowData[] snapshot = RingBuffer.getSnapshot();
-        dataStore.insertUnlock(snapshot);
 
-        Log.i(TAG, "Snapshot length: " + String.valueOf(snapshot.length));
+        // Insert the sequential data into the database
+        dataStore.insertUnlock(snapshot);
 
         int cntUnlock = dataStore.getUnlockCount();
 
+        // Checks if the calibration is complete
         if (cntUnlock >= reqUnlockTraining) {
             trainingComplete = true;
             Log.v(TAG, "START TRAINING");
-            hmmVecList = new ArrayList<>();
+            HMM = new ArrayList<>();
 
             // False negative condition as the door did not catch the unlock
             if (cntUnlock != reqUnlockTraining) {
@@ -614,28 +611,32 @@ public class CoreService extends Service implements
                 newFalseNegative();
             }
 
-            // Start learning procedure
-            trainHMM();
+            // Start training procedure
+            trainModel();
 
             Log.v(TAG, "TRAINING FINISHED");
             isTraining = false;
         }
     }
 
-    public void trainHMM(){
+    // Initiate training of the HMM
+    public void trainModel(){
         if (!dataStore.getUnlocks().isEmpty()) {
             new TrainingProcess(dataStore.getUnlocks());
         }
     }
 
-    public static boolean isClustered(int id) {
+    // Method to check if the unlock is already clustered
+    public static boolean isUnlockClustered(int id) {
         return dataStore.isClustered(id);
     }
 
+    // Method to update the cluster value
     public static void updateCluster(int cur_id, int next_id) {
         dataStore.updateCluster(cur_id, next_id);
     }
 
+    // Method to retreive the cluster id
     public static int getClusterId(int id) {
         return dataStore.getClusterId(id);
     }
@@ -644,18 +645,19 @@ public class CoreService extends Service implements
         windowProcess.insertAccelerometerEventIntoWindow(anAccelerometerEvent);
     }
 
+    // Method to export the database
     void exportDB() {
         Export.Database();
         Toast.makeText(getApplicationContext(), "Database exported", Toast.LENGTH_SHORT).show();
     }
 
+    // Method to get a list of unlocks sessions
     public static ArrayList<UnlockData> getUnlocks() {
         return dataStore.getUnlocks();
     }
 
-
-    static boolean enviromentalScore(String foundLock) {
+    // Method to check if the given environment is approved
+    static boolean environmentApproved(String foundLock) {
         return Environment.makeDecision(foundLock);
-
     }
 }

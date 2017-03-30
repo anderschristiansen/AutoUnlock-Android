@@ -40,7 +40,7 @@ public class LocationService extends Service {
             }else if (location.getProvider().equals("network")
                     && previousLocation.getProvider().equals("gps")
                     && System.currentTimeMillis() - previousLocation.getTime() < 6000) {
-//                    Log.v(TAG, "Ignoring network location");
+                    Log.v(TAG, "Ignoring network location");
             } else {
                 previousLocation = location;
                 insertLocationData(location);

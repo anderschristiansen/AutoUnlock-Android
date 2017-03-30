@@ -31,7 +31,7 @@ public class BluetoothService extends Service {
     PowerManager powerManager;
     PowerManager.WakeLock wakeLock;
 
-    //Scan call back function
+    /* Scan call back function */
     private ScanCallback scanCallback = new ScanCallback() {
         @Override
         public void onScanResult(int callbackType, ScanResult result) {
@@ -47,10 +47,8 @@ public class BluetoothService extends Service {
             for (BluetoothData bluetooth : CoreService.recordedBluetooth) {
                 if (time - bluetooth.getTime() > 5000) {
                     bluetoothDevicesToRemove.add(bluetooth);
-                    //CoreService.recordedBluetooth.remove(bluetooth);
                 } else if (bluetooth.getSource().equals(source)){
                     bluetoothDevicesToRemove.add(bluetooth);
-                    //CoreService.recordedBluetooth.remove(bluetooth);
                 }
             }
             CoreService.recordedBluetooth.removeAll(bluetoothDevicesToRemove);
@@ -58,11 +56,6 @@ public class BluetoothService extends Service {
             BluetoothData aBluetoothDevice;
             aBluetoothDevice = new BluetoothData(name, source, RSSI, time);
             CoreService.recordedBluetooth.add(aBluetoothDevice);
-
-            Intent i = new Intent("BTLE_CONN");
-            i.putExtra("mac", source);
-            i.putExtra("rssi", RSSI);
-            sendBroadcast(i);
         }
     };
 
@@ -107,7 +100,6 @@ public class BluetoothService extends Service {
                 }
             }
         }
-
         setScanSettings();
         bluetoothAdapter.getBluetoothLeScanner().startScan(null, scanSettings, scanCallback);
     }

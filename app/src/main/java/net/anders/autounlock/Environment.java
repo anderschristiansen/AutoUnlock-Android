@@ -14,7 +14,6 @@ class Environment {
 
     static List<BluetoothData> recentBluetoothList;
     static List<WifiData> recentWifiList;
-    static List<LocationData> recentLocationList;
 
     static boolean makeDecision(String foundLock) {
         recentBluetoothList =  CoreService.recordedBluetooth;

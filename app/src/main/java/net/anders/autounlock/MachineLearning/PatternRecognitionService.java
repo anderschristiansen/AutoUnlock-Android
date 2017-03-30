@@ -52,8 +52,9 @@ public class PatternRecognitionService extends Service {
             sendBroadcast(startRecognition);
 
             while (running) {
-
                 if (CoreService.isPatternRecognitionRunning) {
+
+                    // Ensure that the device is currently moving
                     if (CoreService.isMoving) {
 
                         try {
@@ -62,13 +63,19 @@ public class PatternRecognitionService extends Service {
                             e.printStackTrace();
                         }
 
-                        Log.i(TAG, " ");
                         Log.i(TAG, "INITIATE RECOGNITION");
+                        // Get current snapshot as the sequential data
                         WindowData[] snapshot = RingBuffer.getSnapshot();
 
+                        // Initiate recognition procedure of the snapshot
                         if (recognise.recognise(getApplicationContext(), snapshot)) {
+
+                            // If the sequential data was recognised as correcet,
+                            // stop the recognition
                             Intent startDecision = new Intent("STOP_PATTERNRECOGNITION");
                             sendBroadcast(startDecision);
+                        } else {
+                            CoreService.newTrueNegative();
                         }
 
                         try {

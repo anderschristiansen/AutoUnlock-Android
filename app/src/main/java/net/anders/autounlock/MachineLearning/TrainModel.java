@@ -42,72 +42,60 @@ public class TrainModel {
     private static final String TAG = "TrainModel";
 
     // Lists of lists of values from multiple iterations (observations), used to create HMMs
-//    List<List<ObservationVector>> toHmmOri;
-//    List<List<ObservationVector>> toHmmVelo;
-    List<List<ObservationVector>> toHmmVec;
+    List<List<ObservationVector>> toHMM;
 
-    //HMM
-//    public Hmm<ObservationVector> hmmOri;
-//    public Hmm<ObservationVector> hmmVelo;
-    public Hmm<ObservationVector> hmmVec;
+    //Hidden Markov Model of vector values of orientation and velocity
+    public Hmm<ObservationVector> HMM;
 
-    // Generate and save HMMs to text files
+
     public void train(ArrayList<UnlockData> cluster) throws IOException, InterruptedException {
 
-//        toHmmOri = new LinkedList<>();
-//        toHmmVelo = new LinkedList<>();
-        toHmmVec = new LinkedList<>();
+        toHMM = new LinkedList<>();
 
+        // Loop through every unlock in the cluster
         for (UnlockData unlock : cluster) {
+
+            // Transform unlock data into observation vectors used in HMM
             createSequenceData(unlock.getWindows());
         }
 
-//        hmmOri = createHmm(toHmmOri);
-//        hmmVelo = createHmm(toHmmVelo);
-        hmmVec = createHmm(toHmmVec);
+        // Construct Hidden Markov Model from lists of 'lists of vectors'
+        HMM = createHmm(toHMM);
 
-        CoreService.hmmVecList.add(hmmVec);
-//        CoreService.hmmVeloList.add(hmmVelo);
+        // Add the newly constructed HMM to the list of HMMs
+        CoreService.HMM.add(HMM);
     }
 
+    // Create observation vectors
     public void createSequenceData(List<WindowData> windows){
-//        List<ObservationVector> ori = new LinkedList<>();
-//        List<ObservationVector> velo = new LinkedList<>();
-        List<ObservationVector> seq = new LinkedList<>();
+
+        List<ObservationVector> vectors = new LinkedList<>();
 
         for (WindowData window : windows) {
-//            Log.i(TAG, "ORI: " + (int)window.getOrientation());
-//            Log.i(TAG, "VELO: " + window.getVelocity());
-
             double newOri = window.getOrientation();
             double newVelo = window.getVelocity();
 
-//            Log.i(TAG, "ORI: " + newOri);
-
-            seq.add(new ObservationVector(new double[]{newOri, newVelo}));
+            // Add new vector to the list from orientation and velocity data
+            vectors.add(new ObservationVector(new double[]{newOri, newVelo}));
         }
-        toHmmVec.add(seq);
-//        toHmmVelo.add(velo);
+        toHMM.add(vectors);
     }
 
-    /* Training problem - Baum Welch */
-    public Hmm<ObservationVector> createHmm(List<List<ObservationVector>> seq){
-        // The factory object initialise the observation distributions of each state to a discrete distribution.
-        // The argument ('2') of the OpdfIntegerFactory object constructor means that the observations can only have two values ('0' and '1').
-//        factory = new OpdfIntegerFactory(360);
+    // Training problem - Baum Welch
+    public Hmm<ObservationVector> createHmm(List<List<ObservationVector>> toHMM) {
 
-        KMeansLearner<ObservationVector> kml = new KMeansLearner<ObservationVector>(5, new OpdfMultiGaussianFactory(2), seq);
-        Hmm hmm = kml.iterate();
+        // K-means algorithm to find clusters with the use of centroids
+        KMeansLearner<ObservationVector> kml = new KMeansLearner<ObservationVector>(5, new OpdfMultiGaussianFactory(2), toHMM);
 
-//        kml = new KMeansLearner(8, new OpdfGaussianFactory(), seq);
-//        Hmm<ObservationInteger>hmm = kml.iterate();
+        // K-means iterate function returns a better approximation of a matching HMM
+        // and will stop when the approximation can not improve
+        Hmm model = kml.iterate();
 
-        // Now we can build a BaumWelchLearner object that can find an HMM fitted to the observation sequences we've just generated
-        // The Baum-Welch algorithm only finds the local minimum of its optimum function, so an initial approximation of the result is needed
-        // Local maximum likelihood can be derived efficiently using the Baum–Welch algorithm
+        // We can now build a BaumWelchLearner object that can find an HMM
+        // fitted to the observation sequences we've just generated
         BaumWelchLearner bwl = new BaumWelchLearner();
         bwl.setNbIterations(10);
-        hmm = bwl.learn(hmm, seq);
-        return hmm;
+        model = bwl.learn(model, toHMM);
+        return model;
     }
 }

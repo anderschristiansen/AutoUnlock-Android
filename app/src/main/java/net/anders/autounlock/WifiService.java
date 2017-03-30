@@ -43,7 +43,6 @@ public class WifiService extends Service {
                     CoreService.recordedWifi.add(aWifiDevice);
                 }
             }
-
             // We force the device to scan for wifi again when we have finished the previous scan.
             wifiManager.startScan();
         }

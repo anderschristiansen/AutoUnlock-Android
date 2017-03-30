@@ -22,13 +22,14 @@ public class TrainingProcess {
         start(unlocks);
     }
 
+    // Initiate the training process
     public void start(ArrayList<UnlockData> unlocks) {
+
+        // Create a map to hold sub lists of clusters
+        Map<Integer, ArrayList<UnlockData>> map = new HashMap<>();
 
         // Method to identify clusters in the training unlocks
         ArrayList<UnlockData> clusters = analyseClusters(unlocks);
-
-        // Create a map to hold sublists of clusters
-        Map<Integer, ArrayList<UnlockData>> map = new HashMap<>();
 
         for (UnlockData unlock : clusters) {
             // Fetch the list for this object's cluster id
@@ -44,22 +45,21 @@ public class TrainingProcess {
             temp.add(unlock);
         }
 
-        File outputDirectory = new File("/sdcard/AutoUnlock/HMM/");
-        deleteRecursive(outputDirectory);
-
+        // Method to create models of clusters of the same unlocks
         for (Map.Entry<Integer, ArrayList<UnlockData>> entry : map.entrySet()) {
             TrainModel model = new TrainModel();
 
-            ArrayList<UnlockData> temp = new ArrayList<>();
+            ArrayList<UnlockData> cluster = new ArrayList<>();
 
             for (UnlockData unlock : entry.getValue()) {
-                temp.add(unlock);
+                cluster.add(unlock);
             }
 
-            // Skip cluster id with 0, as they have not been assignt yet
-            if (temp.get(0).cluster_id != 0) {
+            // Skip cluster id with 0, as they have not been assigned yet
+            // Since every group of clusters has the same id, check only first
+            if (cluster.get(0).cluster_id != 0) {
                 try {
-                    model.train(temp);
+                    model.train(cluster);
                 } catch (IOException e) {
                     e.printStackTrace();
                 } catch (InterruptedException e) {
@@ -69,28 +69,16 @@ public class TrainingProcess {
         }
     }
 
-    private void deleteRecursive(File fileOrDirectory) {
-        if (fileOrDirectory.isDirectory())
-            for (File child : fileOrDirectory.listFiles())
-            {
-                child.delete();
-                deleteRecursive(child);
-            }
-
-        fileOrDirectory.delete();
-    }
-
     public ArrayList<UnlockData> analyseClusters(ArrayList<UnlockData> unlocks) {
 
         ArrayList<UnlockData> clusters = new ArrayList<>();
 
-        // For each train in unlockunlocks
         for (int i = 0; i < unlocks.size(); i++) {
 
             UnlockData currentUnlock = unlocks.get(i);
 
             // If the unlock is already clustered, skip
-            if (!CoreService.isClustered(i+1)) {
+            if (!CoreService.isUnlockClustered(i+1)) {
 
                 for (int j = 0; j < unlocks.size(); j++) {
                     if(j!=i){
@@ -98,7 +86,7 @@ public class TrainingProcess {
 
                         boolean cluster = true;
 
-                        // Compares each window in i train with against the next train
+                        // Compares each window in current unlock with against the next unlock
                         for (int k = 0; k < currentUnlock.getWindows().size(); k++) {
                             WindowData currentWindow = currentUnlock.getWindows().get(k);
                             WindowData nextWindow = nextUnlock.getWindows().get(k);
@@ -107,13 +95,13 @@ public class TrainingProcess {
                             // else continue to investigate if unlocks should be clustered
                             if (!similarity(currentWindow, nextWindow)) {
                                 cluster = false;
-                                Log.i(TAG, "CLUSTER NOT EXISTING: TrainModel unlock " + String.valueOf(i) + " and " + String.valueOf(i+1));
+                                Log.i(TAG, "CLUSTER NOT EXISTING: Unlock " + String.valueOf(i) + " and " + String.valueOf(i+1));
                                 break;
                             }
                         }
                         if (cluster) {
-                            // Update the two train unlocks to be clustered together
-                            Log.i(TAG, "CLUSTER FOUND: TrainModel unlock " + String.valueOf(i) + " and " + String.valueOf(i+1));
+                            // Update the two unlocks to be clustered together
+                            Log.i(TAG, "CLUSTER FOUND: Unlock " + String.valueOf(i) + " and " + String.valueOf(i+1));
                             CoreService.updateCluster(i+1, j+1); // Current train
                             break;
                         }
@@ -127,11 +115,13 @@ public class TrainingProcess {
 
     private boolean similarity(WindowData currentWindow, WindowData nextWindow) {
 
+        // Current orientation and velocity of the current and next window of the unlocks
         double c_ori = currentWindow.getOrientation();
         double c_velo = currentWindow.getVelocity();
         double n_ori = nextWindow.getOrientation();
         double n_velo = nextWindow.getVelocity();
 
+        // Check if the orientation and velocity are within threshold
         if ((Math.abs(c_ori - n_ori) < CoreService.orientationThreshold) &&
                 (Math.abs(c_velo - n_velo) < CoreService.velocityThreshold)) {
             return true;
