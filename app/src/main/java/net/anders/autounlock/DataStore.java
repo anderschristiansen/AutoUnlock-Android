@@ -44,6 +44,7 @@ class DataStore {
     private static final String UNLOCK_CLUSTER = "cluster";
 
     private static final String WINDOW_TABLE = "window";
+    private static final String WINDOW_ID = "id";
     private static final String WINDOW_UNLOCK_ID = "unlock_id";
     private static final String WINDOW_ORIENTATION = "orientation";
     private static final String WINDOW_VELOCITY = "velocity";
@@ -54,6 +55,7 @@ class DataStore {
     private static final String WINDOW_ACCELERATION_MAG = "acceleration_mag";
 
     private static final String DECISION_TABLE = "decision";
+    private static final String DECISION_ID = "id";
     private static final String DECISION_DECISION = "decision";
 
     private SQLiteDatabase database;
@@ -565,6 +567,7 @@ class DataStore {
                     + UNLOCK_CLUSTER + " INTEGER DEFAULT 0)");
 
             database.execSQL("CREATE TABLE " + WINDOW_TABLE + " ("
+                    + WINDOW_ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
                     + WINDOW_UNLOCK_ID + " INTEGER,"
                     + WINDOW_ACCELERATION_X + " DOUBLE, "
                     + WINDOW_ACCELERATION_Y + " DOUBLE, "
@@ -577,6 +580,7 @@ class DataStore {
                     + "FOREIGN KEY(" + WINDOW_UNLOCK_ID + ") REFERENCES " + UNLOCK_TABLE + "(" + UNLOCK_ID + "));");
 
             database.execSQL("CREATE TABLE " + DECISION_TABLE + " ("
+                    + DECISION_ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
                     + DECISION_DECISION + " INTEGER, "
                     + TIMESTAMP + " LONG)");
         }

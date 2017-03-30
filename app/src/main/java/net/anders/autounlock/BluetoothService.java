@@ -31,8 +31,6 @@ public class BluetoothService extends Service {
     PowerManager powerManager;
     PowerManager.WakeLock wakeLock;
 
-    long prev = 0;
-
     //Scan call back function
     private ScanCallback scanCallback = new ScanCallback() {
         @Override

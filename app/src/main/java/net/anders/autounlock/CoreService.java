@@ -59,6 +59,7 @@ public class CoreService extends Service implements
     static List<LocationData> recordedLocation = new ArrayList<LocationData>();
     static volatile ArrayList<String> activeInnerGeofences = new ArrayList<>();
     static ArrayList<String> activeOuterGeofences = new ArrayList<>();
+    static WindowProcess windowProcess = new WindowProcess();
 
     static float currentOrientation = -1f;
 
@@ -640,7 +641,7 @@ public class CoreService extends Service implements
     }
 
     public static void accelerometerEvent(AccelerometerData anAccelerometerEvent) {
-        new WindowProcess(anAccelerometerEvent);
+        windowProcess.insertAccelerometerEventIntoWindow(anAccelerometerEvent);
     }
 
     void exportDB() {

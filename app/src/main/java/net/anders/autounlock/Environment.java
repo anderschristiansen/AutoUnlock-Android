@@ -19,7 +19,6 @@ class Environment {
     static boolean makeDecision(String foundLock) {
         recentBluetoothList =  CoreService.recordedBluetooth;
         recentWifiList =  CoreService.recordedWifi;
-        recentLocationList=  CoreService.recordedLocation;
 
         // Compare the recently recorded data with the stored data and give adapter score.
         double lockScore = 0;

@@ -42,20 +42,22 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        // Constructing the database
         DataStore dataStore = new DataStore(this);
 
-        /* Buttons for UI */
+        // Buttons for UI
         addLock = (Button) findViewById(R.id.addlock);
         unlockDoor = (Button) findViewById(R.id.unlock);
         lockDoor = (Button) findViewById(R.id.lock);
         export = (Button) findViewById(R.id.exportDb);
 
-        /* TextViews for UI */
+        // TextViews for UI
         lockView = (TextView) findViewById(R.id.lockView);
 
         IntentFilter filter = new IntentFilter();
         filter.addAction("BTLE_CONN");
 
+        // Disables add lock and change text if lock as already stored
         if (!dataStore.getKnownLocks().isEmpty()) {
             addLock.setVisibility(View.GONE);
             lockView.setText("SCANNING FOR LOCK");
@@ -127,12 +129,12 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    /* Export database adapter button */
     public void onButtonClickExportDatastore(View v) {
         coreService.exportDB();
-//        Export.Windows(RingBuffer.getSnapshot());
     }
 
-    // TODO ABC
+    /* Add lock adapter button */
     public void onButtonClickAddLock(View v) {
         if (bound) {
             coreService.onButtonClickAddLock();
@@ -141,18 +143,21 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    /* Unlock adapter button */
     public void onButtonClickUnlock(View v) {
         if (bound) {
             new UnlockTask().execute();
         }
     }
 
+     /* Lock adapter button */
     public void onButtonClickLock(View v) {
         if (bound) {
             coreService.onButtonClickLock();
         }
     }
 
+    /* Asynchronous task to unlock*/
     class UnlockTask extends AsyncTask<Void, String, Void>{
         @Override
         protected void onPreExecute() {
@@ -190,7 +195,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    /** Defines callbacks for service binding, passed to bindService() */
+    /* Defines callbacks for service binding, passed to bindService() */
     private ServiceConnection serviceConnection = new ServiceConnection() {
 
         @Override

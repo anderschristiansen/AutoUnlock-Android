@@ -19,9 +19,6 @@ public class WindowProcess {
     private List<AccelerometerData> nextAccelerometerList = new ArrayList<>();
     public static WindowData prevWindow;
 
-    public WindowProcess(AccelerometerData anAccelerometerEvent) {
-        insertAccelerometerEventIntoWindow(anAccelerometerEvent);
-    }
 
     public void insertAccelerometerEventIntoWindow(AccelerometerData anAccelerometerEvent) {
 

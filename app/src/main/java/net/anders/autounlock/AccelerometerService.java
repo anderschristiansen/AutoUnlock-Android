@@ -41,8 +41,6 @@ public class AccelerometerService extends Service implements SensorEventListener
     private float previousVelocity[] = new float[3];
     private long startTime;
 
-    // Data for creating windows
-
     @Override
     public void onSensorChanged(SensorEvent event) {
         if (event.sensor == gravitySensor) {
@@ -107,7 +105,7 @@ public class AccelerometerService extends Service implements SensorEventListener
         }
     }
 
-    // getOrientation() returns radians, we convert to degrees.
+    /* getOrientation() returns radians, we convert to degrees */
     private void recordCurrentOrientation(float[] magneticField, float[] gravity) {
         float[] R = new float[9];
         float[] I = new float[9];
@@ -122,7 +120,7 @@ public class AccelerometerService extends Service implements SensorEventListener
         }
     }
 
-    // Rotation is calculated by getting a rotation matrix and mulitplying the linear acceleration onto it.
+    /* Rotation is calculated by getting a rotation matrix and mulitplying the linear acceleration onto it */
     private void rotateAccelerationToWorldCoordinates(float[] linearAcceleration, float[] rotationVector, long timestamp) {
         float[] rotationMatrixInverted = new float[16];
         float[] rotationMatrix = new float[16];
