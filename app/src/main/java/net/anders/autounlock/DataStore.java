@@ -377,7 +377,7 @@ class DataStore {
 
     // Method to retreive unlock sessions
     ArrayList<UnlockData> getUnlocks() {
-        ArrayList<UnlockData> clusters = new ArrayList<>();
+        ArrayList<UnlockData> unlocks = new ArrayList<>();
         int cur_id = 0;
         int prev_id = 0;
 
@@ -408,7 +408,7 @@ class DataStore {
 
                     if (cur_id != prev_id && prev_id != 0) {
                         UnlockData cluster = new UnlockData(prev_id, 0, unlock);
-                        clusters.add(cluster);
+                        unlocks.add(cluster);
                         unlock = new ArrayList<>();
                     }
                     unlock.add(new WindowData(accelerationX, accelerationY, speedX, speedY, orientation, velocity, accelerationMag, time));
@@ -417,13 +417,13 @@ class DataStore {
 
                 // Add current unlock to cluster when queue is at its end
                 UnlockData u = new UnlockData(cur_id, 0, unlock);
-                clusters.add(u);
+                unlocks.add(u);
             }
             unlockCursor.close();
         } finally {
             database.endTransaction();
         }
-        return clusters;
+        return unlocks;
     }
 
     // Check if the unlock session is already clustered

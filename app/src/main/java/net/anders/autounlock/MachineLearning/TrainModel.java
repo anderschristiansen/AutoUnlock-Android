@@ -47,9 +47,7 @@ public class TrainModel {
     //Hidden Markov Model of vector values of orientation and velocity
     public Hmm<ObservationVector> HMM;
 
-
     public void train(ArrayList<UnlockData> cluster) throws IOException, InterruptedException {
-
         toHMM = new LinkedList<>();
 
         // Loop through every unlock in the cluster
@@ -58,7 +56,6 @@ public class TrainModel {
             // Transform unlock data into observation vectors used in HMM
             createSequenceData(unlock.getWindows());
         }
-
         // Construct Hidden Markov Model from lists of 'lists of vectors'
         HMM = createHmm(toHMM);
 
@@ -68,7 +65,6 @@ public class TrainModel {
 
     // Create observation vectors
     public void createSequenceData(List<WindowData> windows){
-
         List<ObservationVector> vectors = new LinkedList<>();
 
         for (WindowData window : windows) {
@@ -83,14 +79,11 @@ public class TrainModel {
 
     // Training problem - Baum Welch
     public Hmm<ObservationVector> createHmm(List<List<ObservationVector>> toHMM) {
-
         // K-means algorithm to find clusters with the use of centroids
         KMeansLearner<ObservationVector> kml = new KMeansLearner<ObservationVector>(5, new OpdfMultiGaussianFactory(2), toHMM);
-
         // K-means iterate function returns a better approximation of a matching HMM
         // and will stop when the approximation can not improve
         Hmm model = kml.iterate();
-
         // We can now build a BaumWelchLearner object that can find an HMM
         // fitted to the observation sequences we've just generated
         BaumWelchLearner bwl = new BaumWelchLearner();

@@ -19,18 +19,15 @@ public class TrainingProcess {
     private static final String TAG = "TrainingProcess";
 
     public TrainingProcess(ArrayList<UnlockData> unlocks) {
-        start(unlocks);
+        training(unlocks);
     }
 
     // Initiate the training process
-    public void start(ArrayList<UnlockData> unlocks) {
-
+    public void training(ArrayList<UnlockData> unlocks) {
         // Create a map to hold sub lists of clusters
         Map<Integer, ArrayList<UnlockData>> map = new HashMap<>();
-
         // Method to identify clusters in the training unlocks
         ArrayList<UnlockData> clusters = analyseClusters(unlocks);
-
         for (UnlockData unlock : clusters) {
             // Fetch the list for this object's cluster id
             ArrayList<UnlockData> temp = map.get(unlock.getClusterId());
@@ -44,7 +41,6 @@ public class TrainingProcess {
             }
             temp.add(unlock);
         }
-
         // Method to create models of clusters of the same unlocks
         for (Map.Entry<Integer, ArrayList<UnlockData>> entry : map.entrySet()) {
             TrainModel model = new TrainModel();
@@ -54,7 +50,6 @@ public class TrainingProcess {
             for (UnlockData unlock : entry.getValue()) {
                 cluster.add(unlock);
             }
-
             // Skip cluster id with 0, as they have not been assigned yet
             // Since every group of clusters has the same id, check only first
             if (cluster.get(0).cluster_id != 0) {
@@ -70,20 +65,14 @@ public class TrainingProcess {
     }
 
     public ArrayList<UnlockData> analyseClusters(ArrayList<UnlockData> unlocks) {
-
         ArrayList<UnlockData> clusters = new ArrayList<>();
-
         for (int i = 0; i < unlocks.size(); i++) {
-
             UnlockData currentUnlock = unlocks.get(i);
-
             // If the unlock is already clustered, skip
             if (!CoreService.isUnlockClustered(i+1)) {
-
                 for (int j = 0; j < unlocks.size(); j++) {
                     if(j!=i){
                         UnlockData nextUnlock = unlocks.get(j);
-
                         boolean cluster = true;
 
                         // Compares each window in current unlock with against the next unlock

@@ -28,7 +28,6 @@ public class RecogniseSequence {
     public int currentMatchNo = -1;
 
     public boolean recognise(Context context, WindowData[] snapshot) {
-
         // Transform sequential data into a list of vector sequence
         createSequenceData(snapshot);
 

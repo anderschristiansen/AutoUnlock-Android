@@ -19,7 +19,8 @@ public class WindowProcess {
     private List<AccelerometerData> nextAccelerometerList = new ArrayList<>();
     public static WindowData prevWindow;
 
-    public void insertAccelerometerEventIntoWindow(AccelerometerData anAccelerometerEvent) {
+    public void insertAccelerometerEventIntoWindow(
+            AccelerometerData anAccelerometerEvent) {
 
         currentAccelerometerList.add(anAccelerometerEvent);
 
@@ -109,6 +110,8 @@ public class WindowProcess {
         double velocity = Math.sqrt(Math.pow(speedX, 2) + Math.pow(speedY, 2));
 
         // Save the collected data into a window
-        return new WindowData(meanAccX, meanAccY, speedX, speedY, meanOri, velocity, meanMag, time_current);
+        return new WindowData(meanAccX, meanAccY,
+                speedX, speedY, meanOri,
+                velocity, meanMag, time_current);
     }
 }

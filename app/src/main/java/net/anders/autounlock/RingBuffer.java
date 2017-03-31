@@ -63,7 +63,7 @@ public class RingBuffer<T> {
      *
      * @param sample The object to add.
      */
-    public void add (T sample) {
+    public void add(T sample) {
         buffer[(int) (cursor.getAndIncrement() % buffer.length)] = sample;
     }
 
