@@ -44,7 +44,7 @@ class DataStore {
     private static final String UNLOCK_CLUSTER = "cluster";
 
     private static final String WINDOW_TABLE = "window";
-    private static final String WINDOW_ID = "id";
+    private static final String WINDOW_ID = "window_id";
     private static final String WINDOW_UNLOCK_ID = "unlock_id";
     private static final String WINDOW_ORIENTATION = "orientation";
     private static final String WINDOW_VELOCITY = "velocity";
