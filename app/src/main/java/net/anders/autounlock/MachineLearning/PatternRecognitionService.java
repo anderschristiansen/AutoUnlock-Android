@@ -22,6 +22,7 @@ public class PatternRecognitionService extends Service {
     private RecogniseSequence recognise;
 
     private static String TAG = "RecognitionService";
+    private Intent stopRecognise = new Intent("STOP_RECOGNISE");
 
     @Override
     public void onCreate() {
@@ -58,7 +59,7 @@ public class PatternRecognitionService extends Service {
                     if (CoreService.isMoving) {
 
                         try {
-                            Thread.sleep(3000);
+                            Thread.sleep(10000);
                         } catch (InterruptedException e) {
                             e.printStackTrace();
                         }
@@ -74,12 +75,16 @@ public class PatternRecognitionService extends Service {
                             // stop the recognition
                             Intent startDecision = new Intent("STOP_PATTERNRECOGNITION");
                             sendBroadcast(startDecision);
+
+                            sendBroadcast(stopRecognise);
+                            running = false;
+                            stopSelf();
                         } else {
                             CoreService.newTrueNegative();
                         }
 
                         try {
-                            Thread.sleep(3000);
+                            Thread.sleep(10000);
                         } catch (InterruptedException e) {
                             e.printStackTrace();
                         }

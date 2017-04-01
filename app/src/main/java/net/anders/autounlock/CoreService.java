@@ -166,6 +166,7 @@ public class CoreService extends Service implements
         IntentFilter startPatternRecognitionFilter = new IntentFilter();
         startPatternRecognitionFilter.addAction("START_PATTERNRECOGNITION");
         startPatternRecognitionFilter.addAction("STOP_PATTERNRECOGNITION");
+        startPatternRecognitionFilter.addAction("STOP_RECOGNISE");
         startPatternRecognitionFilter.addAction("INCORRECT_UNLOCK");
         registerReceiver(startPatternRecognitionReceiver, startPatternRecognitionFilter);
 
@@ -351,10 +352,25 @@ public class CoreService extends Service implements
                     e.printStackTrace();
                 }
 
+                startAccelerometerService();
+                startBluetoothService();
+                startWifiService();
+                startLocationService();
                 startPatternRecognitionService();
+                isDetailedDataCollectionStarted = true;
+                isLocationDataCollectionStarted = true;
 
                 // Check to see if training is needed after deleting incorrect clusters
                 if (dataStore.getUnlockCount() < reqUnlockTraining) { trainingComplete = false; }
+            } else if ("STOP_RECOGNISE".equals(action)) {
+                stopAccelerometerService();
+                stopBluetoothService();
+                stopWifiService();
+                stopLocationService();
+                stopPatternRecognitionService();
+                isScanningForLocks = false;
+                isDetailedDataCollectionStarted = false;
+                isLocationDataCollectionStarted = false;
             }
         }
     };
